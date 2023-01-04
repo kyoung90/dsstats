@@ -15,7 +15,7 @@ namespace SqliteMigrations.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.12");
 
             modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
                 {
@@ -74,9 +74,15 @@ namespace SqliteMigrations.Migrations
                         .HasPrecision(0)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("GameMode")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WinnerTeam")
                         .HasColumnType("TEXT");
 
                     b.HasKey("EventId");
@@ -97,6 +103,43 @@ namespace SqliteMigrations.Migrations
                         .HasColumnName("Name");
 
                     b.ToView("GroupByHelper");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.NoUploadResult", b =>
+                {
+                    b.Property<int>("NoUploadResultId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LatestNoUpload")
+                        .HasPrecision(0)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LatestReplay")
+                        .HasPrecision(0)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LatestUpload")
+                        .HasPrecision(0)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NoUploadDefeats")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NoUploadTotal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalReplays")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("NoUploadResultId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("NoUploadResults");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.Player", b =>
@@ -755,6 +798,17 @@ namespace SqliteMigrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Uploader");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.NoUploadResult", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.Player", b =>

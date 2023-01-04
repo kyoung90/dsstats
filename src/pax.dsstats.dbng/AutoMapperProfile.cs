@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using pax.dsstats.shared;
 
 namespace pax.dsstats.dbng
@@ -42,8 +43,14 @@ namespace pax.dsstats.dbng
 
             CreateMap<EventDto, Event>(MemberList.Source);
             CreateMap<Event, EventDto>(MemberList.Destination);
+            CreateMap<Event, EventListDto>(MemberList.Destination);
 
             CreateMap<Replay, ReplayListDto>(MemberList.Destination)
+                .ForMember(x => x.Commander, opt => opt.Ignore())
+                .ForMember(x => x.MmrChange, opt => opt.Ignore())
+                .ForMember(x => x.Cmdrs1, opt => opt.Ignore())
+                .ForMember(x => x.Cmdrs2, opt => opt.Ignore());
+            CreateMap<Replay, ReplayListEventDto>(MemberList.Destination)
                 .ForMember(x => x.Commander, opt => opt.Ignore())
                 .ForMember(x => x.MmrChange, opt => opt.Ignore())
                 .ForMember(x => x.Cmdrs1, opt => opt.Ignore())
@@ -67,6 +74,12 @@ namespace pax.dsstats.dbng
             CreateMap<PlayerRating, PlayerRatingDetailDto>(MemberList.Destination)
                 .ForMember(x => x.FakeDiff, opt => opt.Ignore())
                 .ForMember(x => x.MmrChange, opt => opt.Ignore());
+
+            CreateMap<NoUploadResult, NoUploadResult>()
+                .ForMember(x => x.NoUploadResultId, opt => opt.Ignore())
+                .ForMember(x => x.Player, opt => opt.Ignore())
+                .ForSourceMember(x => x.NoUploadResultId, opt => opt.DoNotValidate())
+                .ForSourceMember(x => x.Player, opt => opt.DoNotValidate());
         }
     }
 }

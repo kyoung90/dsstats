@@ -5,12 +5,27 @@ using pax.dsstats.dbng;
 using pax.dsstats.shared;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 using pax.dsstats.dbng.Services;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
 namespace dsstats.Tests;
 
+public class AlphabeticalOrderer : ITestCaseOrderer
+{
+    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases)
+            where TTestCase : ITestCase
+    {
+        var result = testCases.ToList();
+        result.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.TestMethod.Method.Name, y.TestMethod.Method.Name));
+        return result;
+    }
+}
+
+[TestCaseOrderer("dsstats.Tests.AlphabeticalOrderer", "dsstats.Tests")]
 public class MmrTests
 {
     private readonly WebApplication app;
@@ -33,7 +48,6 @@ public class MmrTests
                         options.UseMySql(connectionString, serverVersion, p =>
                         {
                             p.CommandTimeout(120);
-                            p.EnableRetryOnFailure();
                             p.MigrationsAssembly("MysqlMigrations");
                             p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
                         })
@@ -45,6 +59,7 @@ public class MmrTests
         builder.Services.AddLogging();
 
         builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+        builder.Services.AddScoped<MmrProduceService>();
         builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
 
         app = builder.Build();

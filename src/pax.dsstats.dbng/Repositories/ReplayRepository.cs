@@ -7,7 +7,7 @@ using pax.dsstats.shared;
 
 namespace pax.dsstats.dbng.Repositories;
 
-public class ReplayRepository : IReplayRepository
+public partial class ReplayRepository : IReplayRepository
 {
     private readonly ILogger<ReplayRepository> logger;
     private readonly ReplayContext context;
@@ -106,7 +106,14 @@ public class ReplayRepository : IReplayRepository
             string? interest = request.SearchPlayers?
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-            await ratingRepository.SetReplayListMmrChanges(list, interest, token);
+            if (request.ToonId > 0)
+            {
+                await ratingRepository.SetReplayListMmrChanges(list, request.ToonId, token);
+            }
+            else
+            {
+                await ratingRepository.SetReplayListMmrChanges(list, interest, token);
+            }
         }
 
         return list;
@@ -207,12 +214,51 @@ public class ReplayRepository : IReplayRepository
             replays = replays.Where(x => x.ResultCorrected);
         }
 
-        replays = SearchReplays(replays, request);
+        if (request.ToonId == 0)
+        {
+            replays = SearchReplays(replays, request);
+        }
+        else
+        {
+            replays = SearchToonIds(replays, request);
+        }
 
         return replays;
     }
 
-    private IQueryable<Replay> SearchReplays(IQueryable<Replay> replays, ReplaysRequest request)
+    private IQueryable<Replay> SearchToonIds(IQueryable<Replay> replays, ReplaysRequest request)
+    {
+        if (request.ToonId == 0)
+        {
+            return replays;
+        }
+
+        if (request.ToonIdWith > 0)
+        {
+            replays = from r in replays
+                      from rp in r.ReplayPlayers
+                      from w in r.ReplayPlayers
+                      where rp.Player.ToonId == request.ToonId
+                      where w.Team == rp.Team && w.Player.ToonId == request.ToonIdWith
+                      select r;
+        }
+        else if (request.ToonIdVs > 0)
+        {
+            replays = from r in replays
+                      from rp in r.ReplayPlayers
+                      from w in r.ReplayPlayers
+                      where rp.Player.ToonId == request.ToonId
+                      where w.Team != rp.Team && w.Player.ToonId == request.ToonIdVs
+                      select r;
+        }
+        else
+        {
+            replays = replays.Where(x => x.ReplayPlayers.Any(a => a.Player.ToonId == request.ToonId));
+        }
+        return replays;
+    }
+
+    private IQueryable<Replay> SearchReplays(IQueryable<Replay> replays, ReplaysRequest request, bool withEvent = false)
     {
         if (String.IsNullOrEmpty(request.SearchPlayers) && String.IsNullOrEmpty(request.SearchString))
         {
@@ -230,7 +276,7 @@ public class ReplayRepository : IReplayRepository
         }
 
         replays = FilterCommanders(replays, searchCmdrs);
-        replays = FilterNames(replays, searchPlayers);
+        replays = FilterNames(replays, searchPlayers, withEvent);
 
         return replays;
     }
@@ -247,11 +293,23 @@ public class ReplayRepository : IReplayRepository
         return replays;
     }
 
-    private IQueryable<Replay> FilterNames(IQueryable<Replay> replays, List<string> searchPlayers)
+    private IQueryable<Replay> FilterNames(IQueryable<Replay> replays, List<string> searchPlayers, bool withEvent = false)
     {
         foreach (var player in searchPlayers)
         {
-            replays = replays.Where(x => x.ReplayPlayers.Any(a => a.Name.ToUpper().Contains(player.ToUpper())));
+            if (withEvent)
+            {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                replays = replays
+                    .Where(x => x.ReplayEvent.WinnerTeam.ToUpper().Contains(player.ToUpper())
+                    || x.ReplayEvent.RunnerTeam.ToUpper().Contains(player.ToUpper())
+                    || x.ReplayPlayers.Any(a => a.Name.ToUpper().Contains(player.ToUpper())));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            }
+            else
+            {
+                replays = replays.Where(x => x.ReplayPlayers.Any(a => a.Name.ToUpper().Contains(player.ToUpper())));
+            }
         }
         return replays;
     }
@@ -533,12 +591,12 @@ public class ReplayRepository : IReplayRepository
         }
     }
 
-    public async Task<List<string>> GetTournaments()
+    public async Task<List<EventListDto>> GetTournaments()
     {
         return await context.Events
             .AsNoTracking()
             .OrderBy(e => e.Name)
-            .Select(s => s.Name)
+            .ProjectTo<EventListDto>(mapper.ConfigurationProvider)
             .ToListAsync();
     }
 
@@ -568,6 +626,36 @@ public class ReplayRepository : IReplayRepository
         await context.SaveChangesAsync();
 
         context.ReplayViewCounts.RemoveRange(viewedHashes);
+
+        await context.SaveChangesAsync();
+    }
+
+    public async Task SetReplayDownloads()
+    {
+        var downloadedHashes = await context.ReplayDownloadCounts
+            .ToListAsync();
+
+        var replayHashDownloads = downloadedHashes.GroupBy(g => g.ReplayHash)
+            .Select(s => new { Hash = s.Key, Count = s.Count() })
+            .ToDictionary(k => k.Hash, v => v.Count);
+
+        int i = 0;
+        foreach (var ent in replayHashDownloads)
+        {
+            var replay = await context.Replays
+                .FirstOrDefaultAsync(f => f.ReplayHash == ent.Key);
+            if (replay != null)
+            {
+                replay.Downloads += ent.Value;
+            }
+            if (i % 1000 == 0)
+            {
+                await context.SaveChangesAsync();
+            }
+        }
+        await context.SaveChangesAsync();
+
+        context.ReplayDownloadCounts.RemoveRange(downloadedHashes);
 
         await context.SaveChangesAsync();
     }

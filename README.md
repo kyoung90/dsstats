@@ -1,3 +1,4 @@
+[![Dsstats Tests](https://github.com/ipax77/dsstats/actions/workflows/dsstats.tests.yml/badge.svg)](https://github.com/ipax77/dsstats/actions/workflows/dsstats.tests.yml)
 
 # Direct Strike Fan Project
 
@@ -23,3 +24,13 @@ The app is distributed via the Microsoft Store to make installation as easy as p
 # Contributing
 
 We really like people helping us with the project. Nevertheless, take your time to read our contributing guidelines [here](./CONTRIBUTING.md).
+
+## ChangeLog
+
+<details open="open"><summary>v1.0.7</summary>
+
+>- FunStats
+>- Fixed (most) NoSetupEvent decoding errors
+
+</details>
+

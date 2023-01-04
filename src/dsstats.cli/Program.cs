@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -14,7 +15,17 @@ class Program
 
     static async Task Main(string[] args)
     {
-        if (args.Length < 3)
+        Console.CancelKeyPress += Console_CancelKeyPress;
+        AppDomain.CurrentDomain.ProcessExit += AppDomain_ProcessExit;
+
+        // DEBUG
+        if (args.Length == 0)
+        {
+            // await Decode("C:\\Users\\pax77\\Documents\\StarCraft II\\Accounts\\107095918\\2-S2-1-226401\\Replays\\Multiplayer", "/data/ds/errorReplay/dummy", 8);
+            await CompareDb.CompareJsonToDb("/data/ds/errorReplay/dummy");
+        }
+
+        if (args.Length < 2)
         {
             WriteHowToUse();
             return;
@@ -37,11 +48,53 @@ class Program
             }
             await Unzip(args[1], args[2]);
         }
+        else if (args[0] == "tourneyjob")
+        {
+            if (args.Length == 3 && int.TryParse(args[1], out int cores))
+            {
+                if (!Directory.Exists(args[2]))
+                {
+                    Console.WriteLine($"tourney folder {args[2]} not found.");
+                    return;
+                }
+                Stopwatch sw = Stopwatch.StartNew();
+                try
+                {
+                    TourneyService.DecodeTourneyFolders(cores, args[2], cts.Token).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"tourneyjob failed: {ex.Message}");
+                }
+                sw.Stop();
+                Console.WriteLine($"tourneyjob done in {sw.ElapsedMilliseconds}ms");
+            }
+            else
+            {
+                WriteHowToUse();
+            }
+        }
         else
         {
+            if (args.Length > 0)
+            {
+                Console.WriteLine($"arg: {args[0]}");
+            }
             WriteHowToUse();
             return;
         }
+    }
+
+    private static void AppDomain_ProcessExit(object? sender, EventArgs e)
+    {
+        cts.Cancel();
+        cts.Dispose();
+    }
+
+    private static void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
+    {
+        cts.Cancel();
+        cts.Dispose();
     }
 
     private static void WriteHowToUse()
@@ -56,6 +109,7 @@ class Program
         Console.WriteLine("\nUsage:");
         Console.WriteLine("  decode <replayPath> <outputPath>");
         Console.WriteLine("  unzip <base64Zipfile> <outputPath>");
+        Console.WriteLine("  tourneyjob <int:cpuCoresToUse>");
     }
 
     private static async Task Unzip(string base64Zipfile, string outputPath)
@@ -88,7 +142,7 @@ class Program
         await File.WriteAllTextAsync(outputFile, JsonSerializer.Serialize(replays, new JsonSerializerOptions { WriteIndented = true }));
     }
 
-    private static async Task Decode(string replaysPath, string outputPath)
+    private static async Task Decode(string replaysPath, string outputPath, int threads = 8)
     {
         ReplayDecoder decoder = new(assemblyPath);
 
@@ -104,9 +158,8 @@ class Program
         };
 
         var replayPaths = Directory.GetFiles(replaysPath, "Direct Strike*.SC2Replay", SearchOption.TopDirectoryOnly);
-        
-        HashSet<string> mutations = new();
-        await foreach (var decodeResult in decoder.DecodeParallelWithErrorReport(replayPaths, 8, decoderOptions, cts.Token))
+
+        await foreach (var decodeResult in decoder.DecodeParallelWithErrorReport(replayPaths, threads, decoderOptions, cts.Token))
         {
             if (cts.IsCancellationRequested)
             {
@@ -124,7 +177,6 @@ class Program
                 var dsRep = Parse.GetDsReplay(decodeResult.Sc2Replay);
                 if (dsRep != null)
                 {
-                    mutations.UnionWith(dsRep.Mutations);
                     var dtoRep = Parse.GetReplayDto(dsRep);
                     SaveReplay(dtoRep, outputPath);
                 }
@@ -138,7 +190,6 @@ class Program
                 Console.WriteLine($"failed parsing sc2Replay: {ex.Message}");
             }
         }
-        File.WriteAllText("/data/ds/mutations.txt", String.Join(",", mutations));
     }
 
     private static void SaveReplay(ReplayDto? replayDto, string outputPath)
@@ -149,6 +200,8 @@ class Program
         }
         var json = JsonSerializer.Serialize(replayDto, new JsonSerializerOptions() { WriteIndented = true });
         var outputFileName = Path.Combine(outputPath, Path.GetFileNameWithoutExtension(replayDto.FileName) + ".json");
-        File.WriteAllText(outputFileName, json);
+        var tempFileName = Path.Combine(outputPath, Path.GetFileNameWithoutExtension(replayDto.FileName) + ".temp");
+        File.WriteAllText(tempFileName, json);
+        File.Move(tempFileName, outputFileName);
     }
 }

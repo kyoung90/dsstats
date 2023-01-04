@@ -22,7 +22,7 @@ public partial class RatingRepository : IRatingRepository
         this.logger = logger;
     }
 
-    public async Task<Dictionary<RatingType, Dictionary<int, CalcRating>>> GetCalcRatings(List<ReplayDsRDto> replayDsRDtos)
+    public async Task<Dictionary<RatingType, Dictionary<int, CalcRating>>> GetCalcRatings(List<ReplayDsRDto> replayDsRDtos, MmrOptions mmrOptions)
     {
         Dictionary<RatingType, Dictionary<int, CalcRating>> calcRatings = new()
         {
@@ -59,7 +59,7 @@ public partial class RatingRepository : IRatingRepository
                         ratingMemory.CmdrRavenRating = new RavenRating();
                     }
 
-                    calcRatings[ratingType].Add(ratingMemory.RavenPlayer.ToonId, GetCalcRating(ratingMemory.RavenPlayer, ratingMemory.CmdrRavenRating));
+                    calcRatings[ratingType].Add(ratingMemory.RavenPlayer.ToonId, GetCalcRating(ratingMemory.RavenPlayer, ratingMemory.CmdrRavenRating, mmrOptions));
                 }
                 else if (ratingType == RatingType.Std)
                 {
@@ -69,7 +69,7 @@ public partial class RatingRepository : IRatingRepository
                         ratingMemory.StdRavenRating = new RavenRating();
                     }
 
-                    calcRatings[ratingType].Add(ratingMemory.RavenPlayer.ToonId, GetCalcRating(ratingMemory.RavenPlayer, ratingMemory.StdRavenRating));
+                    calcRatings[ratingType].Add(ratingMemory.RavenPlayer.ToonId, GetCalcRating(ratingMemory.RavenPlayer, ratingMemory.StdRavenRating, mmrOptions));
                 }
             }
         }
@@ -77,7 +77,7 @@ public partial class RatingRepository : IRatingRepository
         return await Task.FromResult(calcRatings);
     }
 
-    private static CalcRating GetCalcRating(RavenPlayer ravenPlayer, RavenRating ravenRating)
+    private static CalcRating GetCalcRating(RavenPlayer ravenPlayer, RavenRating ravenRating, MmrOptions mmrOptions)
     {
         return new CalcRating()
         {
@@ -89,7 +89,7 @@ public partial class RatingRepository : IRatingRepository
             Wins = ravenRating?.Wins ?? 0,
             Mvp = ravenRating?.Mvp ?? 0,
 
-            Mmr = ravenRating?.Mmr ?? MmrService.startMmr,
+            Mmr = ravenRating?.Mmr ?? mmrOptions.StartMmr,
             MmrOverTime = GetTimeRatings(ravenRating?.MmrOverTime),
 
             CmdrCounts = new(), // ToDo ???
@@ -105,6 +105,27 @@ public partial class RatingRepository : IRatingRepository
             .Where(x => x.Name == name)
             .Select(s => s.ToonId)
             .ToList();
+
+        //return RatingMemory.Values
+        //    .Where(x => x.RavenPlayer.Name == name)
+        //    .Select(s => s.RavenPlayer.ToonId)
+        //    .ToList();
+    }
+
+    public async Task<List<RequestNames>> GetRequestNames(string name)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        return await context.Players
+            .Where(x => x.Name == name)
+            .Select(s => new RequestNames()
+            {
+                Name = s.Name,
+                ToonId = s.ToonId,
+                RegionId = s.RegionId
+            })
+            .ToListAsync();
 
         //return RatingMemory.Values
         //    .Where(x => x.RavenPlayer.Name == name)
@@ -269,6 +290,22 @@ public partial class RatingRepository : IRatingRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<RequestNames?> GetRequestNames(int toonId)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        return await context.Players
+            .Where(x => x.ToonId == toonId)
+            .Select(s => new RequestNames()
+            {
+                Name = s.Name,
+                ToonId = toonId,
+                RegionId = s.RegionId,
+            })
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<List<RequestNames>> GetTopPlayers(RatingType ratingType, int minGames)
     {
         using var scope = scopeFactory.CreateScope();
@@ -282,9 +319,52 @@ public partial class RatingRepository : IRatingRepository
             .Select(s => new RequestNames()
             {
                 Name = s.Player.Name,
-                ToonId = s.Player.ToonId
+                ToonId = s.Player.ToonId,
+                RegionId = s.Player.RegionId
             })
             .ToListAsync();
+    }
+
+    public async Task SetReplayListMmrChanges(List<ReplayListDto> replays, int toonId, CancellationToken token = default)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        var replayIds = replays.Select(s => s.ReplayId).Distinct().ToList();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        var replayPlayerRatings = await context.ReplayPlayerRatings
+            .Where(x => replayIds.Contains(x.ReplayId))
+            .Select(s => new MmrChangesList()
+            {
+                ReplayId = s.ReplayId,
+                ReplayPlayerId = s.ReplayPlayerId,
+                Commander = s.ReplayPlayer.Race,
+                Pos = s.Pos,
+                MmrChange = Math.Round(s.MmrChange, 1)
+            })
+            .ToListAsync(token);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+
+        var replayPlayerIds = await context.ReplayPlayers
+            .Where(x => x.Player.ToonId == toonId
+                && replayIds.Contains(x.ReplayId))
+            .Select(s => s.ReplayPlayerId)
+            .ToListAsync();
+
+        for (int i = 0; i < replays.Count; i++)
+        {
+            var replay = replays[i];
+
+            var mmrChange = replayPlayerRatings
+                .FirstOrDefault(f => f.ReplayId == replay.ReplayId
+                    && replayPlayerIds.Contains(f.ReplayPlayerId));
+
+            if (mmrChange != null)
+            {
+                replay.MmrChange = mmrChange.MmrChange;
+                replay.Commander = mmrChange.Commander;
+            }
+        }
     }
 
     public async Task SetReplayListMmrChanges(List<ReplayListDto> replays, string? searchPlayer = null, CancellationToken token = default)
@@ -343,27 +423,9 @@ public partial class RatingRepository : IRatingRepository
             if (mmrChange != null)
             {
                 replay.MmrChange = mmrChange.MmrChange;
-                replay.Commander= mmrChange.Commander;
+                replay.Commander = mmrChange.Commander;
             }
         }
-
-        //for (int i = 0; i < replays.Count; i++)
-        //{
-        //    if (replays[i].PlayerPos == 0)
-        //    {
-        //        continue;
-        //    }
-
-        //    if (token.IsCancellationRequested)
-        //    {
-        //        return;
-        //    }
-        //    replays[i].MmrChange = await context.ReplayPlayerRatings
-        //        .Where(f => f.ReplayId == replays[i].ReplayId
-        //            && f.Pos == replays[i].PlayerPos)
-        //        .Select(s => Math.Round(s.MmrChange, 1))
-        //        .FirstOrDefaultAsync(token);
-        //}
     }
 
     public async Task<int> UpdateMmrChanges(List<MmrChange> replayPlayerMmrChanges, int appendId, string csvBasePath)
@@ -448,6 +510,7 @@ internal record RatingMemory
 internal record MmrChangesList
 {
     public int ReplayId { get; init; }
+    public int ReplayPlayerId { get; init; }
     public string Name { get; init; } = "Anonymous";
     public Commander Commander { get; init; }
     public int Pos { get; init; }

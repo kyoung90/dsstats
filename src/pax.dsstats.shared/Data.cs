@@ -30,7 +30,7 @@ public static class Data
             "Vorazun" => Commander.Vorazun,
             "Zagara" => Commander.Zagara,
             "Zeratul" => Commander.Zeratul,
-            _ => Commander.Terran
+            _ => Commander.None
         };
     }
 
@@ -88,8 +88,10 @@ public static class Data
     {
         return period switch
         {
-            "This Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)), DateTime.Today),
-            "Last Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1), DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1)),
+            //"This Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)), DateTime.Today),
+            // "Last Month" => (DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddMonths(-1), DateTime.Today.AddDays(-(DateTime.Today.Day - 1)).AddDays(-1)),
+            "This Month" => (new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1), DateTime.Today),
+            "Last Month" => (new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1), new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)),
             "This Year" => (new DateTime(DateTime.Now.Year, 1, 1), DateTime.Today),
             "Last Year" => (new DateTime(DateTime.Now.AddYears(-1).Year, 1, 1), new DateTime(DateTime.Now.Year, 1, 1)),
             "Last Two Years" => (new DateTime(DateTime.Now.AddYears(-1).Year, 1, 1), DateTime.Today),
@@ -174,10 +176,10 @@ public static class Data
     public static List<RequestNames> GetDefaultRequestNames()
     {
         return new() {
-                new() { Name = "PAX", ToonId = 226401 },
-                new() { Name = "PAX", ToonId = 10188255 },
-                new() { Name = "Feralan", ToonId = 8497675 },
-                new() { Name = "Feralan", ToonId = 1488340 }
+                new() { Name = "PAX", ToonId = 226401, RegionId = 2 },
+                new() { Name = "PAX", ToonId = 10188255, RegionId = 1 },
+                new() { Name = "Feralan", ToonId = 8497675, RegionId = 1 },
+                new() { Name = "Feralan", ToonId = 1488340, RegionId = 2 }
             };
     }
 

@@ -65,10 +65,50 @@ namespace pax.dsstats.web.Server.Controllers
         }
 
         [HttpPost]
+        [Route("GetEventReplaysCount")]
+        public async Task<ActionResult<int>> GetEventReplaysCount(ReplaysRequest request, CancellationToken token = default)
+        {
+            try
+            {
+                return await replayRepository.GetEventReplaysCount(request, token);
+            }
+            catch (OperationCanceledException) { }
+            return NoContent();
+        }
+
+        [HttpPost]
+        [Route("GetEventReplays")]
+        public async Task<ActionResult<ICollection<ReplayListEventDto>>> GetEventReplays(ReplaysRequest request, CancellationToken token = default)
+        {
+            try
+            {
+                return Ok(await replayRepository.GetEventReplays(request, token));
+            }
+            catch (OperationCanceledException)
+            {
+                return NoContent();
+            }
+        }
+
+        [HttpGet]
+        [Route("GetTournaments")]
+        public async Task<List<EventListDto>> GetTournaments()
+        {
+            return await replayRepository.GetTournaments();
+        }
+
+        [HttpPost]
         [Route("GetStats")]
         public async Task<StatsResponse> GetStats(StatsRequest request, CancellationToken token = default)
         {
             return await statsService.GetStatsResponse(request);
+        }
+
+        [HttpPost]
+        [Route("GetTourneyStats")]
+        public async Task<StatsResponse> GetTourneyStats(StatsRequest request, CancellationToken token = default)
+        {
+            return await statsService.GetTourneyStats(request, token);
         }
 
         [HttpPost]
@@ -143,6 +183,29 @@ namespace pax.dsstats.web.Server.Controllers
             catch (OperationCanceledException) { }
             return NoContent();
         }
-    }
 
+        [HttpPost]
+        [Route("GetTeamReplays")]
+        public async Task<ActionResult<List<BuildResponseReplay>>> GetTeamReplays(CrossTableReplaysRequest request, CancellationToken token)
+        {
+            try
+            {
+                return await statsService.GetTeamReplays(request, token);
+            }
+            catch (OperationCanceledException) { }
+            return NoContent();
+        }
+
+        [HttpPost]
+        [Route("GetStatsUpgrades")]
+        public async Task<ActionResult<StatsUpgradesResponse>> GetUpgradeStats(BuildRequest buildRequest, CancellationToken token)
+        {
+            try
+            {
+                return await statsService.GetUpgradeStats(buildRequest, token);
+            }
+            catch (OperationCanceledException) { }
+            return NoContent();
+        }
+    }
 }
