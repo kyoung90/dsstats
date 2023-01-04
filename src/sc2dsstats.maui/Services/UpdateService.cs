@@ -6,8 +6,8 @@ namespace sc2dsstats.maui.Services;
 internal static class UpdateService
 {
     private static readonly string packageUri = "https://github.com/ipax77/dsstats/releases/latest/download/";
-    public static Version NewVersion { get; private set; } = new Version(0, 3, 4, 0);
-    public static Version CurrentVersion { get; private set; } = new Version(0, 3, 4, 0);
+    public static Version NewVersion { get; private set; } = new Version(0, 3, 5, 0);
+    public static Version CurrentVersion { get; private set; } = new Version(0, 3, 5, 0);
 
     public static EventHandler<UpdateProgressEvent>? UpdateProgress;
 
@@ -110,7 +110,7 @@ internal static class UpdateService
     }
 }
 
-internal class UpdateProgressEvent : EventArgs
+public class UpdateProgressEvent : EventArgs
 {
     public uint Progress { get; init; }
 }

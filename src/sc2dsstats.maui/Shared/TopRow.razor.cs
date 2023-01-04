@@ -62,8 +62,8 @@ public partial class TopRow : ComponentBase, IDisposable
         {
             await decodeService.ScanForNewReplays();
             await InvokeAsync(() => StateHasChanged());
-            // CheckForUpdates(true);
-            CheckForStoreUpdates(true);
+            CheckForUpdates(true);
+            // CheckForStoreUpdates(true);
         }
         await base.OnAfterRenderAsync(firstRender);
     }
