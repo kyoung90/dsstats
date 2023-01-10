@@ -1,11 +1,49 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
-using pax.dsstats;
+using System.Xml.Linq;
 
 namespace pax.dsstats.dbng.Services;
 
 public partial class StatsService
 {
+    public async Task<GameInfoResult> GetGameInfo(GameInfoRequest request, CancellationToken token)
+    {
+        GameInfoResult result = new();
+
+        if (!request.PlayerNames.Any())
+        {
+            return result;
+        }
+
+        var players = await context.Players
+                .Where(x => request.PlayerNames.Contains(x.Name) && x.RegionId == request.RegionId)
+                .Select(s => new { s.Name, s.PlayerId, s.RegionId, s.ToonId })
+                .ToListAsync(token);
+
+        foreach (var name in request.PlayerNames)
+        {
+            var player = players.FirstOrDefault(f => f.Name == name);
+
+            List<PlayerRatingInfoDto> ratings = new();
+            if (player != null)
+            {
+                ratings = await context.PlayerRatings
+                    .Where(x => x.PlayerId == player.PlayerId && x.RatingType == request.RatingType)
+                    .ProjectTo<PlayerRatingInfoDto>(mapper.ConfigurationProvider)
+                    .ToListAsync(token);
+            }
+
+            result.PlayerInfos.Add(new()
+            {
+                Name = name,
+                RequestNames = player == null ? null : new() { Name = player.Name, RegionId = player.RegionId, ToonId = player.ToonId },
+                Ratings = ratings
+            });
+        }
+        return result;
+    }
+
     public async Task<PlayerDetailDto> GetPlayerDetails(int toonId, CancellationToken token = default)
     {
         var matchups = await GetPlayerDetailInfo(toonId, token);
