@@ -2,12 +2,11 @@
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
-using pax.dsstats;
 
-namespace pax.dsstats.web.Server.Controllers
+namespace pax.dsstats.web.Server.Controllers.v2
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v2/[controller]")]
     public class StatsController : ControllerBase
     {
         private readonly IReplayRepository replayRepository;
@@ -24,6 +23,18 @@ namespace pax.dsstats.web.Server.Controllers
             this.buildService = buildService;
             this.statsService = statsService;
             this.cmdrService = cmdrService;
+        }
+
+        [HttpGet]
+        [Route("GetDetailReplay/{replayHash}")]
+        public async Task<ActionResult<ReplayDetailsDto?>> GetDetailReplay(string replayHash, CancellationToken token = default)
+        {
+            var replayDto = await replayRepository.GetDetailReplay(replayHash, false, token);
+            if (replayDto == null)
+            {
+                return NotFound();
+            }
+            return replayDto;
         }
 
         [HttpGet]
@@ -219,6 +230,13 @@ namespace pax.dsstats.web.Server.Controllers
             }
             catch (OperationCanceledException) { }
             return NoContent();
+        }
+
+        [HttpGet]
+        [Route("GetServerStats")]
+        public async Task<ActionResult<ServerStatsResponse>> GetServerStats(CancellationToken token)
+        {
+            return await statsService.GetServerStats(token);
         }
     }
 }

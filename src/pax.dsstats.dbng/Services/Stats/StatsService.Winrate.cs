@@ -29,9 +29,9 @@ public partial class StatsService
 
         var cmdrstats = await GetRequestStats(request);
 
-        DateTime endTime = request.EndTime == DateTime.MinValue ? DateTime.Today.AddDays(1) : request.EndTime;
+        (var startTime, var endTime) = Data.TimeperiodSelected(request.TimePeriod);
 
-        var stats = cmdrstats.Where(x => x.Time >= request.StartTime && x.Time <= endTime);
+        var stats = cmdrstats.Where(x => x.Time >= startTime && x.Time <= endTime);
 
         if (request.Interest != Commander.None)
         {
@@ -80,21 +80,21 @@ public partial class StatsService
 
         var rps = request.Interest == Commander.None ?
              from p in replayPlayers
-                    group new { p } by new { race = p.Race } into g
-                    select new StatsResponseItem()
-                    {
-                        Label = g.Key.race.ToString(),
-                        Matchups = g.Count(),
-                        Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
-                    }
+             group new { p } by new { race = p.Race } into g
+             select new StatsResponseItem()
+             {
+                 Label = g.Key.race.ToString(),
+                 Matchups = g.Count(),
+                 Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+             }
             : from p in replayPlayers
-                     group new { p } by new { race = p.OppRace } into g
-                     select new StatsResponseItem()
-                     {
-                         Label = g.Key.race.ToString(),
-                         Matchups = g.Count(),
-                         Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
-                     };
+              group new { p } by new { race = p.OppRace } into g
+              select new StatsResponseItem()
+              {
+                  Label = g.Key.race.ToString(),
+                  Matchups = g.Count(),
+                  Wins = g.Count(c => c.p.PlayerResult == PlayerResult.Win),
+              };
 
         var items = await rps.ToListAsync();
 

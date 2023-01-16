@@ -1,6 +1,4 @@
-﻿using MathNet.Numerics.LinearAlgebra.Factorization;
-using pax.dsstats.shared;
-using pax.dsstats;
+﻿using pax.dsstats.shared;
 using System.Net.Http.Json;
 
 namespace pax.dsstats.web.Client.Services;
@@ -9,8 +7,8 @@ public class DataService : IDataService
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<DataService> logger;
-    private readonly string statsController = "api/Stats/";
-    private readonly string buildsController = "api/Builds/";
+    private readonly string statsController = "api/v2/Stats/";
+    private readonly string buildsController = "api/v2/Builds/";
     private readonly string ratingController = "api/Ratings/";
 
     public DataService(HttpClient httpClient, ILogger<DataService> logger)
@@ -26,6 +24,29 @@ public class DataService : IDataService
     public bool GetFromServer()
     {
         return true;
+    }
+
+    public async Task<ReplayDetailsDto?> GetDetailReplay(string replayHash, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.GetAsync($"{statsController}GetDetailReplay/{replayHash}", token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ReplayDetailsDto>();
+            }
+            else
+            {
+                logger.LogError($"failed getting replay: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting replay: {e.Message}");
+        }
+        return null;
     }
 
     public async Task<ReplayDto?> GetReplay(string replayHash, CancellationToken token = default)
@@ -565,6 +586,52 @@ public class DataService : IDataService
         catch (Exception ex)
         {
             logger.LogError($"failed getting GameInfo: {ex.Message}");
+        }
+        return new();
+    }
+
+    public async Task<int> GetRatingChangesCount(RatingChangesRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetRatingChangesCount", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<int>(cancellationToken: token);
+            }
+            else
+            {
+                logger.LogError($"failed getting ratingchangescount: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratingChanges count: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<RatingChangesResult> GetRatingChanges(RatingChangesRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetRatingChanges", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<RatingChangesResult>(cancellationToken: token) ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting ratingChanges: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting ratingChanges: {e.Message}");
         }
         return new();
     }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
-using pax.dsstats;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -102,8 +101,19 @@ public class PlayerRating
     public double Consistency { get; set; }
     public double Confidence { get; set; }
     public bool IsUploader { get; set; }
+    public PlayerRatingChange? PlayerRatingChange { get; set; }
     public int PlayerId { get; set; }
     public virtual Player Player { get; set; } = null!;
+}
+
+public class PlayerRatingChange
+{
+    public int PlayerRatingChangeId { get; set; }
+    public float Change24h { get; set; }
+    public float Change10d { get; set; }
+    public float Change30d { get; set; }
+    public int PlayerRatingId { get; set; }
+    public PlayerRating PlayerRating { get; set; } = null!;
 }
 
 public class Event
@@ -183,21 +193,11 @@ public class Replay
     public string CommandersTeam2 { get; set; } = null!;
     public int? ReplayEventId { get; set; }
     public ReplayEvent? ReplayEvent { get; set; }
+    public ReplayRating? ReplayRatingInfo { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<Uploader> Uploaders { get; set; }
     [NotMapped]
     public int UploaderId { get; set; }
-}
-
-public class ReplayPlayerRating
-{
-    public int ReplayPlayerRatingId { get; set; }
-    public double MmrChange { get; set; }
-    public int Pos { get; set; }
-    public int ReplayPlayerId { get; set; }
-    public virtual ReplayPlayer? ReplayPlayer { get; set; }
-    public int ReplayId { get; set; }
-    public virtual Replay? Replay { get; set; }
 }
 
 public class ReplayPlayer
@@ -238,6 +238,7 @@ public class ReplayPlayer
     public virtual Replay Replay { get; set; } = null!;
     public int PlayerId { get; set; }
     public virtual Player Player { get; set; } = null!;
+    public RepPlayerRating? ReplayPlayerRatingInfo { get; set; }
     public virtual ICollection<Spawn> Spawns { get; set; }
     public virtual ICollection<PlayerUpgrade> Upgrades { get; set; }
 }

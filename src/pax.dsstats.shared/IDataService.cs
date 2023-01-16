@@ -1,11 +1,9 @@
-﻿using pax.dsstats.shared;
-
-namespace pax.dsstats.shared;
+﻿namespace pax.dsstats.shared;
 public interface IDataService
 {
     void SetFromServer(bool fromServer);
     bool GetFromServer();
-    Task<ReplayDto?> GetReplay(string replayHash, CancellationToken token = default);
+    Task<ReplayDetailsDto?> GetDetailReplay(string replayHash, CancellationToken token = default);
     Task<int> GetReplaysCount(ReplaysRequest request, CancellationToken token = default);
     Task<ICollection<ReplayListDto>> GetReplays(ReplaysRequest request, CancellationToken token = default);
     Task<int> GetEventReplaysCount(ReplaysRequest request, CancellationToken token = default);
@@ -35,4 +33,6 @@ public interface IDataService
     Task<FunStats> GetFunStats(List<int> toonIds);
     Task<StatsUpgradesResponse> GetUpgradeStats(BuildRequest buildRequest, CancellationToken token);
     Task<GameInfoResult> GetGameInfo(GameInfoRequest request, CancellationToken token);
+    Task<int> GetRatingChangesCount(RatingChangesRequest request, CancellationToken token);
+    Task<RatingChangesResult> GetRatingChanges(RatingChangesRequest request, CancellationToken token);
 }

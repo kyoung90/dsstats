@@ -27,13 +27,31 @@ We really like people helping us with the project. Nevertheless, take your time 
 
 ## ChangeLog
 
-<details open="open"><summary>v1.0.10</summary>
+<details open="open"><summary>v1.1.2 (web only atm)</summary>
 
->- RatingType LongNames
+>- [Leaver Handling](https://github.com/ipax77/dsstats/wiki/LeaverHandling) active
+>- TimePeriods refactoring - new TimePeriod "Past 90 Days" is default, now
+>- Std-Teams details ordering fixed
+>- Replay Rating Info
+>- Player rating changes (past 24h, 10 days, 30 days)
 
 </details>
 
-<details open="open"><summary>v1.0.9</summary>
+<details open="open"><summary>v1.1.1</summary>
+
+>- Fix Ocr temp image path
+
+</details>
+
+<details><summary>v1.1.0</summary>
+
+>- RatingType LongNames
+>- pax.BlazorChartJs to v0.4.1
+>- Ocr Direct Strike Loading Screen (experimental)
+
+</details>
+
+<details><summary>v1.0.9</summary>
 
 >- PlayerRatings Position
 

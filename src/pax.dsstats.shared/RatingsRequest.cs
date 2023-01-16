@@ -1,5 +1,4 @@
-
-using pax.dsstats.shared;
+using System.Text.Json.Serialization;
 
 namespace pax.dsstats.shared;
 
@@ -12,6 +11,8 @@ public record RatingsRequest
     public string? Search { get; set; }
     public int? ToonId { get; set; }
     public bool Uploaders { get; set; } = true;
+    [JsonIgnore]
+    public RatingChangeTimePeriod TimePeriod { get; set; } = RatingChangeTimePeriod.Past10Days;
 }
 
 public record RatingsResult

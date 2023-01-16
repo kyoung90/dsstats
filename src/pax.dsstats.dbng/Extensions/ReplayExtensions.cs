@@ -1,4 +1,5 @@
 
+using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
 using System.Security.Cryptography;
 using System.Text;
@@ -72,7 +73,6 @@ public static class ReplayExtensions
     {
         var sb = new StringBuilder();
         sb.Append("StatsCount");
-        sb.Append(statsRequest.StartTime.ToString(@"yyyyMMdd"));
         sb.Append((int)statsRequest.Interest);
         sb.Append(statsRequest.TimePeriod);
         sb.Append(String.Concat(statsRequest.GameModes.Select(s => (int)s)));
@@ -93,7 +93,6 @@ public static class ReplayExtensions
         }
         sb.Append("Stats");
         sb.Append(statsRequest.StatsMode.ToString());
-        sb.Append(statsRequest.StartTime.ToString(@"yyyyMMdd"));
         sb.Append((int)statsRequest.Interest);
         sb.Append(statsRequest.DefaultFilter);
         sb.Append(statsRequest.Uploaders);
@@ -111,7 +110,7 @@ public static class ReplayExtensions
     {
         var sb = new StringBuilder();
         sb.Append("Builds");
-        sb.Append(buildRequest.StartTime.ToString(@"yyyyMMdd"));
+        sb.Append(buildRequest.Timespan);
         sb.Append(buildRequest.Interest);
         sb.Append(buildRequest.Versus);
         sb.Append(String.Concat(buildRequest.PlayerNames.Select(s => s.ToonId.ToString())));
@@ -135,6 +134,17 @@ public static class ReplayExtensions
         sb.Append(crossTableRequest.TimePeriod);
         sb.Append(crossTableRequest.Mode);
         sb.Append(crossTableRequest.TeMaps);
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this RatingChangesRequest ratingChangesRequest)
+    {
+        var fromDate = RatingRepository.GetRatingChangesFromDate(ratingChangesRequest.TimePeriod);
+        var sb = new StringBuilder();
+        sb.Append("ratingChange");
+        sb.Append(fromDate.ToString("yyyyMMdd"));
+        sb.Append(ratingChangesRequest.RatingType.ToString());
+        sb.Append(ratingChangesRequest.TimePeriod.ToString());
         return sb.ToString();
     }
 
