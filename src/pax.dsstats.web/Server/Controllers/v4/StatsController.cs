@@ -3,10 +3,10 @@ using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
 
-namespace pax.dsstats.web.Server.Controllers.v3
+namespace pax.dsstats.web.Server.Controllers.v4
 {
     [ApiController]
-    [Route("api/v3/[controller]")]
+    [Route("api/v4/[controller]")]
     public class StatsController : ControllerBase
     {
         private readonly IReplayRepository replayRepository;
@@ -241,12 +241,11 @@ namespace pax.dsstats.web.Server.Controllers.v3
 
         [HttpPost]
         [Route("GetCmdrStrength")]
-        public async Task<ActionResult<CmdrStrengthResultV3>> GetCmdrStrength(CmdrStrengthRequest request, CancellationToken token)
+        public async Task<ActionResult<CmdrStrengthResult>> GetCmdrStrength(CmdrStrengthRequestV4 request, CancellationToken token)
         {
             try
             {
-                var result = await statsService.GetCmdrStrengthResults(request, token);
-                return new CmdrStrengthResultV3(result);
+                return await statsService.GetCmdrStrengthResults(request.GetCmdrStrengthRequest(), token);
             }
             catch (OperationCanceledException) { }
             return NoContent();
@@ -254,25 +253,18 @@ namespace pax.dsstats.web.Server.Controllers.v3
     }
 }
 
-public record CmdrStrengthResultV3
+public record CmdrStrengthRequestV4
 {
-    public CmdrStrengthResultV3(CmdrStrengthResult result)
-    {
-        Items = result.Items.Select(s => new CmdrStrengthItemV3()
-        {
-            Commander = s.Commander,
-            Matchups = s.Matchups,
-            AvgRating= s.AvgRating,
-            Wins = s.Wins,
-        }).ToList();
-    }
-    public List<CmdrStrengthItemV3> Items { get; init; }
-}
+    public RatingType RatingType { get; set; }
+    public TimePeriod TimePeriod { get; set; }
 
-public record CmdrStrengthItemV3
-{
-    public Commander Commander { get; init; }
-    public int Matchups { get; init; }
-    public double AvgRating { get; init; }
-    public int Wins { get; init; }
+    public CmdrStrengthRequest GetCmdrStrengthRequest()
+    {
+        return new()
+        {
+            RatingType = RatingType,
+            TimePeriod = TimePeriod,
+            Interest = Commander.None
+        };
+    }
 }
