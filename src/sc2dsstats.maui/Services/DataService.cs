@@ -12,6 +12,7 @@ public partial class DataService : IDataService
     private readonly IStatsService statsService;
     private readonly IRatingRepository ratingRepository;
     private readonly IFromServerSwitchService fromServerSwitchService;
+    private readonly PlayerService playerService;
     private readonly ILogger<DataService> logger;
     private readonly HttpClient httpClient;
 
@@ -20,6 +21,7 @@ public partial class DataService : IDataService
                        IStatsService statsService,
                        IRatingRepository ratingRepository,
                        IFromServerSwitchService fromServerSwitchService,
+                       PlayerService playerService,
                        ILogger<DataService> logger)
     {
         this.replayRepository = replayRepository;
@@ -27,6 +29,7 @@ public partial class DataService : IDataService
         this.statsService = statsService;
         this.ratingRepository = ratingRepository;
         this.fromServerSwitchService = fromServerSwitchService;
+        this.playerService = playerService;
         this.logger = logger;
         httpClient = new HttpClient();
         // httpClient.BaseAddress = new Uri("https://localhost:7174");
@@ -76,7 +79,7 @@ public partial class DataService : IDataService
         }
         else
         {
-            return await replayRepository.GetReplaysCount(request, token);
+            return await replayRepository.GetReplaysCountNg(request, token);
         }
     }
 
@@ -88,7 +91,7 @@ public partial class DataService : IDataService
         }
         else
         {
-            return await replayRepository.GetReplays(request, token);
+            return await replayRepository.GetReplaysNg(request, token);
         }
     }
 
@@ -305,5 +308,67 @@ public partial class DataService : IDataService
     public async Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token)
     {
         return await Task.FromResult(new CmdrStrengthResult());
+    }
+
+    public async Task<DistributionResponse> GetDistribution(DistributionRequest request, CancellationToken token = default)
+    {
+        return await ratingRepository.GetDistribution(request, token);
+    }
+
+    public async Task<PlayerDetailResponse> GetPlayerDetails(PlayerDetailRequest request, CancellationToken token)
+    {
+        return await playerService.GetPlayerDetails(request, token);
+    }
+
+    public async Task<PlayerDetailSummary> GetPlayerSummary(int toonId, CancellationToken token = default)
+    {
+        if (fromServerSwitchService.GetFromServer())
+        {
+            return await ServerGetPlayerSummary(toonId, token);
+        }
+        else
+        {
+            try
+            {
+                return await playerService.GetPlayerSummary(toonId, token);
+            }
+            catch (OperationCanceledException) { }
+
+            return new();
+        }
+    }
+
+    public async Task<PlayerRatingDetails> GetPlayerRatingDetails(int toonId, RatingType ratingType, CancellationToken token = default)
+    {
+        if (fromServerSwitchService.GetFromServer())
+        {
+            return await ServerGetPlayerRatingDetails(toonId, ratingType, token);
+        }
+        else
+        {
+            try
+            {
+                return await playerService.GetPlayerRatingDetails(toonId, ratingType, token);
+            }
+            catch (OperationCanceledException) { }
+            return new();
+        }
+    }
+
+    public async Task<List<PlayerCmdrAvgGain>> GetPlayerCmdrAvgGain(int toonId, RatingType ratingType, TimePeriod timePeriod, CancellationToken token = default)
+    {
+        if (fromServerSwitchService.GetFromServer())
+        {
+            return await GetPlayerCmdrAvgGain(toonId, ratingType, timePeriod, token);
+        }
+        else
+        {
+            try
+            {
+                return await playerService.GetPlayerCmdrAvgGain(toonId, ratingType, timePeriod, token);
+            }
+            catch (OperationCanceledException) { }
+            return new();
+        }
     }
 }

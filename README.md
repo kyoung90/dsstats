@@ -14,6 +14,9 @@ The app can be used offline to analyze your stats locally. If you want to upload
 
 The app is distributed via the Microsoft Store to make installation as easy as possible. It is and always will be freely available.
 
+### GitHub Release
+To install the [GitHub release](https://github.com/ipax77/dsstats/releases/latest) follow the install instructions from [Microsoft](https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli#installing-the-app), please.
+
 ## Website
 [dsstats.pax77.org](https://dsstats.pax77.org)
 
@@ -27,7 +30,13 @@ We really like people helping us with the project. Nevertheless, take your time 
 
 ## ChangeLog
 
-<details open="open"><summary>v1.1.5</summary>
+<details open="open"><summary>v1.1.6</summary>
+
+>- Player Details rework
+
+</details>
+
+<details><summary>v1.1.5</summary>
 
 >- App (latest)replay live ratings
 >- Commander Strength Bubble Chart

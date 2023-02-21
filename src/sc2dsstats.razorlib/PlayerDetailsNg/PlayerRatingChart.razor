@@ -2,31 +2,23 @@
 @using pax.BlazorChartJs;
 @using pax.dsstats.shared;
 
-<div class="row">
-    @foreach (var chartJsConfig in chartJsConfigs)
-    {
-        <div class="col-auto" style="min-width: 500px; width: 35vw; min-height: 250px; height: calc(35vw * 0.5);">
-            <ChartComponent ChartJsConfig="chartJsConfig" OnEventTriggered="EventTriggered"></ChartComponent>
-        </div>
-    }
+
+<div class="col-auto" style="min-width: 500px; width: 35vw; min-height: 250px; height: calc(35vw * 0.5);">
+    <ChartComponent ChartJsConfig="chartConfig" OnEventTriggered="EventTriggered"></ChartComponent>
 </div>
 @code {
-    List<ChartJsConfig> chartJsConfigs = new();
-    private int chartSetups;
-    private bool chartsSetup;
-    private bool chartDataUp;
-
     [Parameter, EditorRequired]
-    public List<PlayerRatingDetailDto> PlayerRatings { get; set; } = new();
+    public PlayerRatingDetailDto PlayerRating { get; set; } = default!;
 
-    [Parameter]
-    public EventCallback ChartsUp { get; set; }
+    bool chartReady;
+    bool dataReady;
+
+    ChartJsConfig chartConfig = null!;
 
     protected override void OnInitialized()
     {
-        PlayerRatings
-            .ForEach(f => chartJsConfigs.Add(GetLineChartConfig(f.RatingType)));
-        chartDataUp = true;
+        chartConfig = GetLineChartConfig(PlayerRating.RatingType);
+        dataReady = true;
         base.OnInitialized();
     }
 
@@ -34,121 +26,73 @@
     {
         if (e is ChartJsInitEvent initEvent)
         {
-            Interlocked.Increment(ref chartSetups);
-            if (chartSetups >= PlayerRatings.Count)
+            chartReady = true;
+            if (chartReady && dataReady)
             {
-                chartsSetup = true;
-            }
-            if (chartsSetup && chartDataUp)
-            {
-                SetupCharts();
+                SetupChart();
             }
         }
     }
 
-    public void UpdateCharts(List<PlayerRatingDetailDto> playerRatings)
+    public void UpdateChart(PlayerRatingDetailDto? playerRating)
     {
-        PlayerRatings = playerRatings;
-
-        chartDataUp = false;
-
-        foreach (var chartJsConfig in chartJsConfigs.ToArray())
+        if (!chartReady)
         {
-            var title = chartJsConfig.Options?.Plugins?.Title?.Text?.SingleValue;
-
-            if (title == null)
-            {
-                continue;
-            }
-
-            var index = title.IndexOf(' ');
-
-            if (index <= 0)
-            {
-                continue;
-            }
-
-            var ratingString = title[..index];
-            ratingString = ratingString.Trim();
-
-            if (Enum.TryParse(typeof(RatingType), ratingString, out var ratingTypeObj)
-                && ratingTypeObj is RatingType ratingType)
-            {
-                var playerRating = PlayerRatings.FirstOrDefault(f => f.RatingType == ratingType);
-
-                if (playerRating == null)
-                {
-                    chartJsConfigs.Remove(chartJsConfig);
-                    chartSetups--;
-                }
-            }
+            return;
         }
 
-        foreach (var playerRating in PlayerRatings)
+        if (chartConfig.Data.Datasets.Any())
         {
-            var chartJsConfig = chartJsConfigs
-                .FirstOrDefault(f => f.Options?.Plugins?.Title?.Text?.SingleValue == $"{playerRating.RatingType} development");
-
-            if (chartJsConfig == null)
-            {
-                chartJsConfigs.Add(GetLineChartConfig(playerRating.RatingType));
-                chartsSetup = false;
-            }
+            chartConfig.RemoveDatasets(chartConfig.Data.Datasets);
         }
-        chartDataUp = true;
-        StateHasChanged();
 
-        if (chartDataUp && chartsSetup)
+        if (playerRating == null)
         {
-            SetupCharts();
+            return;
         }
+
+        if (chartConfig.Options?.Plugins?.Title != null)
+        {
+            chartConfig.Options.Plugins.Title.Text = new IndexableOption<string>($"{playerRating.RatingType} development");
+            chartConfig.UpdateChartOptions();
+        }
+
+        PlayerRating = playerRating;
+
+        SetupChart();
     }
 
-    private void SetupCharts()
+    private void SetupChart()
     {
-        for (int i = 0; i < PlayerRatings.Count; i++)
+        if (String.IsNullOrEmpty(PlayerRating.MmrOverTime))
         {
-            var rating = PlayerRatings[i];
+            return;
+        }
 
-            if (String.IsNullOrEmpty(rating.MmrOverTime))
+        List<string> labels = new();
+        List<double> ratings = new();
+        List<int> counts = new();
+
+        var ents = PlayerRating.MmrOverTime.Split('|');
+        for (int j = 0; j < ents.Length; j++)
+        {
+            var entData = ents[j].Split(',');
+            if (double.TryParse(entData[0], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double mmr))
             {
-                continue;
-            }
-
-            var chartJsConfig = chartJsConfigs[i];
-
-            List<string> labels = new();
-            List<double> ratings = new();
-            List<int> counts = new();
-
-            var ents = rating.MmrOverTime.Split('|');
-            for (int j = 0; j < ents.Length; j++)
-            {
-                var entData = ents[j].Split(',');
-                if (double.TryParse(entData[0], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double mmr))
+                ratings.Add(Math.Round(mmr, 1));
+                labels.Add(GetNiceLabel(entData[1]));
+                if (entData.Length == 3)
                 {
-                    ratings.Add(Math.Round(mmr, 1));
-                    labels.Add(GetNiceLabel(entData[1]));
-                    if (entData.Length == 3)
-                    {
-                        counts.Add(int.Parse(entData[2]));
-                    }
+                    counts.Add(int.Parse(entData[2]));
                 }
             }
+        }
 
-            if (chartJsConfig.Data.Datasets.Any())
-            {
-                foreach (var dataset in chartJsConfig.Data.Datasets.ToArray())
-                {
-                    chartJsConfig.RemoveDataset(dataset);
-                }
-            }
-            chartJsConfig.SetLabels(labels);
-            chartJsConfig.AddDataset(GetLineDataset(ratings, rating.Player.Name, rating.RatingType));
-            if (counts.Any())
-            {
-                chartJsConfig.AddDataset(GetCountDataset(counts));
-            }
+        chartConfig.SetLabels(labels);
+        chartConfig.AddDataset(GetLineDataset(ratings, PlayerRating.Player.Name, PlayerRating.RatingType));
+        if (counts.Any())
+        {
+            chartConfig.AddDataset(GetCountDataset(counts));
         }
     }
 

@@ -668,4 +668,101 @@ public class DataService : IDataService
         }
         return new();
     }
+
+    public async Task<DistributionResponse> GetDistribution(DistributionRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetDistribution", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<DistributionResponse>(cancellationToken: token) ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting distribution: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting distribution: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<PlayerDetailResponse> GetPlayerDetails(PlayerDetailRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{ratingController}GetPlayerDetails", request, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<PlayerDetailResponse>(cancellationToken: token) ?? new();
+            }
+            else
+            {
+                logger.LogError($"failed getting player details: {response.StatusCode}");
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            logger.LogError($"failed getting player details: {e.Message}");
+        }
+        return new();
+    }
+
+    public async Task<PlayerDetailSummary> GetPlayerSummary(int toonId, CancellationToken token = default)
+    {
+        try
+        {
+            var result = await httpClient.GetFromJsonAsync<PlayerDetailSummary>($"{ratingController}GetPlayerDatailSummary/{toonId}", token);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed getting player summary: {ex.Message}");
+        }
+        return new();
+    }
+
+    public async Task<PlayerRatingDetails> GetPlayerRatingDetails(int toonId, RatingType ratingType, CancellationToken token = default)
+    {
+        try
+        {
+            var result = await httpClient.GetFromJsonAsync<PlayerRatingDetails>($"{ratingController}GetPlayerRatingDetails/{toonId}/{(int)ratingType}", token);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed getting player rating details: {ex.Message}");
+        }
+        return new();
+    }
+
+    public async Task<List<PlayerCmdrAvgGain>> GetPlayerCmdrAvgGain(int toonId, RatingType ratingType, TimePeriod timePeriod, CancellationToken token = default)
+    {
+        try
+        {
+            var result = await httpClient.GetFromJsonAsync<List<PlayerCmdrAvgGain>>($"{ratingController}GetPlayerCmdrAvgGain/{toonId}/{(int)ratingType}/{(int)timePeriod}", token);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"failed getting player cmdr avg gain: {ex.Message}");
+        }
+        return new();
+    }
 }

@@ -46,7 +46,11 @@ public static class MauiProgram
         builder.Services.AddMemoryCache();
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
         builder.Services.AddBlazoredToast();
-        builder.Services.AddChartJs();
+        builder.Services.AddChartJs(options =>
+        {
+            options.ChartJsLocation = "/js/chart.js";
+            options.ChartJsPluginDatalabelsLocation = "/js/chartjs-plugin-datalabels.js";
+        });
 
         builder.Services.AddTransient<IStatsService, StatsService>();
         
@@ -57,6 +61,7 @@ public static class MauiProgram
 
         builder.Services.AddScoped<IRatingRepository, pax.dsstats.dbng.Services.RatingRepository>();
         builder.Services.AddScoped<MmrProduceService>();
+        builder.Services.AddScoped<PlayerService>();
 
         builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
         builder.Services.AddTransient<IStatsRepository, StatsRepository>();

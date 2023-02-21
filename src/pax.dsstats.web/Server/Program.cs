@@ -61,6 +61,7 @@ builder.Services.AddScoped<IRatingRepository, pax.dsstats.dbng.Services.RatingRe
 builder.Services.AddScoped<ImportService>();
 builder.Services.AddScoped<MmrProduceService>();
 builder.Services.AddScoped<CheatDetectService>();
+builder.Services.AddScoped<PlayerService>();
 
 builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
@@ -87,8 +88,8 @@ context.Database.Migrate();
 // SEED
 if (app.Environment.IsProduction())
 {
-    var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
-    mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
+    // var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
+    // mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
 
     var buildService = scope.ServiceProvider.GetRequiredService<BuildService>();
     buildService.SeedBuildsCache().GetAwaiter().GetResult();
@@ -121,6 +122,22 @@ if (app.Environment.IsDevelopment())
 
     //var ratingRepository = scope.ServiceProvider.GetRequiredService<IRatingRepository>();
     //ratingRepository.SeedRatingChanges().Wait();
+
+    // PlayerService.GetExpectationCount(context);
+
+    //var playerService = scope.ServiceProvider.GetRequiredService<PlayerService>();
+    //playerService.GetPlayerDetails(new()
+    //{
+    //    RequestNames = new()
+    //    {
+    //        Name = "PAX",
+    //        RegionId = 2,
+    //        ToonId = 226401
+    //    },
+    //    RatingType = RatingType.Cmdr,
+    //    TimePeriod = TimePeriod.Past90Days
+    //}).Wait();
+
 }
 
 // Configure the HTTP request pipeline.

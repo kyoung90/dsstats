@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using pax.dsstats.dbng;
+using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
 
 namespace pax.dsstats.web.Server.Controllers;
@@ -8,10 +10,12 @@ namespace pax.dsstats.web.Server.Controllers;
 public class RatingsController
 {
     private readonly IRatingRepository ratingRepository;
+    private readonly PlayerService playerService;
 
-    public RatingsController(IRatingRepository ratingRepository)
+    public RatingsController(IRatingRepository ratingRepository, PlayerService playerService)
     {
         this.ratingRepository = ratingRepository;
+        this.playerService = playerService;
     }
 
     [HttpPost]
@@ -86,4 +90,39 @@ public class RatingsController
     //{
     //    return await ratingRepository.GetRatingChanges(request, token);
     //}
+
+    [HttpPost]
+    [Route("GetDistribution")]
+    public async Task<DistributionResponse> GetDistribution(DistributionRequest request, CancellationToken token)
+    {
+        return await ratingRepository.GetDistribution(request, token);
+    }
+
+    [HttpPost]
+    [Route("GetPlayerDetails")]
+    public async Task<PlayerDetailResponse> GetPlayerDetails(PlayerDetailRequest request, CancellationToken token)
+    {
+        return await playerService.GetPlayerDetails(request, token);
+    }
+
+    [HttpGet]
+    [Route("GetPlayerDatailSummary/{toonId}")]
+    public async Task<PlayerDetailSummary> GetPlayerSummary(int toonId, CancellationToken token = default)
+    {
+        return await playerService.GetPlayerSummary(toonId, token);
+    }
+
+    [HttpGet]
+    [Route("GetPlayerRatingDetails/{toonId}/{ratingType}")]
+    public async Task<PlayerRatingDetails> GetPlayerRatingDetails(int toonId, int ratingType, CancellationToken token = default)
+    {
+        return await playerService.GetPlayerRatingDetails(toonId, (RatingType)ratingType, token);
+    }
+
+    [HttpGet]
+    [Route("GetPlayerCmdrAvgGain/{toonId}/{ratingType}/{timePeriod}")]
+    public async Task<List<PlayerCmdrAvgGain>> GetPlayerCmdrAvgGain(int toonId, int ratingType, int timePeriod, CancellationToken token)
+    {
+        return await playerService.GetPlayerCmdrAvgGain(toonId, (RatingType)ratingType, (TimePeriod)timePeriod, token);
+    }
 }
