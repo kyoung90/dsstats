@@ -145,6 +145,7 @@ def GetCNNModelv2(num_commanders):
 
 def GetModelData(fromDate, toDate, test_size=0.5):
     data = GetReplayDataWithRatings(fromDate, toDate)
+    print(data[0])
     winloss = [row['WinnerTeam'] for row in data]
     cmdrs = np.concatenate([GetTeamData(row, commander_to_index) for row in data])
     ratings = np.array([GetRatingData(row) for row in data])
