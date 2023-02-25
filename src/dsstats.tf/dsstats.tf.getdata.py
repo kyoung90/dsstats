@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import os
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -83,6 +84,7 @@ def GetTeamData(row, commander_to_index):
 
 def GetRatingData(row):
     return np.array(list(map(float, row['ratings'].split('|'))))
+    # return np.array(list(map(float, row['ratings'].split('|')))).reshape(1, -1)
 
 def GetCNNModel(num_commanders):
     # Define input shapes
@@ -141,51 +143,53 @@ def GetCNNModelv2(num_commanders):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
+def GetModelData(fromDate, toDate, test_size=0.5):
+    data = GetReplayDataWithRatings(fromDate, toDate)
+    winloss = [row['WinnerTeam'] for row in data]
+    cmdrs = np.concatenate([GetTeamData(row, commander_to_index) for row in data])
+    ratings = np.array([GetRatingData(row) for row in data])
+    labels = np.array([int(winner == 2) for winner in winloss])
+
+    # num_matches = ratings.shape[0]
+    # num_players_per_team = ratings.shape[1] // 2
+    # ratings = ratings.reshape((num_matches, num_players_per_team, 2))
+
+    # Split the data into train and test sets
+    cmdrs_train, cmdrs_test, ratings_train, ratings_test, winloss_train, winloss_test, labels_train, labels_test = train_test_split(
+        cmdrs, ratings, winloss, labels, test_size=test_size, random_state=42)
+
+    # Scale the ratings using MinMaxScaler
+    scaler = MinMaxScaler()
+    ratings_scaled_train = scaler.fit_transform(ratings_train.reshape((-1, 1)))
+    #ratings_scaled_train = ratings_scaled_train.reshape(ratings_train.shape)
+
+    ratings_scaled_test = scaler.fit_transform(ratings_test.reshape((-1, 1)))
+    #ratings_scaled_test = ratings_scaled_test.reshape(ratings_test.shape)
+
+    # convert to tnesor    
+    winloss_tensor_train = tf.constant(winloss_train, dtype=tf.float32)
+    cmdrs_tensor_train = tf.constant(cmdrs_train, dtype=tf.float32)
+    ratings_scaled_tensor_train = tf.constant(ratings_scaled_train, dtype=tf.float32)
+
+    winloss_tensor_test = tf.constant(winloss_test, dtype=tf.float32)
+    cmdrs_tensor_test = tf.constant(cmdrs_test, dtype=tf.float32)
+    ratings_scaled_tensor_test = tf.constant(ratings_scaled_test, dtype=tf.float32)
+
+    return (cmdrs_tensor_train, ratings_scaled_tensor_train, winloss_tensor_train, labels_train, cmdrs_tensor_test, ratings_scaled_tensor_test, winloss_tensor_test, labels_test)
+
+
 commanders = GetCommanders()
 commander_to_index = {cmdr: i for i, cmdr in enumerate(sorted(commanders))}
 
-trainData = GetReplayDataWithRatings('2021-01-01', '2022-06-01')
-WinLoss_train = [row['WinnerTeam'] for row in trainData]
-trainWinRate = sum(WinLoss_train) / len(WinLoss_train)
-Cmdrs_train = np.concatenate([GetTeamData(row, commander_to_index) for row in trainData])
-Ratings_train = np.concatenate([GetRatingData(row) for row in trainData])
-Labels_train = np.array([int(winner == 2) for winner in WinLoss_train])
-
-# Scale the ratings using MinMaxScaler
-scaler = MinMaxScaler()
-ratings_scaled_train = scaler.fit_transform(Ratings_train.reshape((-1, 1)))
-ratings_scaled_train = ratings_scaled_train.reshape(Ratings_train.shape)
-
-testData = GetReplayDataWithRatings('2022-06-01', '2023-01-01')
-WinLoss_test = [row['WinnerTeam'] for row in testData]
-testWinRate = sum(WinLoss_test) / len(WinLoss_test)
-Cmdrs_test = np.concatenate([GetTeamData(row, commander_to_index) for row in testData])
-Ratings_test = np.concatenate([GetRatingData(row) for row in testData])
-Labels_test = np.array([int(winner == 2) for winner in WinLoss_test])
-
-# Scale the ratings using MinMaxScaler
-ratings_scaled_test = scaler.fit_transform(Ratings_test.reshape((-1, 1)))
-ratings_scaled_test = ratings_scaled_test.reshape(Ratings_test.shape)
-
-# convert numpy arrays to tensorflow tensors
-trainWinLoss_tensor = tf.convert_to_tensor(WinLoss_train, dtype=tf.float32)
-Cmdrs_train_tensor = tf.convert_to_tensor(Cmdrs_train, dtype=tf.float32)
-Ratings_train_tensor = tf.convert_to_tensor(Ratings_train, dtype=tf.float32)
-
-testWinLoss_tensor = tf.convert_to_tensor(WinLoss_test, dtype=tf.float32)
-Cmdrs_test_tensor = tf.convert_to_tensor(Cmdrs_test, dtype=tf.float32)
-Ratings_test_tensor = tf.convert_to_tensor(Ratings_test, dtype=tf.float32)
+cmdrs_train, ratings_train, winloss_train, labels_train, cmdrs_test, ratings_test, winloss_test, labels_test = GetModelData('2022-01-01', '2023-01-01')
 
 model = GetCNNModelv2(len(commanders))
 
 # train the model
-model.fit({'commander_input': Cmdrs_train_tensor, 'rating_input': Ratings_train_tensor, 'winloss_input': trainWinLoss_tensor}, Labels_train, epochs=10, batch_size=32, validation_split=0.2)
-# model.fit({'commander_input': Cmdrs_train_tensor, 'rating_input': Ratings_train_tensor, 'winloss_input': Labels_train}, epochs=20, batch_size=32, validation_split=0.2)
-
+model.fit({'commander_input': cmdrs_train, 'rating_input': ratings_train, 'winloss_input': winloss_train}, labels_train, epochs=10, batch_size=32, validation_split=0.2)
 
 # evaluate the model on test data
-# model.evaluate({'commander_input': Cmdrs_test_tensor, 'rating_input': Ratings_test_tensor, 'winloss_input': testWinLoss_tensor}, Labels_test, batch_size=32)
-loss, accuracy = model.evaluate([Cmdrs_test_tensor, Ratings_test_tensor, testWinLoss_tensor], Labels_test)
+loss, accuracy = model.evaluate([cmdrs_test, ratings_test, winloss_test], labels_test)
 print('Test loss:', loss)
 print('Test accuracy:', accuracy)
 
