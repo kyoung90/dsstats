@@ -5,7 +5,7 @@ import numpy as np
 def NormalizeRatings(ratings, min_rating=0, max_rating=3000):
     return [(float(r) - min_rating) / (max_rating - min_rating) for r in ratings]
 
-def GetData(possiblecmdrs, cdmrs1, cmdrs2, ratings):
+def GetData(possiblecmdrs, cmdrs1, cmdrs2, ratings):
     # Convert cmdrs1 and cmdrs2 to lists of integers
     cmdrs1_list = [int(c) for c in cmdrs1.split('|') if c]
     cmdrs2_list = [int(c) for c in cmdrs2.split('|') if c]

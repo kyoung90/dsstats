@@ -118,8 +118,8 @@ if (app.Environment.IsDevelopment())
     //var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
     //var result = importService.ImportReplayBlobs().GetAwaiter().GetResult();
 
-    var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
-    mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
+    // var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
+    // mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
 
     //var ratingRepository = scope.ServiceProvider.GetRequiredService<IRatingRepository>();
     //ratingRepository.SeedRatingChanges().Wait();
@@ -131,7 +131,7 @@ if (app.Environment.IsDevelopment())
     //     .ProjectTo<ReplayDsRDto>(mapper.ConfigurationProvider)
     //     .First();
     // dsstats.mmr.ProcessData.ReplayData replayData = new(replay);
-    // var etw = dsstats.mmr.MmrService.GetTeam1ExpectationToWinFromTf(replayData).GetAwaiter().GetResult();
+    // var etw = dsstats.mmr.MmrService.GetTeam1ExpectationToWinFromTf(replayData);
     // Console.WriteLine($"Expectation to win: {etw}");
 }
 
