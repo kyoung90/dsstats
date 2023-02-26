@@ -1,5 +1,6 @@
 import dataservice
 import modelservice
+import saveservice
 import tensorflow as tf
 
 data = dataservice.GetReplayDataWithRatings('2020-01-01', '2023-01-01')
@@ -26,8 +27,7 @@ ratings_tensor = tf.constant(ratings, dtype=tf.float32)
 # Train the model on the input data and labels
 model.fit([cmdrs_tensor, ratings_tensor], labels, epochs=30, batch_size=32, validation_split=0.2)
 
-# model.load_weights('/data/ai/dsstatsModel_CNNv3.h5')
-model.save('/data/ai/dsstatsModel_CNNv4.h5')
+saveservice.SaveModel(model, 1)
 
 # Evaluate
 testdata = dataservice.GetReplayDataWithRatings('2023-01-01', '2023-03-01')

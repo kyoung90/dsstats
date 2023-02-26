@@ -1,23 +1,22 @@
-import numpy as np
 import dataservice
+import numpy as np
+import tensorflow as tf
 
+# data: {'WinnerTeam': 2, 'CommandersTeam1': '|90|130|90|', 'CommandersTeam2': '|50|60|20|', 'ratings': '957.94|1283.86|929.5|1012.53|667.26|1102.45'}
 def Predict(model, data, commander_to_index):
 
-    # Define the input data for the new example
-    new_cmdrs = np.zeros((1, 34))
-    new_ratings = np.zeros((1, 6))
-
-    # Set the appropriate indices in the input data to 1
-    new_cmdrs[0, [3, 4, 5]] = 1
-    new_cmdrs[0, 31] = 1
-    new_ratings[0, :] = [957.94, 1283.86, 929.5, 1012.53, 667.26, 1102.45]
+    testcmdrs, testratings, testlabels = dataservice.PreprocessData([data], commander_to_index)
 
     # Reshape the input data to fit the model
-    new_cmdrs = new_cmdrs.reshape(1, 34, 1)
-    new_ratings = new_ratings.reshape(1, 6, 1)
+    testcmdrs = testcmdrs.reshape(testcmdrs.shape[0], testcmdrs.shape[1], 1)
+    testratings = testratings.reshape(testratings.shape[0], testratings.shape[1], 1)
 
+    # convert to tensor
+    testcmdrs_tensor = tf.constant(testcmdrs, dtype=tf.float32)
+    testratings_tensor = tf.constant(testratings, dtype=tf.float32)
+    
     # Make a prediction on the new example
-    prediction = model.predict([new_cmdrs, new_ratings])[0][0]
+    prediction = model.predict([testcmdrs_tensor, testratings_tensor])[0][0]
 
     # Print the expectation to win
     print('Expectation to win: {:.2f}%'.format(prediction*100))
