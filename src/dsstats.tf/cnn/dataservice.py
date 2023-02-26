@@ -24,20 +24,20 @@ def GetReplayDataWithRatings(fromDate, toDate):
     cnx = GetDbConnection(config_file)
 
     cursor = cnx.cursor()
-    query = ("select r.WinnerTeam, r.CommandersTeam1, r.CommandersTeam2, GROUP_Concat(rpr.Rating order by rpr.GamePos separator '|') as ratings "
-           + "from Replays as r "
-           + "inner join ReplayPlayers as rp on rp.ReplayId = r.ReplayId "
-           + "inner join RepPlayerRatings as rpr on rpr.ReplayPlayerId = rp.ReplayPlayerId "
-           + "inner join ReplayRatings as rr on rr.ReplayId = r.ReplayId "
-           + "where r.GameTime >= '" + fromDate + "' and r.GameTime < '" + toDate + "' and rr.RatingType = 1 and r.MaxLeaver < 90 "
-           + "group by r.ReplayId, r.GameTime, r.CommandersTeam1, r.CommandersTeam2, r.WinnerTeam "
-           + "order by r.GameTime")
+    query = ("select r.WinnerTeam, r.CommandersTeam1, r.CommandersTeam2, GROUP_Concat(rpr.Rating order by rpr.GamePos separator '|') as ratings, group_concat((r.Duration - rp.Duration) order by rp.GamePos separator '|') as leavers"
+           + " from Replays as r"
+           + " inner join ReplayPlayers as rp on rp.ReplayId = r.ReplayId"
+           + " inner join RepPlayerRatings as rpr on rpr.ReplayPlayerId = rp.ReplayPlayerId"
+           + " inner join ReplayRatings as rr on rr.ReplayId = r.ReplayId"
+           + " where r.GameTime >= '" + fromDate +"' and r.GameTime < '" + toDate +"' and rr.RatingType = 1"
+           + " group by r.ReplayId, r.GameTime, r.CommandersTeam1, r.CommandersTeam2, r.WinnerTeam"
+           + " order by r.GameTime")
     cursor.execute(query)
 
     # Retrieve the results and store them in a list of dictionaries
     results = []
     for row in cursor:
-        results.append({'WinnerTeam': row[0], 'CommandersTeam1': row[1], 'CommandersTeam2': row[2], 'ratings': row[3]})
+        results.append({'WinnerTeam': row[0], 'CommandersTeam1': row[1], 'CommandersTeam2': row[2], 'ratings': row[3], 'leavers': row[4]})
 
     # Close the cursor and the connection
     cursor.close()
@@ -45,17 +45,34 @@ def GetReplayDataWithRatings(fromDate, toDate):
     return results
 
 def GetCommanders():
-    return { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 }
+    return { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 }
+
+def GetLeavers(row):
+    leavers = np.zeros(6)
+    for idx, leave in enumerate(map(int, row['leavers'].split('|'))):
+        if leave > 89:
+            leavers[idx] = 1
+    return leavers
 
 def GetTeamData(row, commander_to_index):
+    leavers = GetLeavers(row)
     team1 = np.zeros(len(commander_to_index))
     team2 = np.zeros(len(commander_to_index))
+    i = 0
     for cmdr in row['CommandersTeam1'].split('|'):
         if cmdr != '':
-            team1[commander_to_index[int(cmdr)]] = 1
+            if leavers[i] == 0 or int(cmdr) < 10:
+                team1[0] = 1
+            else:
+                team1[commander_to_index[int(cmdr)]] = 1
+            i += 1
     for cmdr in row['CommandersTeam2'].split('|'):
         if cmdr != '':
-            team2[commander_to_index[int(cmdr)]] = 1
+            if leavers[i] == 1 or int(cmdr) < 10:
+                    team2[0] = 1
+            else:
+                team2[commander_to_index[int(cmdr)]] = 1
+            i += 1
     return np.concatenate((team1, team2)).reshape(1, -1)
 
 def GetRatingData(row):

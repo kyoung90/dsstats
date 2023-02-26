@@ -10,12 +10,12 @@ namespace dsstats.mmr;
 
 public partial class MmrService
 {
-    private static readonly List<int> possiblecmdrs = new() { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 };
+    private static readonly List<int> possiblecmdrs = new() { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 };
     private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModel:predict";
-    private static readonly string tfResturl = "/v1/models/dsstatsModel:predict";
+    private static readonly string tfResturl = "/v2/models/dsstatsModel:predict";
     private static readonly int tfPort = 8501;
 
-    public static async Task<double> GetTeam1ExpectationToWinFromTf(ReplayData replayData)
+    public static double GetTeam1ExpectationToWinFromTf(ReplayData replayData)
     {
         int[] cmdrData = GetCmdrData(replayData.ReplayDsRDto);
         float[] ratingData = GetRatingData(replayData);
@@ -23,8 +23,40 @@ public partial class MmrService
         TfPayload tfPayload = GetPayload(cmdrData, ratingData);
 
         // double team1ExpectationToWin = await GetTfResult(tfPayload);
-        double team1ExpectationToWin = await GetTfResult2(tfPayload);
+        // double team1ExpectationToWin = await GetTfResult2(tfPayload);
+        double team1ExpectationToWin = GetTfResult3(tfPayload);
         return team1ExpectationToWin;
+    }
+
+    private static double GetTfResult3(TfPayload playload)
+    {
+        var data = JsonSerializer.Serialize(playload);
+
+        var content = new StringContent(data, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = new HttpClient().PostAsync(tfurl, content).Result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return 0.5;
+            }
+
+            var responseString = response.Content.ReadAsStringAsync().Result;
+
+            var result = JsonSerializer.Deserialize<TfResponse>(responseString);
+            if (result != null && result.Outputs.Length > 0 && result.Outputs[0].Length > 0)
+            {
+                return result.Outputs[0][0];
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed getting TfExpectation: {ex.Message}");
+            Task.Delay(1000).Wait();
+        }
+        return 0.5;
     }
 
     private static async Task<double> GetTfResult2(TfPayload playload)
@@ -70,7 +102,7 @@ public partial class MmrService
         using var stream = client.GetStream();
         using var reader = new StreamReader(stream, Encoding.UTF8);
         using var writer = new StreamWriter(stream, Encoding.UTF8);
-        
+
         writer.AutoFlush = true;
         stream.ReadTimeout = timeout;
 
@@ -133,19 +165,18 @@ public partial class MmrService
         int i = 0;
         foreach (var player in replayDsRDto.ReplayPlayers.OrderBy(o => o.GamePos))
         {
-            // if (replay.Duration - player.Duration > 89)
-            // {
-
-            // }
-            var commander = player.Race;
+            Commander commander = Commander.None;
+            if (replayDsRDto.Duration - player.Duration < 90)
+            {
+                commander = player.Race;
+            }
             var commanderIndex = possiblecmdrs.IndexOf((int)commander);
-            
-            // fs - todo!
+
             if (commanderIndex < 0)
             {
                 commanderIndex = 0;
             }
-            
+
             if (player.Team == 1)
             {
                 cmdrData[commanderIndex] = 1;

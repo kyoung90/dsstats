@@ -38,7 +38,7 @@ def GetData(possiblecmdrs, cdmrs1, cmdrs2, ratings):
 # Define the URL for your TensorFlow Serving instance
 url = 'http://localhost:8501/v1/models/dsstatsModel:predict'
 
-possiblecmdrs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170]
+possiblecmdrs = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170]
 cmdrs1 = "|20|30|40|"
 cmdrs2 = "|100|110|120|"
 ratings = '957.94|1283.86|929.5|1012.53|667.26|1102.45'
