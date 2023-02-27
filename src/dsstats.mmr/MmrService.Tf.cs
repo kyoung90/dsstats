@@ -14,8 +14,8 @@ public partial class MmrService
     private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModel:predict";
     private static readonly string tfResturl = "/v1/models/dsstatsModel:predict";
     private static readonly int tfPort = 8501;
-    public const float minRating = 0;
-    public const float maxRating = 3500;
+    private static float minRating = 0;
+    private static float maxRating = 3500;
     private static HttpClient? _httpClient;
 
     private static HttpClient GetHttpClient()
@@ -49,7 +49,7 @@ public partial class MmrService
         var httpClient = GetHttpClient();
 
         double team1ExpectationToWin = GetTfResult3(tfPayload, httpClient);
-        return 1 - team1ExpectationToWin;
+        return team1ExpectationToWin;
     }
 
     private static double GetTfResult3(TfPayload playload, HttpClient httpClient)
@@ -186,14 +186,13 @@ public partial class MmrService
             tfCmdrData[0][i][0] = cmdrData[i];
         }
 
-        float[] normalizedRatingData = GetNormalizedRatings(ratingData);
         var tfRatingData = new float[1][][];
         tfRatingData[0] = new float[6][];
 
-        for (int i = 0; i < normalizedRatingData.Length; i++)
+        for (int i = 0; i < ratingData.Length; i++)
         {
             tfRatingData[0][i] = new float[1];
-            tfRatingData[0][i][0] = normalizedRatingData[i];
+            tfRatingData[0][i][0] = ratingData[i];
         }
 
         return new()
@@ -204,16 +203,6 @@ public partial class MmrService
                 RatingsInput = tfRatingData
             }
         };
-    }
-
-    private static float[] GetNormalizedRatings(float[] ratingData, float min = 0, float max = 3000)
-    {
-        var result = new float[ratingData.Length];
-        for (int i = 0; i < ratingData.Length; i++)
-        {
-            result[i] = (ratingData[i] - min) / (max - min);
-        }
-        return result;
     }
 
     private static int[] GetCmdrData(ReplayDsRDto replayDsRDto)
@@ -283,6 +272,14 @@ public partial class MmrService
     {
         for (int i = 0; i < ratings.Length; i++)
         {
+            if (ratings[i] > maxRating)
+            {
+                maxRating = ratings[i];
+            }
+            else if (ratings[i] < minRating)
+            {
+                minRating = ratings[i];
+            }
             ratings[i] = GetNormalizedRating(ratings[i]);
         }
     }

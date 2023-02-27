@@ -92,6 +92,10 @@ def GetTeamData(row, commander_to_index):
     return np.concatenate((team1, team2)).reshape(1, -1)
 
 def GetNormalizedRating(rating):
+    # if rating > maxRating:
+    #     maxRating = rating
+    # elif rating < minRating:
+    #     minRating = rating    
     nrating = (rating - minRating) / (maxRating - minRating)
     if nrating < 0:
         nrating = 0
