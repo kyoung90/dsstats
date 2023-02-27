@@ -23,7 +23,7 @@ public record MmrOptions
         UseConsistency = false;
         UseFactorToTeamMates = false;
         UseConfidence = false;
-        UseTf = false;
+        UseTf = true;
         HandleLeaver = true;
 
         StartMmr = 1000;

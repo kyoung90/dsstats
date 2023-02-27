@@ -11,8 +11,11 @@ namespace dsstats.mmr;
 public partial class MmrService
 {
     private static readonly List<int> possiblecmdrs = new() { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 };
-    private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModel:predict";
-    private static readonly string tfResturl = "/v1/models/dsstatsModel:predict";
+    // private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModel:predict";
+    // private static readonly string tfResturl = "/v1/models/dsstatsModel:predict";
+    private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModelSeq:predict";
+    private static readonly string tfResturl = "/v1/models/dsstatsModelSeq:predict";
+
     private static readonly int tfPort = 8501;
     private static float minRating = 0;
     private static float maxRating = 3500;
@@ -36,6 +39,19 @@ public partial class MmrService
         return 0.5;
     }
 
+    public static double GetTeam1ExpectationToWinFromTfSeq(ReplayData replayData)
+    {
+        int[][] cmdrData = GetCmdrDataSeq(replayData.ReplayDsRDto);
+        float[] ratingData = GetRatingData(replayData);
+
+        TfPayloadSeq tfPayload = GetPayloadSeq(cmdrData, ratingData);
+
+        var httpClient = GetHttpClient();
+
+        double team1ExpectationToWin = GetTfSeqResult(tfPayload, httpClient);
+        return team1ExpectationToWin;
+    }    
+
     public static double GetTeam1ExpectationToWinFromTf(ReplayData replayData)
     {
         int[] cmdrData = GetCmdrData(replayData.ReplayDsRDto);
@@ -50,6 +66,36 @@ public partial class MmrService
 
         double team1ExpectationToWin = GetTfResult3(tfPayload, httpClient);
         return team1ExpectationToWin;
+    }
+
+    private static double GetTfSeqResult(TfPayloadSeq payload, HttpClient httpClient)
+    {
+        var data = JsonSerializer.Serialize(payload);
+
+        var content = new StringContent(data, Encoding.UTF8, "application/json");
+        try
+        {
+            var response = httpClient.PostAsync(tfResturl, content).Result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"TrResult error: {response.StatusCode}");
+                return 0.5;
+            }
+            var responseString = response.Content.ReadAsStringAsync().Result;
+
+            var result = JsonSerializer.Deserialize<TfResponse>(responseString);
+            if (result != null && result.Outputs.Length > 0 && result.Outputs[0].Length > 0)
+            {
+                return result.Outputs[0][0];
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed getting TfExpectation: {ex.Message}");
+            Task.Delay(1000).Wait();
+        }
+        return 0.5;
     }
 
     private static double GetTfResult3(TfPayload playload, HttpClient httpClient)
@@ -176,6 +222,18 @@ public partial class MmrService
         return 0.5;
     }
 
+    private static TfPayloadSeq GetPayloadSeq(int[][] cmdrData, float[] ratingData)
+    {
+        return new TfPayloadSeq()
+        {
+            Inputs = new()
+            {
+                CmdrsInput = cmdrData,
+                RatingsInput = ratingData
+            }
+        };
+    }
+
     private static TfPayload GetPayload(int[] cmdrData, float[] ratingData)
     {
         var tfCmdrData = new int[1][][];
@@ -203,6 +261,35 @@ public partial class MmrService
                 RatingsInput = tfRatingData
             }
         };
+    }
+
+    private static int[][] GetCmdrDataSeq(ReplayDsRDto replayDsRDto)
+    {
+        int[][] cmdrData = new int[6][];
+        
+
+        int i = 0;
+        foreach (var player in replayDsRDto.ReplayPlayers.OrderBy(o => o.GamePos))
+        {
+            cmdrData[i] = new int[possiblecmdrs.Count];
+            Array.Clear(cmdrData[0], 0, cmdrData[0].Length);
+
+            Commander commander = Commander.None;
+            if (replayDsRDto.Duration - player.Duration < 90)
+            {
+                commander = player.Race;
+            }
+            var commanderIndex = possiblecmdrs.IndexOf((int)commander);
+
+            if (commanderIndex < 0)
+            {
+                commanderIndex = 0;
+            }
+
+            cmdrData[i][commanderIndex] = 1;
+            i++;
+        }
+        return cmdrData;
     }
 
     private static int[] GetCmdrData(ReplayDsRDto replayDsRDto)
@@ -321,3 +408,22 @@ internal record TfResponse
     [JsonPropertyName("outputs")]
     public float[][] Outputs { get; set; } = null!;
 }
+
+internal record TfPayloadSeq
+{
+    [JsonPropertyName("signature_name")]
+    public string SignatureName { get; set; } = "serving_default";
+
+    [JsonPropertyName("inputs")]
+    public TfPayloadInputsSeq Inputs { get; set; } = null!;
+}
+internal record TfPayloadInputsSeq
+{
+    [JsonPropertyName("input_1")]
+    public int[][] CmdrsInput { get; set; } = null!;
+
+    [JsonPropertyName("input_2")]
+    public float[] RatingsInput { get; set; } = null!;
+}
+
+// '{"signature_name":"serving_default","inputs":{"input_1":[1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0],"input_2":[0.2857143,0.2857143,0.2857143,0.2857143,0.2857143,0.2857143]}}'

@@ -44,7 +44,8 @@ public partial class MmrService
     {
         if (mmrOptions.UseTf && replayData.RatingType == RatingType.Cmdr)
         {
-            var team1ExpectationToWin = GetTeam1ExpectationToWinFromTf(replayData);
+            // var team1ExpectationToWin = GetTeam1ExpectationToWinFromTf(replayData);
+            var team1ExpectationToWin = GetTeam1ExpectationToWinFromTfSeq(replayData);
 
             if (replayData.ReplayDsRDto.WinnerTeam == 1)
             {
