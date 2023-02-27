@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
+using dsstats.mmr;
 
 namespace pax.dsstats.web.Server.Controllers.v5
 {
@@ -13,16 +15,19 @@ namespace pax.dsstats.web.Server.Controllers.v5
         private readonly BuildService buildService;
         private readonly IStatsService statsService;
         private readonly CmdrsService cmdrService;
+        private readonly IMapper mapper;
 
         public StatsController(IReplayRepository replayRepository,
                                BuildService buildService,
                                IStatsService statsService,
-                               CmdrsService cmdrService)
+                               CmdrsService cmdrService,
+                               IMapper mapper)
         {
             this.replayRepository = replayRepository;
             this.buildService = buildService;
             this.statsService = statsService;
             this.cmdrService = cmdrService;
+            this.mapper = mapper;
         }
 
         [HttpGet]

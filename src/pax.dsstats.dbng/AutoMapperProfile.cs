@@ -70,6 +70,14 @@ namespace pax.dsstats.dbng
             CreateMap<ReplayPlayer, ReplayPlayerDsRDto>(MemberList.Destination);
             CreateMap<Player, PlayerDsRDto>(MemberList.Destination);
 
+            CreateMap<ReplayDetailsDto, ReplayDsRDto>(MemberList.Destination)
+                .ForMember(x => x.ReplayId, opt => opt.Ignore());
+            CreateMap<ReplayPlayerDto, ReplayPlayerDsRDto>(MemberList.Destination)
+                .ForMember(x => x.ReplayPlayerId, opt => opt.Ignore());
+            CreateMap<PlayerDto, PlayerDsRDto>(MemberList.Destination)
+                .ForMember(x => x.PlayerId, opt => opt.Ignore())
+                .ForMember(x => x.NotUploadCount, opt => opt.Ignore());
+
             CreateMap<Player, PlayerMapDto>(MemberList.Destination);
 
             CreateMap<UploaderDto, Uploader>(MemberList.Source);

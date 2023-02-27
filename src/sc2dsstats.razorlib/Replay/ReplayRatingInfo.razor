@@ -85,18 +85,6 @@ else
     [Parameter, EditorRequired]
     public ReplayRatingDto? ReplayRatingDto { get; set; }
 
-    double Team1Mmr => ReplayRatingDto == null ? 0 : ReplayRatingDto.RepPlayerRatings
-        .Where(x => x.GamePos <= 3)
-        .Sum(s => s.Rating - s.RatingChange);
-
-    double Team2Mmr => ReplayRatingDto == null ? 0 : ReplayRatingDto.RepPlayerRatings
-        .Where(x => x.GamePos > 3)
-        .Sum(s => s.Rating - s.RatingChange);
-
-    double Team1ExpectationToWin => ReplayRatingDto == null ? 0 : EloExpectationToWin(Team1Mmr, Team2Mmr);
-
-    public static double EloExpectationToWin(double ratingOne, double ratingTwo, double clip = 1600)
-    {
-        return 1.0 / (1.0 + Math.Pow(10.0, (2.0 / clip) * (ratingTwo - ratingOne)));
-    }
+    double Team1ExpectationToWin => ReplayRatingDto == null ? 0 : ReplayRatingDto.Team1ExpectationToWin;
+    
 }

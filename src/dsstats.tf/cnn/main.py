@@ -27,7 +27,7 @@ ratings_tensor = tf.constant(ratings, dtype=tf.float32)
 # Train the model on the input data and labels
 model.fit([cmdrs_tensor, ratings_tensor], labels, epochs=30, batch_size=32, validation_split=0.2)
 
-saveservice.SaveModel(model, 2)
+saveservice.SaveModel(model, 3)
 
 # Evaluate
 testdata = dataservice.GetReplayDataWithRatings('2023-02-01', '2023-03-01')

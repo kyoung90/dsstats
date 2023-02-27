@@ -14,6 +14,27 @@ public partial class MmrService
     private static readonly string tfurl = "http://localhost:8501/v1/models/dsstatsModel:predict";
     private static readonly string tfResturl = "/v1/models/dsstatsModel:predict";
     private static readonly int tfPort = 8501;
+    public const float minRating = 0;
+    public const float maxRating = 3500;
+    private static HttpClient? _httpClient;
+
+    private static HttpClient GetHttpClient()
+    {
+        if (_httpClient == null)
+        {
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri("http://localhost:8501");
+            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        }
+        return _httpClient;
+    }
+
+    public static double GetTeam1ExpectationToWinFromTf(ReplayDetailsDto replay)
+    {
+        // ReplayData replayData = new(replayDsRDto);
+        // return GetTeam1ExpectationToWinFromTf(replayData);
+        return 0.5;
+    }
 
     public static double GetTeam1ExpectationToWinFromTf(ReplayData replayData)
     {
@@ -24,11 +45,14 @@ public partial class MmrService
 
         // double team1ExpectationToWin = GetTfResult(tfPayload).GetAwaiter().GetResult();
         // double team1ExpectationToWin = await GetTfResult2(tfPayload);
-        double team1ExpectationToWin = GetTfResult3(tfPayload);
-        return team1ExpectationToWin;
+
+        var httpClient = GetHttpClient();
+
+        double team1ExpectationToWin = GetTfResult3(tfPayload, httpClient);
+        return 1 - team1ExpectationToWin;
     }
 
-    private static double GetTfResult3(TfPayload playload)
+    private static double GetTfResult3(TfPayload playload, HttpClient httpClient)
     {
         var data = JsonSerializer.Serialize(playload);
 
@@ -36,8 +60,7 @@ public partial class MmrService
 
         try
         {
-            var httpClient = new HttpClient();
-            var response = httpClient.PostAsync(tfurl, content).Result;
+            var response = httpClient.PostAsync(tfResturl, content).Result;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -49,7 +72,6 @@ public partial class MmrService
             var result = JsonSerializer.Deserialize<TfResponse>(responseString);
             if (result != null && result.Outputs.Length > 0 && result.Outputs[0].Length > 0)
             {
-                httpClient.Dispose();
                 return result.Outputs[0][0];
             }
         }
@@ -59,8 +81,7 @@ public partial class MmrService
             Task.Delay(1000).Wait();
             try
             {
-                var httpClient = new HttpClient();
-                var response = httpClient.PostAsync(tfurl, content).Result;
+                var response = httpClient.PostAsync(tfResturl, content).Result;
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -72,7 +93,6 @@ public partial class MmrService
                 var result = JsonSerializer.Deserialize<TfResponse>(responseString);
                 if (result != null && result.Outputs.Length > 0 && result.Outputs[0].Length > 0)
                 {
-                    httpClient.Dispose();
                     return result.Outputs[0][0];
                 }
             }
@@ -255,7 +275,30 @@ public partial class MmrService
                 ratingData[t2 + replayData.LoserTeamData.Players.Length] = (float)replayData.WinnerTeamData.Players[t2].Mmr;
             }
         }
+        NormalizeRatings(ratingData);
         return ratingData;
+    }
+
+    private static void NormalizeRatings(float[] ratings)
+    {
+        for (int i = 0; i < ratings.Length; i++)
+        {
+            ratings[i] = GetNormalizedRating(ratings[i]);
+        }
+    }
+
+    private static float GetNormalizedRating(float rating)
+    {
+        float nrating = (rating - minRating) / (maxRating - minRating);
+        if (nrating < 0)
+        {
+            nrating = 0;
+        }
+        else if (nrating > 1)
+        {
+            nrating = 1;
+        }
+        return nrating;
     }
 }
 

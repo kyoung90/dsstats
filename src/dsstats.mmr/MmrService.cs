@@ -112,7 +112,8 @@ public static partial class MmrService
             RatingType = replayData.RatingType,
             LeaverType = replayData.LeaverType,
             ReplayId = replayData.ReplayDsRDto.ReplayId,
-            RepPlayerRatings = mmrChanges1.Concat(mmrChanges2).ToList()
+            RepPlayerRatings = mmrChanges1.Concat(mmrChanges2).ToList(),
+            Team1ExpectationToWin = replay.WinnerTeam == 1 ? replayData.WinnerTeamData.ExpectedResult : replayData.LoserTeamData.ExpectedResult
         };
 
         return replayRatingDto;

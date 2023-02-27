@@ -2,9 +2,10 @@
 import json
 import mysql.connector
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 
 config_file = "/data/localserverconfig.json"
+minRating = 0
+maxRating = 3500
 
 def GetDbConnection(config_file):
     # Load the configuration from the JSON file
@@ -44,6 +45,21 @@ def GetReplayDataWithRatings(fromDate, toDate):
     cnx.close()
     return results
 
+    # ((2, (3, 18)), )
+
+    # [
+    #     {
+    #         [ rating_scaled ], { 0, 1, ... }
+    #         [ rating_scaled ], [ 18 ]
+    #         [ rating_scaled ], [ 18 ]
+    #     }
+    #     {
+    #         [ rating_scaled ], [ 18 ]
+    #         [ rating_scaled ], [ 18 ]
+    #         [ rating_scaled ], [ 18 ]
+    #     }
+    # ]
+
 def GetCommanders():
     return { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170 }
 
@@ -75,8 +91,16 @@ def GetTeamData(row, commander_to_index):
             i += 1
     return np.concatenate((team1, team2)).reshape(1, -1)
 
+def GetNormalizedRating(rating):
+    nrating = (rating - minRating) / (maxRating - minRating)
+    if nrating < 0:
+        nrating = 0
+    elif nrating > 1:
+        nrating = 1
+    return nrating
+
 def GetRatingData(row):
-    return np.array(list(map(float, row['ratings'].split('|'))))
+    return np.array(list(map(GetNormalizedRating, map(float, row['ratings'].split('|')))))
 
 def PreprocessData(results, commander_to_index):
     winloss = [row['WinnerTeam'] for row in results]
@@ -84,9 +108,4 @@ def PreprocessData(results, commander_to_index):
     ratings = np.array([GetRatingData(row) for row in results])
     labels = np.array([int(winner == 1) for winner in winloss])
 
-    # Scale the ratings using MinMaxScaler
-    scaler = MinMaxScaler()
-    ratings_scaled = scaler.fit_transform(ratings.reshape((-1, 1)))
-    ratings_scaled = ratings_scaled.reshape(ratings.shape)
-
-    return (cmdrs, ratings_scaled, labels)
+    return (cmdrs, ratings, labels)

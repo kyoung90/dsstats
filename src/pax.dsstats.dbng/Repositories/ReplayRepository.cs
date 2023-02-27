@@ -42,6 +42,7 @@ public partial class ReplayRepository : IReplayRepository
             });
             await context.SaveChangesAsync();
         }
+
         return replay with { Views = replay.Views + 1 };
     }
 

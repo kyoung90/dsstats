@@ -20,9 +20,11 @@ public record MmrOptions
         UseEquality = false;
 
         UseCommanderMmr = false;
-        UseConsistency = true;
+        UseConsistency = false;
         UseFactorToTeamMates = false;
-        UseConfidence = true;
+        UseConfidence = false;
+        UseTf = false;
+        HandleLeaver = true;
 
         StartMmr = 1000;
         EloK = eloK;
@@ -39,6 +41,8 @@ public record MmrOptions
     public bool UseConsistency { get; init; }
     public bool UseFactorToTeamMates { get; init; }
     public bool UseConfidence { get; init; }
+    public bool UseTf { get; init; }
+    public bool HandleLeaver { get; init; }
 
     public bool ReCalc { get; set; }
 }

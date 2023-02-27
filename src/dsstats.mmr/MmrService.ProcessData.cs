@@ -42,29 +42,34 @@ public partial class MmrService
 
     private static void SetExpectationsToWin(ReplayData replayData, MmrOptions mmrOptions)
     {
-        var team1ExpectationToWin = GetTeam1ExpectationToWinFromTf(replayData);
-
-        if (replayData.ReplayDsRDto.WinnerTeam == 1)
+        if (mmrOptions.UseTf && replayData.RatingType == RatingType.Cmdr)
         {
-           replayData.WinnerTeamData.ExpectedResult = team1ExpectationToWin; 
-           replayData.LoserTeamData.ExpectedResult = (1 - replayData.WinnerTeamData.ExpectedResult);
+            var team1ExpectationToWin = GetTeam1ExpectationToWinFromTf(replayData);
+
+            if (replayData.ReplayDsRDto.WinnerTeam == 1)
+            {
+                replayData.WinnerTeamData.ExpectedResult = team1ExpectationToWin;
+                replayData.LoserTeamData.ExpectedResult = 1 - replayData.WinnerTeamData.ExpectedResult;
+            }
+            else
+            {
+                replayData.LoserTeamData.ExpectedResult = team1ExpectationToWin;
+                replayData.WinnerTeamData.ExpectedResult = 1 - replayData.LoserTeamData.ExpectedResult;
+            }
         }
         else
         {
-            replayData.LoserTeamData.ExpectedResult = team1ExpectationToWin; 
-            replayData.WinnerTeamData.ExpectedResult = (1 - replayData.LoserTeamData.ExpectedResult);
+            double winnerPlayersExpectationToWin = EloExpectationToWin(replayData.WinnerTeamData.Mmr, replayData.LoserTeamData.Mmr, mmrOptions.Clip);
+            replayData.WinnerTeamData.ExpectedResult = winnerPlayersExpectationToWin;
+
+            if (mmrOptions.UseCommanderMmr)
+            {
+                double winnerCmdrExpectationToWin = EloExpectationToWin(replayData.WinnerTeamData.CmdrComboMmr, replayData.LoserTeamData.CmdrComboMmr, mmrOptions.Clip);
+                replayData.WinnerTeamData.ExpectedResult = (winnerPlayersExpectationToWin + winnerCmdrExpectationToWin) / 2;
+            }
+
+            replayData.LoserTeamData.ExpectedResult = 1 - replayData.WinnerTeamData.ExpectedResult;
         }
-
-        // double winnerPlayersExpectationToWin = EloExpectationToWin(replayData.WinnerTeamData.Mmr, replayData.LoserTeamData.Mmr, mmrOptions.Clip);
-        // replayData.WinnerTeamData.ExpectedResult = winnerPlayersExpectationToWin;
-
-        // if (mmrOptions.UseCommanderMmr)
-        // {
-        //     double winnerCmdrExpectationToWin = EloExpectationToWin(replayData.WinnerTeamData.CmdrComboMmr, replayData.LoserTeamData.CmdrComboMmr, mmrOptions.Clip);
-        //     replayData.WinnerTeamData.ExpectedResult = (winnerPlayersExpectationToWin + winnerCmdrExpectationToWin) / 2;
-        // }
-
-        // replayData.LoserTeamData.ExpectedResult = (1 - replayData.WinnerTeamData.ExpectedResult);
     }
 
     private static void SetPlayerData(Dictionary<int, CalcRating> mmrIdRatings, PlayerData playerData, MmrOptions mmrOptions)
