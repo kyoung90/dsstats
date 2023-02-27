@@ -10,8 +10,8 @@ config_file = "/data/localserverconfig.json"
 this = sys.modules[__name__]
 
 # we can explicitly make assignments on it 
-this.minRating = 0
-this.maxRating = 3500
+this.minRating = 500
+this.maxRating = 1500
 
 def GetDbConnection(config_file):
     # Load the configuration from the JSON file

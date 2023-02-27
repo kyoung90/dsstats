@@ -20,9 +20,9 @@ public record MmrOptions
         UseEquality = false;
 
         UseCommanderMmr = false;
-        UseConsistency = false;
+        UseConsistency = true;
         UseFactorToTeamMates = false;
-        UseConfidence = false;
+        UseConfidence = true;
         UseTf = true;
         HandleLeaver = true;
 

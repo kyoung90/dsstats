@@ -3,7 +3,7 @@ import modelservice
 import saveservice
 import tensorflow as tf
 
-data = dataservice.GetReplayDataWithRatings('2019-01-01', '2023-01-01')
+data = dataservice.GetReplayDataWithRatings('2020-07-28', '2023-01-01')
 
 commanders = dataservice.GetCommanders()
 commander_to_index = {cmdr: i for i, cmdr in enumerate(sorted(commanders))}
@@ -25,9 +25,9 @@ ratings_tensor = tf.constant(ratings, dtype=tf.float32)
 # Train the model on the input data and labels
 
 # model.fit(x=[cmdrs_tensor, ratings_tensor], y=labels, epochs=10, batch_size=32, validation_split=0.1)
-model.fit(x=[cmdrs_tensor, ratings_tensor], y=labels, epochs=30, batch_size=128, validation_split=0.1)
+model.fit(x=[cmdrs_tensor, ratings_tensor], y=labels, epochs=50, batch_size=128, validation_split=0.1)
 
-saveservice.SaveModel(model, 1)
+saveservice.SaveModel(model, 2)
 
 # Evaluate
 testdata = dataservice.GetReplayDataWithRatings('2023-01-23', '2023-03-01')

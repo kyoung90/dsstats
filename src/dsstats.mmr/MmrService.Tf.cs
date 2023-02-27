@@ -17,8 +17,8 @@ public partial class MmrService
     private static readonly string tfResturl = "/v1/models/dsstatsModelSeq:predict";
 
     private static readonly int tfPort = 8501;
-    private static float minRating = 0;
-    private static float maxRating = 3500;
+    private static float minRating = 280;
+    private static float maxRating = 2800;
     private static HttpClient? _httpClient;
 
     private static HttpClient GetHttpClient()
