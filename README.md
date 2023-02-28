@@ -30,7 +30,19 @@ We really like people helping us with the project. Nevertheless, take your time 
 
 ## ChangeLog
 
-<details open="open"><summary>v1.1.7</summary>
+<details open="open"><summary>v1.1.9 (web only atm)</summary>
+
+>- Builds by Ratings (suggested by heyrandompeople - ty!)
+
+</details>
+
+<details open="open"><summary>v1.1.8</summary>
+
+>- Fix player details Server update
+
+</details>
+
+<details><summary>v1.1.7</summary>
 
 >- TimePeriod Patch 2.71 (2023-01-22)
 >- Fix player details update
