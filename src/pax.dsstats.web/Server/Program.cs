@@ -24,7 +24,9 @@ var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionStri
 var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
 
 // var connectionString = builder.Configuration["ServerConfig:DsstatsProdConnectionString"];
+
 // var connectionString = builder.Configuration["ServerConfig:TestConnectionString"];
+// var importConnectionString = builder.Configuration["ServerConfig:ImportTestConnectionString"];
 
 builder.Services.AddDbContext<ReplayContext>(options =>
 {
@@ -101,58 +103,9 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
-    // var cheatDetectService = scope.ServiceProvider.GetRequiredService<CheatDetectService>();
-    // var result = cheatDetectService.Detect(true).GetAwaiter().GetResult();
-    // cheatDetectService.DetectNoUpload().Wait();
-    // cheatDetectService.GetCheatDetectResult().Wait();
-
-    //var statsService = scope.ServiceProvider.GetRequiredService<IStatsService>();
-    //var result = statsService.GetServerStats().GetAwaiter().GetResult();
-
-    //Console.WriteLine(result);
-
-    //var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyService>();
-    //tourneyService.CollectTourneyReplays().Wait();
-
-    //var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
-    //var result = importService.ImportReplayBlobs().GetAwaiter().GetResult();
-
-    // var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
-    // mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
-
-    //var ratingRepository = scope.ServiceProvider.GetRequiredService<IRatingRepository>();
-    //ratingRepository.SeedRatingChanges().Wait();
-
-    // PlayerService.GetExpectationCount(context);
-
-    // var buildService = scope.ServiceProvider.GetRequiredService<BuildService>();
-
-    // var requestA = new BuildRatingRequest()
-    // {
-    //     RatingType = RatingType.Cmdr,
-    //     TimePeriod = TimePeriod.Past90Days,
-    //     Interest = Commander.Nova,
-    //     Vs = Commander.Dehaka,
-    //     Breakpoint = Breakpoint.Min10,
-    //     FromRating = 800,
-    //     ToRating = 1200
-    // };
-
-    // var requestB = new BuildRatingRequest()
-    // {
-    //     RatingType = RatingType.Cmdr,
-    //     TimePeriod = TimePeriod.Past90Days,
-    //     Interest = Commander.Nova,
-    //     Vs = Commander.Dehaka,
-    //     Breakpoint = Breakpoint.Min10,
-    //     FromRating = 1200,
-    //     ToRating = 1600
-    // };
-
-    // var responseA = buildService.GetBuildByRating(requestA).GetAwaiter().GetResult();
-    // var responseB = buildService.GetBuildByRating(requestB).GetAwaiter().GetResult();
-    // buildService.PresentDiff(requestA, responseA, requestB, responseB);
-
+    var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+    var result = importService.ImportReplayBlobs().GetAwaiter().GetResult();
+    Console.WriteLine($"Result: {result}");
 }
 
 // Configure the HTTP request pipeline.

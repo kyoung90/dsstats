@@ -15,7 +15,7 @@ namespace SqliteMigrations.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.13");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.14");
 
             modelBuilder.Entity("pax.dsstats.dbng.BattleNetInfo", b =>
                 {
@@ -91,6 +91,62 @@ namespace SqliteMigrations.Migrations
                         .IsUnique();
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.FunStatsMemory", b =>
+                {
+                    b.Property<int>("FunStatsMemoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvgGameDuration")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasPrecision(0)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstReplay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GreatestArmyReplay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GreatestComebackReplay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MostCompetitiveReplay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MostUpgradesReplay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RatingType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TimePeriod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TotalTimePlayed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UnitCountLeast")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UnitCountMost")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UnitNameLeast")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UnitNameMost")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("FunStatsMemoryId");
+
+                    b.ToTable("FunStatMemories");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.GroupByHelper", b =>
@@ -380,6 +436,9 @@ namespace SqliteMigrations.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("TournamentEdition")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Uploaded")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Views")

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using pax.dsstats.dbng;
 
@@ -10,9 +11,10 @@ using pax.dsstats.dbng;
 namespace MysqlMigrations.Migrations
 {
     [DbContext(typeof(ReplayContext))]
-    partial class ReplayContextModelSnapshot : ModelSnapshot
+    [Migration("20230308064026_FunStatsMemory")]
+    partial class FunStatsMemory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -493,9 +495,6 @@ namespace MysqlMigrations.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("TournamentEdition")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("Uploaded")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int>("Views")
