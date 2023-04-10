@@ -9,7 +9,7 @@ public partial class RatingRepository
 {
     private async Task<UpdateResult> MysqlUpdateRavenPlayers(Dictionary<RatingType, Dictionary<int, CalcRating>> mmrIdRatings)
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var transaction = connection.BeginTransaction();
@@ -57,6 +57,7 @@ public partial class RatingRepository
                 parameters[10].Value = calcEnt.Confidence;
                 parameters[11].Value = calcEnt.IsUploader;
                 parameters[12].Value = calcEnt.PlayerId;
+                command.CommandTimeout = 120;
                 await command.ExecuteNonQueryAsync();
             }
         }
@@ -91,10 +92,11 @@ public partial class RatingRepository
 
     private async Task DeleteMyqlReplayPlayerRatingsTable()
     {
-        using var connection = new MySqlConnection(Data.MysqlConnectionString);
+        using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
         await connection.OpenAsync();
 
         using var delCommand = new MySqlCommand("TRUNCATE ReplayPlayerRatings;", connection);
+        delCommand.CommandTimeout = 120;
         await delCommand.ExecuteNonQueryAsync();
     }
 }
