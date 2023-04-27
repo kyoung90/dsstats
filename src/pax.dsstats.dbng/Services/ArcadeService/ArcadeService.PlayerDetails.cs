@@ -203,6 +203,39 @@ public partial class ArcadeService
                             };
         return await gameModeGroup.ToListAsync(token);
     }
+
+    public async Task<List<ReplayPlayerChartDto>> GetPlayerRatingChartData(PlayerId playerId, RatingType ratingType)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        var replaysQuery = from p in context.ArcadePlayers
+                           from rp in p.ArcadeReplayPlayers
+                           orderby rp.ArcadeReplay.CreatedAt
+                           where p.ProfileId == playerId.ToonId
+                            && p.RegionId == playerId.RegionId
+                            && p.RealmId == playerId.RealmId
+                            && rp.ArcadeReplay.ArcadeReplayRating != null
+                            && rp.ArcadeReplay.ArcadeReplayRating.RatingType == ratingType
+                           group rp by new { Year = rp.ArcadeReplay.CreatedAt.Year, Week = context.Week(rp.ArcadeReplay.CreatedAt) } into g
+                           select new ReplayPlayerChartDto()
+                           {
+                               Replay = new ReplayChartDto()
+                               {
+                                   // GameTime = new DateTime(g.Key.Year, g.Key.Month, 1),
+                                   Year = g.Key.Year,
+                                   Week = g.Key.Week,
+                               },
+                               ReplayPlayerRatingInfo = new RepPlayerRatingChartDto()
+                               {
+                                   Rating = MathF.Round(g.Average(a => a.ArcadeReplayPlayerRating.Rating)),
+                                   Games = g.Max(m => m.ArcadeReplayPlayerRating.Games)
+                               }
+                           };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        return await replaysQuery.ToListAsync();
+    }
 }
 
 internal record AracdePlayerTeamResultHelper

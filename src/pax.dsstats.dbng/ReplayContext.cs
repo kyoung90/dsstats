@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using System.Reflection;
 
 namespace pax.dsstats.dbng;
 
@@ -34,6 +36,9 @@ public class ReplayContext : DbContext
     public virtual DbSet<ArcadePlayerRating> ArcadePlayerRatings { get; set; } = null!;
     public virtual DbSet<ArcadeReplayPlayerRating> ArcadeReplayPlayerRatings { get; set; } = null!;
     public virtual DbSet<ArcadePlayerRatingChange> ArcadePlayerRatingChanges { get; set; } = null!;
+
+    public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
+    public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
 
     public ReplayContext(DbContextOptions<ReplayContext> options)
     : base(options)
@@ -127,7 +132,8 @@ public class ReplayContext : DbContext
         {
             entity.HasIndex(i => new { i.GameMode, i.CreatedAt });
             entity.HasIndex(i => new { i.RegionId, i.GameMode, i.CreatedAt });
-            entity.HasIndex(i => i.Id);
+            entity.HasIndex(i => new { i.RegionId, i.BnetBucketId, i.BnetRecordId }).IsUnique();
+            entity.HasIndex(i => i.ReplayHash);
         });
 
         modelBuilder.Entity<ArcadePlayer>(entity =>
@@ -135,5 +141,50 @@ public class ReplayContext : DbContext
             entity.HasIndex(i => i.Name);
             entity.HasIndex(i => new { i.RegionId, i.RealmId, i.ProfileId }).IsUnique();
         });
+
+        modelBuilder.Entity<ArcadePlayerRating>(entity =>
+        {
+            entity.HasIndex(i => i.RatingType);
+        });
+
+        modelBuilder.Entity<ReplayRating>(entity =>
+        {
+            entity.HasIndex(i => i.RatingType);
+        });
+
+        MethodInfo weekMethodInfo = typeof(ReplayContext)
+            .GetRuntimeMethod(nameof(ReplayContext.Week), new[] { typeof(DateTime) }) ?? throw new ArgumentNullException();
+
+        modelBuilder.HasDbFunction(weekMethodInfo)
+           .HasTranslation(args =>
+                    new SqlFunctionExpression("WEEK",
+                        new[]
+                        {
+                            args.ToArray()[0]
+                        },
+                        true,
+                        new[] { false, false },
+                        typeof(int),
+                        null
+                    )
+                );
+
+        MethodInfo strftimeMethodInfo = typeof(ReplayContext)
+            .GetRuntimeMethod(nameof(ReplayContext.Strftime), new[] { typeof(string), typeof(DateTime) }) ?? throw new ArgumentNullException();
+
+        modelBuilder.HasDbFunction(strftimeMethodInfo)
+           .HasTranslation(args =>
+                    new SqlFunctionExpression("strftime",
+                        new[]
+                        {
+                            new SqlFragmentExpression((args.ToArray()[0] as SqlConstantExpression).Value.ToString()),
+                            args.ToArray()[1]
+                        },
+                        true,
+                        new[] { false, false },
+                        typeof(int),
+                        null
+                    )
+                );
     }
 }

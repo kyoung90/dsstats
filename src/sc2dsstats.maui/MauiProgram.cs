@@ -1,13 +1,13 @@
 ﻿using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.UI.Windowing;
 using pax.BlazorChartJs;
 using pax.dsstats.dbng;
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.dbng.Services.Ratings;
 using pax.dsstats.shared;
+using pax.dsstats.shared.Arcade;
 using sc2dsstats.maui.Services;
 
 namespace sc2dsstats.maui;
@@ -65,8 +65,8 @@ public static class MauiProgram
 
         builder.Services.AddScoped<IRatingRepository, pax.dsstats.dbng.Services.RatingRepository>();
         builder.Services.AddSingleton<RatingsService>();
-        //builder.Services.AddScoped<MmrProduceService>();
         builder.Services.AddScoped<PlayerService>();
+        builder.Services.AddScoped<IArcadeService, sc2dsstats.maui.Services.ArcadeService>();
 
         builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
         builder.Services.AddTransient<IStatsRepository, StatsRepository>();
@@ -81,34 +81,8 @@ public static class MauiProgram
 
         // DEBUG
 
-        //foreach (var replay in context.Replays.Include(i => i.ReplayPlayers))
-        //{
-        //    int playerPos = replay.ReplayPlayers.FirstOrDefault(f => f.IsUploader)?.GamePos ?? 0;
-        //    if (playerPos > 0)
-        //    {
-        //        replay.PlayerPos = playerPos;
-        //    }
-        //}
-        //context.SaveChanges();
-
-        //var uploadService = scope.ServiceProvider.GetRequiredService<UploadService>();
-        //uploadService.ProduceMauiTestData();
-
-        //var replays = context.Replays
-        //    .Include(i => i.ReplayPlayers)
-        //        .ThenInclude(i => i.Spawns)
-        //            .ThenInclude(i => i.Units)
-        //    .Include(i => i.ReplayPlayers)
-        //        .ThenInclude(i => i.Upgrades)
-        //    .OrderByDescending(o => o.GameTime)
-        //    .Take(4)
-        //    .ToList();
-
-        //context.Replays.RemoveRange(replays);
-        //context.SaveChanges();
-
-        //OcrService ocrService = new();
-        //ocrService.GetTextFromOcr().Wait();
+        var uploadService = scope.ServiceProvider.GetRequiredService<UploadService>();
+        uploadService.ProduceMauiTestData();
 
         // END DEBUG
 

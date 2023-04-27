@@ -2,6 +2,8 @@
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using pax.dsstats.shared;
+using pax.dsstats.shared.Arcade;
+using System.Globalization;
 
 namespace pax.dsstats.dbng.Services;
 
@@ -101,11 +103,12 @@ public partial class StatsService
                                 from t in r.ReplayPlayers
                                 where toonIds.Contains(rp.Player.ToonId)
                                 where t.Team == rp.Team
-                                group t by t.Player.ToonId into g
+                                group t by new { t.Player.ToonId, t.Player.Name } into g
                                 where g.Count() > 10
                                 select new PlayerTeamResultHelper()
                                 {
-                                    ToonId = g.Key,
+                                    ToonId = g.Key.ToonId,
+                                    Name = g.Key.Name,
                                     Count = g.Count(),
                                     Wins = g.Count(c => c.PlayerResult == PlayerResult.Win)
                                 }
@@ -114,11 +117,12 @@ public partial class StatsService
                               from t in r.ReplayPlayers
                               where toonIds.Contains(rp.Player.ToonId)
                               where t.Team != rp.Team
-                              group t by t.Player.ToonId into g
+                              group t by new { t.Player.ToonId, t.Player.Name } into g
                               where g.Count() > 10
                               select new PlayerTeamResultHelper()
                               {
-                                  ToonId = g.Key,
+                                  ToonId = g.Key.ToonId,
+                                  Name = g.Key.Name,
                                   Count = g.Count(),
                                   Wins = g.Count(c => c.PlayerResult == PlayerResult.Win)
                               };
@@ -126,15 +130,9 @@ public partial class StatsService
         var results = await teammateGroup
             .ToListAsync(token);
 
-        var rtoonIds = results.Select(s => s.ToonId).ToList();
-        var names = (await context.Players
-            .Where(x => rtoonIds.Contains(x.ToonId))
-            .Select(s => new { s.ToonId, s.Name })
-            .ToListAsync(token)).ToDictionary(k => k.ToonId, v => v.Name);
-
         return results.Select(s => new PlayerTeamResult()
         {
-            Name = names[s.ToonId],
+            Name = s.Name,
             ToonId = s.ToonId,
             Count = s.Count,
             Wins = s.Wins
@@ -203,11 +201,76 @@ public partial class StatsService
             && gameModes.Contains(r.GameMode))
         .AsNoTracking();
     }
+
+    public async Task<List<ReplayPlayerChartDto>> GetPlayerRatingChartData(PlayerId playerId, RatingType ratingType)
+    {
+        if (!Data.IsMaui)
+        {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            var replaysQuery = from p in context.Players
+                               from rp in p.ReplayPlayers
+                               orderby rp.Replay.GameTime
+                               where p.ToonId == playerId.ToonId
+                                && p.RegionId == playerId.RegionId
+                                && p.RealmId == playerId.RealmId
+                                && rp.Replay.ReplayRatingInfo != null
+                                && rp.Replay.ReplayRatingInfo.RatingType == ratingType
+                               //group rp by new { rp.Replay.GameTime.Year, rp.Replay.GameTime.Month } into g
+                               group rp by new { Year = rp.Replay.GameTime.Year, Week = context.Week(rp.Replay.GameTime) } into g
+                               select new ReplayPlayerChartDto()
+                               {
+                                   Replay = new ReplayChartDto()
+                                   {
+                                       //GameTime = new DateTime(g.Key.Year, g.Key.Month, 1),
+                                       Year = g.Key.Year,
+                                       Week = g.Key.Week
+                                   },
+                                   ReplayPlayerRatingInfo = new RepPlayerRatingChartDto()
+                                   {
+                                       Rating = MathF.Round(g.Average(a => a.ReplayPlayerRatingInfo.Rating)),
+                                       Games = g.Max(m => m.ReplayPlayerRatingInfo.Games)
+                                   }
+                               };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            return await replaysQuery.ToListAsync();
+        } 
+        else
+        {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            var replaysQuery = from p in context.Players
+                               from rp in p.ReplayPlayers
+                               orderby rp.Replay.GameTime
+                               where p.ToonId == playerId.ToonId
+                                && p.RegionId == playerId.RegionId
+                                && p.RealmId == playerId.RealmId
+                                && rp.Replay.ReplayRatingInfo != null
+                                && rp.Replay.ReplayRatingInfo.RatingType == ratingType
+                               //group rp by new { rp.Replay.GameTime.Year, rp.Replay.GameTime.Month } into g
+                               group rp by new { Year = rp.Replay.GameTime.Year, Week = context.Strftime("'%W'", rp.Replay.GameTime) } into g
+                               select new ReplayPlayerChartDto()
+                               {
+                                   Replay = new ReplayChartDto()
+                                   {
+                                       //GameTime = new DateTime(g.Key.Year, g.Key.Month, 1),
+                                       Year = g.Key.Year,
+                                       Week = g.Key.Week
+                                   },
+                                   ReplayPlayerRatingInfo = new RepPlayerRatingChartDto()
+                                   {
+                                       Rating = MathF.Round(g.Average(a => a.ReplayPlayerRatingInfo.Rating)),
+                                       Games = g.Max(m => m.ReplayPlayerRatingInfo.Games)
+                                   }
+                               };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            return await replaysQuery.ToListAsync();
+        }
+    }
 }
 
 internal record PlayerTeamResultHelper
 {
     public int ToonId { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int Count { get; set; }
     public int Wins { get; set; }
 }

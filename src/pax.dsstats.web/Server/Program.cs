@@ -10,6 +10,8 @@ using pax.dsstats.shared.Arcade;
 using pax.dsstats.web.Server.Attributes;
 using pax.dsstats.web.Server.Hubs;
 using pax.dsstats.web.Server.Services;
+using pax.dsstats.web.Server.Services.Arcade;
+using System.Net.NetworkInformation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +23,7 @@ builder.Host.ConfigureAppConfiguration((context, config) =>
 
 // Add services to the container.
 
-var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 41));
+var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 42));
 var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionString"];
 var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
 
@@ -65,13 +67,15 @@ builder.Services.AddSingleton<AuthenticationFilterAttribute>();
 builder.Services.AddSingleton<PickBanService>();
 builder.Services.AddSingleton<pax.dsstats.web.Server.Services.Import.ImportService>();
 builder.Services.AddSingleton<RatingsService>();
-builder.Services.AddSingleton<ArcadeRatingsService>();
 
+builder.Services.AddScoped<ArcadeRatingsService>();
 builder.Services.AddScoped<IRatingRepository, pax.dsstats.dbng.Services.RatingRepository>();
 // builder.Services.AddScoped<ImportService>();
 // builder.Services.AddScoped<MmrProduceService>();
 builder.Services.AddScoped<CheatDetectService>();
 builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<CrawlerService>();
+builder.Services.AddScoped<RatingsMergeService>();
 
 builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
@@ -84,22 +88,11 @@ builder.Services.AddTransient<IArcadeService, ArcadeService>();
 builder.Services.AddHostedService<CacheBackgroundService>();
 builder.Services.AddHostedService<RatingsBackgroundService>();
 
-builder.Services.AddHttpClient("importClient")
+builder.Services.AddHttpClient("sc2arcardeClient")
     .ConfigureHttpClient(options =>
     {
-        options.BaseAddress = new Uri("http://localhost:5259");
+        options.BaseAddress = new Uri("https://api.sc2arcade.com");
         options.DefaultRequestHeaders.Add("Accept", "application/json");
-        options.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(builder.Configuration["ServerConfig:ImportAuthSecret"]);
-    });
-
-builder.Services.AddHttpClient("ratingsClient")
-    .ConfigureHttpClient(options =>
-    {
-        options.BaseAddress = new Uri("http://localhost:5153");
-        options.DefaultRequestHeaders.Add("Accept", "application/json");
-        options.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(builder.Configuration["ServerConfig:ImportAuthSecret"]);
     });
 
 var app = builder.Build();
@@ -116,9 +109,6 @@ context.Database.Migrate();
 // SEED
 if (app.Environment.IsProduction())
 {
-    // var mmrProduceService = scope.ServiceProvider.GetRequiredService<MmrProduceService>();
-    // mmrProduceService.ProduceRatings(new(true)).GetAwaiter().GetResult();
-
     var buildService = scope.ServiceProvider.GetRequiredService<BuildService>();
     buildService.SeedBuildsCache().GetAwaiter().GetResult();
 
@@ -132,20 +122,7 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
-    //var replays = context.Replays
-    //    .Include(i => i.ReplayPlayers)
-    //        .ThenInclude(i => i.Spawns)
-    //            .ThenInclude(i => i.Units)
-    //    .Include(i => i.ReplayRatingInfo)
-    //        .ThenInclude(i => i.RepPlayerRatings)
-    //    .OrderByDescending(o => o.GameTime)
-    //    .Take(2)
-    //    .ToList();
-    //context.Replays.RemoveRange(replays);
-    //context.SaveChanges();
 
-    //var ratingsService = scope.ServiceProvider.GetRequiredService<RatingsService>();
-    //ratingsService.ProduceRatings().Wait();
 }
 
 // Configure the HTTP request pipeline.

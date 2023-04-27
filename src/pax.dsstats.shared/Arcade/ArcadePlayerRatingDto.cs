@@ -28,7 +28,7 @@ public record ArcadePlayerRatingChangeDto
 
 public record ArcadeReplayListDto
 {
-    public int Id { get; set; }
+    public int ArcadeReplayId { get; set; }
     public DateTime CreatedAt { get; set; }
     public GameMode GameMode { get; set; }
     public int RegionId { get; set; }
@@ -39,7 +39,7 @@ public record ArcadeReplayListDto
 
 public record ArcadeReplayDto
 {
-    public int Id { get; set; }
+    public int ArcadeReplayId { get; set; }
     public DateTime CreatedAt { get; set; }
     public GameMode GameMode { get; set; }
     public int RegionId { get; set; }
@@ -94,6 +94,5 @@ public record ArcadePlayerRatingDetailDto
     public int Wins { get; set; }
     public double Consistency { get; set; }
     public double Confidence { get; set; }
-    public string MmrOverTime { get; set; } = string.Empty;
     public ArcadePlayerRatingChangeDto? ArcadePlayerRatingChange { get; set; }
 }

@@ -16,7 +16,7 @@ namespace MysqlMigrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.15")
+                .HasAnnotation("ProductVersion", "6.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("ReplayUploader", b =>
@@ -91,11 +91,6 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("MainCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("MmrOverTime")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
-
                     b.Property<int>("Mvp")
                         .HasColumnType("int");
 
@@ -117,6 +112,8 @@ namespace MysqlMigrations.Migrations
                     b.HasKey("ArcadePlayerRatingId");
 
                     b.HasIndex("ArcadePlayerId");
+
+                    b.HasIndex("RatingType");
 
                     b.ToTable("ArcadePlayerRatings");
                 });
@@ -153,6 +150,12 @@ namespace MysqlMigrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<long>("BnetBucketId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BnetRecordId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasPrecision(0)
                         .HasColumnType("datetime(0)");
@@ -163,14 +166,20 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("GameMode")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("Imported")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime(0)");
 
                     b.Property<int>("PlayerCount")
                         .HasColumnType("int");
 
                     b.Property<int>("RegionId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ReplayHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.Property<bool>("TournamentEdition")
                         .HasColumnType("tinyint(1)");
@@ -180,9 +189,12 @@ namespace MysqlMigrations.Migrations
 
                     b.HasKey("ArcadeReplayId");
 
-                    b.HasIndex("Id");
+                    b.HasIndex("ReplayHash");
 
                     b.HasIndex("GameMode", "CreatedAt");
+
+                    b.HasIndex("RegionId", "BnetBucketId", "BnetRecordId")
+                        .IsUnique();
 
                     b.HasIndex("RegionId", "GameMode", "CreatedAt");
 
@@ -543,11 +555,6 @@ namespace MysqlMigrations.Migrations
 
                     b.Property<int>("MainCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("MmrOverTime")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
 
                     b.Property<int>("Mvp")
                         .HasColumnType("int");
@@ -984,6 +991,8 @@ namespace MysqlMigrations.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("ReplayRatingId");
+
+                    b.HasIndex("RatingType");
 
                     b.HasIndex("ReplayId")
                         .IsUnique();

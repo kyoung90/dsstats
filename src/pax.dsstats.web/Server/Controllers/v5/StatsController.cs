@@ -2,6 +2,8 @@
 using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
+using pax.dsstats.shared.Arcade;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace pax.dsstats.web.Server.Controllers.v5
 {
@@ -138,11 +140,13 @@ namespace pax.dsstats.web.Server.Controllers.v5
 
         [HttpGet]
         [Route("GetPlayerDetailsNg/{toonId}/{rating}")]
-        public async Task<ActionResult<PlayerDetailsResult>> GetPlayerDetailsNg(int toonId, int rating, CancellationToken token)
+        public async Task<ActionResult<PlayerDetailsResultV5>> GetPlayerDetailsNg(int toonId, int rating, CancellationToken token)
         {
             try
             {
-                return await statsService.GetPlayerDetails(toonId, (RatingType)rating, token);
+                var result = await statsService.GetPlayerDetails(toonId, (RatingType)rating, token);
+                var v5result = new PlayerDetailsResultV5(result);
+                return Ok(v5result);
             }
             catch (OperationCanceledException) { }
             return NoContent();
@@ -255,7 +259,7 @@ namespace pax.dsstats.web.Server.Controllers.v5
         [Route("GetFunStats")]
         public async Task<ActionResult<FunStatsResult>> GetFunStats(FunStatsRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetFunStats(request, token);
             }
@@ -267,19 +271,19 @@ namespace pax.dsstats.web.Server.Controllers.v5
         [Route("GetCmdrReplayInfosCount")]
         public async Task<int> GetCmdrReplayInfosCount(CmdrInfoRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetCmdrReplayInfosCount(request, token);
             }
             catch (OperationCanceledException) { }
             return 0;
-        }        
+        }
 
         [HttpPost]
         [Route("GetCmdrReplayInfos")]
         public async Task<ActionResult<List<ReplayCmdrInfo>>> GetCmdrReplayInfos(CmdrInfoRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetCmdrReplayInfos(request, token);
             }
@@ -291,19 +295,19 @@ namespace pax.dsstats.web.Server.Controllers.v5
         [Route("GetCmdrPlayerInfos")]
         public async Task<ActionResult<List<CmdrPlayerInfo>>> GetCmdrPlayerInfos(CmdrInfoRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetCmdrPlayerInfos(request, token);
             }
             catch (OperationCanceledException) { }
             return NoContent();
-        }  
+        }
 
         [HttpPost]
         [Route("GetCmdrReplaysCount")]
         public async Task<ActionResult<int>> GetCmdrReplaysCount(CmdrInfosRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetCmdrReplaysCount(request, token);
             }
@@ -315,12 +319,76 @@ namespace pax.dsstats.web.Server.Controllers.v5
         [Route("GetCmdrReplays")]
         public async Task<ActionResult<List<ReplayCmdrListDto>>> GetCmdrReplays(CmdrInfosRequest request, CancellationToken token)
         {
-            try 
+            try
             {
                 return await statsService.GetCmdrReplays(request, token);
             }
             catch (OperationCanceledException) { }
             return NoContent();
-        }               
+        }
+
+        [HttpPost]
+        [Route("playerratingchartdata/{ratingType:int}")]
+        public async Task<ActionResult<List<ReplayPlayerChartDto>>> GetPlayerRatingChartData([FromBody] PlayerId playerId, int ratingType)
+        {
+            return await statsService.GetPlayerRatingChartData(playerId, (RatingType)ratingType);
+        }
     }
+}
+
+
+public record PlayerDetailsResultV5
+{
+    public PlayerDetailsResultV5(PlayerDetailsResult result)
+    {
+        GameModes = result.GameModes;
+        Ratings = result.Ratings.Select(s => new PlayerRatingDetailDtoV5(s)).ToList();
+        Matchups = result.Matchups;
+    }
+
+    public List<PlayerRatingDetailDtoV5> Ratings { get; init; } = new();
+    public List<PlayerGameModeResult> GameModes { get; init; } = new();
+    public List<PlayerMatchupInfo> Matchups { get; set; } = new();
+}
+
+public record PlayerRatingDetailDtoV5
+{
+    public PlayerRatingDetailDtoV5(PlayerRatingDetailDto playerRatingDto)
+    {
+        RatingType = playerRatingDto.RatingType;
+        Rating = playerRatingDto.Rating;
+        Pos = playerRatingDto.Pos;
+        Games = playerRatingDto.Games;
+        Wins = playerRatingDto.Wins;
+        Mvp = playerRatingDto.Mvp;
+        TeamGames = playerRatingDto.TeamGames;
+        MainCount = playerRatingDto.MainCount;
+        Main = playerRatingDto.Main;
+        Consistency = playerRatingDto.Consistency;
+        Confidence = playerRatingDto.Confidence;
+        IsUploader = playerRatingDto.IsUploader;
+        MmrOverTime = "";
+        Player = playerRatingDto.Player;
+        PlayerRatingChange = playerRatingDto.PlayerRatingChange;
+    }
+
+    public RatingType RatingType { get; init; }
+    public double Rating { get; init; }
+    public int Pos { get; init; }
+    public int Games { get; init; }
+    public int Wins { get; init; }
+    public int Mvp { get; init; }
+    public int TeamGames { get; init; }
+    public int MainCount { get; init; }
+    public Commander Main { get; init; }
+    public double Consistency { get; set; }
+    public double Confidence { get; set; }
+    public bool IsUploader { get; set; }
+    public string MmrOverTime { get; set; } = "";
+    public PlayerRatingPlayerDto Player { get; init; } = null!;
+    public PlayerRatingChangeDto? PlayerRatingChange { get; init; }
+    [NotMapped]
+    public double MmrChange { get; set; }
+    [NotMapped]
+    public double FakeDiff { get; set; }
 }

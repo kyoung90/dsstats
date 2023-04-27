@@ -10,9 +10,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.15" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.15" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.15" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.16" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.16" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.16" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
 		<PackageReference Include="xunit" Version="2.4.2" />
 		<PackageReference Include="Xunit.DependencyInjection" Version="8.7.1" />
@@ -62,6 +62,9 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="testdata\uploadtest3.base64">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="testdata\arcadetestdata.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="cmd.bat">

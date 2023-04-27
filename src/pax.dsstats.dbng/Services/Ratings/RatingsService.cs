@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
-using pax.dsstats.dbng;
 using pax.dsstats.shared;
 using pax.dsstats.shared.Ratings;
 using System.Diagnostics;
@@ -50,7 +49,8 @@ public partial class RatingsService
                 {
                     MmrOptions = new(reCalc: true),
                     MmrIdRatings = await GetMmrIdRatings(new(reCalc: true), null),
-                    StartTime = Data.IsMaui ? new DateTime(2018, 1, 1) : new DateTime(2021, 2, 1),
+                    // StartTime = Data.IsMaui ? new DateTime(2018, 1, 1) : new DateTime(2021, 2, 1),
+                    StartTime = new DateTime(2018, 1, 1),
                     EndTime = DateTime.Today.AddDays(2)
                 };
 
@@ -68,7 +68,7 @@ public partial class RatingsService
 
             if (Data.IsMaui)
             {
-                await UpdateSqlitePlayers(request.MmrIdRatings);
+                await UpdateSqlitePlayers(request.MmrIdRatings, request.MmrOptions.ReCalc);
             }
             else
             {
@@ -113,7 +113,6 @@ public partial class RatingsService
     {
         MmrOptions mmrOptions = new(reCalc: true);
 
-        List<ReplayDsRDto> continueReplays = new();
         int replayRatingAppendId = 0;
         int replayPlayerRatingAppendId = 0;
 
@@ -130,7 +129,7 @@ public partial class RatingsService
             .Select(s => s.GameTime)
             .FirstOrDefaultAsync();
 
-        
+
         if (latestRatingsProduced > DateTime.MinValue)
         {
             var importedReplaysQuery = context.Replays
@@ -146,26 +145,19 @@ public partial class RatingsService
                 return null;
             }
 
-            if (count <= 100)
+            var oldestReplay = importedReplaysQuery.OrderBy(o => o.GameTime).First();
+            if (oldestReplay.GameTime > latestRatingsProduced)
             {
-                var importedReplays = await importedReplaysQuery.ToListAsync();
-
-                var oldestReplay = importedReplays.OrderBy(o => o.GameTime).First();
-               
-                if (oldestReplay.GameTime > latestRatingsProduced)
-                {
-                    mmrOptions.ReCalc = false;
-                    startTime = latestRatingsProduced;
-                    continueReplays = await GetReplayData(startTime, endTime);
-                    replayPlayerRatingAppendId = await context.RepPlayerRatings
-                        .OrderByDescending(o => o.RepPlayerRatingId)
-                        .Select(s => s.RepPlayerRatingId)
-                        .FirstOrDefaultAsync();
-                    replayRatingAppendId = await context.ReplayRatings
-                        .OrderByDescending(o => o.ReplayRatingId)
-                        .Select(s => s.ReplayRatingId)
-                        .FirstOrDefaultAsync();
-                }
+                mmrOptions.ReCalc = false;
+                startTime = latestRatingsProduced;
+                replayPlayerRatingAppendId = await context.RepPlayerRatings
+                    .OrderByDescending(o => o.RepPlayerRatingId)
+                    .Select(s => s.RepPlayerRatingId)
+                    .FirstOrDefaultAsync();
+                replayRatingAppendId = await context.ReplayRatings
+                    .OrderByDescending(o => o.ReplayRatingId)
+                    .Select(s => s.ReplayRatingId)
+                    .FirstOrDefaultAsync();
             }
         }
 
@@ -174,7 +166,7 @@ public partial class RatingsService
         MmrService.CalcRatingRequest request = new()
         {
             CmdrMmrDic = new(),
-            MmrIdRatings = await GetMmrIdRatings(mmrOptions, continueReplays),
+            MmrIdRatings = await GetMmrIdRatings(mmrOptions, mmrOptions.ReCalc ? null : startTime),
             MmrOptions = mmrOptions,
             ReplayRatingAppendId = replayRatingAppendId,
             ReplayPlayerRatingAppendId = replayPlayerRatingAppendId,
@@ -194,54 +186,39 @@ public partial class RatingsService
 
     private async Task GeneratePlayerRatings(MmrService.CalcRatingRequest request)
     {
-        // continue
-        if (request.ReplayDsRDtos.Any())
-        {
-            MmrService.GeneratePlayerRatings(request);
-        }
-        // recalc
-        else
-        {
-            var _startTime = request.StartTime;
-            var _endTime = request.EndTime;
+        int skip = 0;
+        int take = 100000;
 
-            while (_startTime < _endTime)
+        request.ReplayDsRDtos = await GetReplayData(request.StartTime, skip, take, request.MmrOptions.ReCalc);
+
+        while (request.ReplayDsRDtos.Any())
+        {
+            var calcResult = MmrService.GeneratePlayerRatings(request, Data.IsMaui);
+
+            if (Data.IsMaui)
             {
-                var chunkEndTime = _startTime.AddYears(1);
-
-                if (chunkEndTime > _endTime)
-                {
-                    chunkEndTime = _endTime;
-                }
-
-                request.ReplayDsRDtos = await GetReplayData(_startTime, chunkEndTime);
-
-                _startTime = _startTime.AddYears(1);
-
-                if (!request.ReplayDsRDtos.Any())
-                {
-                    continue;
-                }
-
-                var calcResult = MmrService.GeneratePlayerRatings(request, Data.IsMaui);
-
-                if (Data.IsMaui)
-                {
-                    (request.ReplayRatingAppendId, request.ReplayPlayerRatingAppendId) =
-                        await UpdateSqliteMmrChanges(calcResult.replayRatingDtos, request.ReplayRatingAppendId, request.ReplayPlayerRatingAppendId);
-                }
-                else
-                {
-                    request.ReplayRatingAppendId = calcResult.ReplayRatingAppendId;
-                    request.ReplayPlayerRatingAppendId = calcResult.ReplayPlayerRatingAppendId;
-                }
+                (request.ReplayRatingAppendId, request.ReplayPlayerRatingAppendId) =
+                    await UpdateSqliteMmrChanges(calcResult.replayRatingDtos, request.ReplayRatingAppendId, request.ReplayPlayerRatingAppendId);
             }
+            else
+            {
+                request.ReplayRatingAppendId = calcResult.ReplayRatingAppendId;
+                request.ReplayPlayerRatingAppendId = calcResult.ReplayPlayerRatingAppendId;
+            }
+
+            if (request.ReplayDsRDtos.Count < take)
+            {
+                break;
+            }
+
+            skip += take;
+            request.ReplayDsRDtos = await GetReplayData(request.StartTime, skip, take, request.MmrOptions.ReCalc);
         }
     }
 
-    private async Task<Dictionary<RatingType, Dictionary<int, CalcRating>>> GetMmrIdRatings(MmrOptions mmrOptions, List<ReplayDsRDto>? dependentReplays)
+    private async Task<Dictionary<RatingType, Dictionary<int, CalcRating>>> GetMmrIdRatings(MmrOptions mmrOptions, DateTime? startTime)
     {
-        if (mmrOptions.ReCalc || dependentReplays == null)
+        if (mmrOptions.ReCalc || startTime == null)
         {
             Dictionary<RatingType, Dictionary<int, CalcRating>> calcRatings = new();
 
@@ -257,10 +234,10 @@ public partial class RatingsService
         }
         else
         {
-            return await GetCalcRatings(dependentReplays);
+            return await GetCalcRatings(startTime.Value);
         }
     }
-    
+
     private async Task SetPlayerRatingsPos()
     {
         using var connection = new MySqlConnection(dbImportOptions.Value.ImportConnectionString);
