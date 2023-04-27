@@ -122,7 +122,6 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
-
 }
 
 // Configure the HTTP request pipeline.
