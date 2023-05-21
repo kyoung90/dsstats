@@ -2,6 +2,7 @@
 @using System.Globalization;
 @using pax.BlazorChartJs
 @using pax.dsstats.shared
+@using pax.dsstats.shared.Arcade;
 @using sc2dsstats.razorlib.Services
 @inject IJSRuntime JSRuntime
 @inject IDataService dataService
@@ -56,7 +57,7 @@
                                 {
                                     <button class="btn btn-sm btn-danger"><b>@(@replayDto.ReplayEvent != null ? replayDto.ReplayEvent.RunnerTeam : $"Team {i}")</b></button>
                                 }
-                                <button type="button" class="btn btn-sm btn-outline-light" @onclick="@(() => showMiddleChart = !showMiddleChart)">Middle @(i == 1 ? mid1 : mid2)%</button>
+                                <button type="button" class="btn btn-sm btn-outline-light" @onclick="@(() => showMiddleChart = !showMiddleChart)">Middle Control @(i == 1 ? mid1 : mid2)%</button>
                             </div>
                             <div class="table-responsive" style="max-width: 560px;">
                                 <table class="table table-sm table-hover table-dark pointer">
@@ -131,19 +132,24 @@
                             Rating Info
                         </button>
                     </div>
+                    @if (replayDto.ReplayRatingInfo?.IsPreRating ?? false)
+                    {
+                        <div class="ms-5">
+                            <span class="text-warning" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Expected Rating Changes - the actual calculation takes place every hour at 30 minutes">PreRating*</span>
+                        </div>
+                    }
                     @if (Data.IsMaui && (DateTime.UtcNow - replayDto.GameTime) < TimeSpan.FromHours(24))
                     {
                         <div class="ms-5 form-check form-switch align-self-center">
                             <label class="form-check-label">
                                 Online Rating (expected)
-                                <input type="checkbox" class="form-check-input" @onchange="ToggleOnlineRating">
-                                </input>
+                                <input type="checkbox" class="form-check-input" @onchange="ToggleOnlineRating" />
                             </label>
                         </div>
                     }
                 </div>
                 <div class="collapse" id="ReplayRatingInfo">
-                    <ReplayRatingInfo ReplayRatingDto="replayDto.ReplayRatingInfo"></ReplayRatingInfo>
+                    <ReplayRatingInfo @ref="replayRatingInfo" ReplayRatingDto="replayDto.ReplayRatingInfo"></ReplayRatingInfo>
                 </div>
             </div>
             <div class="card-footer">
@@ -157,10 +163,16 @@
 
 @if (Interest != null)
 {
-    <sc2dsstats.razorlib.PlayerDetailsNg.PlayerDetailsSummary RequestNames="Interest"
+@*    <sc2dsstats.razorlib.PlayerDetailsNg.PlayerDetailsSummary RequestNames="Interest"
                                                           RatingType="@(replayDto.GameMode == GameMode.Standard ? RatingType.Std : RatingType.Cmdr)"
                                                           OnCloseRequested="DetailsClose"
-                                                          ReplaysRequest="ReplaysRequest" />
+                                                          ReplaysRequest="ReplaysRequest" />*@
+    <sc2dsstats.razorlib.PlayerDetailsNg.ComboPlayerDetails RequestNames="Interest"
+                                                        OnCloseRequested="DetailsClose"
+                                                        RatingType="@(replayDto.GameMode == GameMode.Standard ? RatingType.Std : RatingType.Cmdr)"
+                                                        OnReplaysRequest="OnReplaysRequest"
+                                                        OnArcadeReplaysRequest="OnArcadeReplaysRequest"
+                                                        ArcadeDetails="false" />
 }
 
 @if (showBuilds.Where(x => x).Any())
@@ -202,7 +214,10 @@
     public EventCallback OnCloseRequested { get; set; }
 
     [Parameter]
-    public EventCallback<ReplaysToonIdRequest> ReplaysRequest { get; set; }
+    public EventCallback<ReplaysToonIdRequest> OnReplaysRequest { get; set; }
+
+    [Parameter]
+    public EventCallback<ReplaysToonIdRequest> OnArcadeReplaysRequest { get; set; }
 
     [Parameter]
     public bool HideCloseButton { get; set; }
@@ -224,6 +239,8 @@
     private CancellationTokenSource cts = new();
     private SemaphoreSlim ss = new(1, 1);
     private ReplayRatingDto? mauiRating;
+    private ReplayRatingInfo? replayRatingInfo;
+    bool onlineRating;
 
     protected override void OnInitialized()
     {
@@ -247,6 +264,7 @@
     public async void Init(ReplayDetailsDto replay)
     {
         showRatingInfo = false;
+
         if (showMiddleChart)
         {
             showMiddleChart = false;
@@ -269,6 +287,16 @@
                 var plRating = replay.ReplayRatingInfo.RepPlayerRatings.FirstOrDefault(f => f.GamePos == player.GamePos);
                 player.MmrChange = plRating?.RatingChange ?? 0;
             }
+        }
+
+        mauiRating = replay.ReplayRatingInfo;
+        if (onlineRating)
+        {
+            await SetOnlineRatings();
+        }
+        else
+        {
+            SetMauiRatings();
         }
 
         await InvokeAsync(() => StateHasChanged());
@@ -327,23 +355,27 @@
         InvokeAsync(() => StateHasChanged());
     }
 
-    private async Task ToggleOnlineRating()
+    private async Task ToggleOnlineRating(ChangeEventArgs e)
     {
-        await ss.WaitAsync();
-        try
+        if (e.Value is bool boolValue)
         {
-            if (mauiRating == null)
+            await ss.WaitAsync();
+            onlineRating = boolValue;
+            try
             {
-                await SetOnlineRatings();
+                if (onlineRating)
+                {
+                    await SetOnlineRatings();
+                }
+                else
+                {
+                    SetMauiRatings();
+                }
             }
-            else
+            finally
             {
-                SetMauiRatings();
+                ss.Release();
             }
-        }
-        finally
-        {
-            ss.Release();
         }
     }
 
@@ -354,34 +386,38 @@
             return;
         }
 
-        ToonIdRatingRequest request = new()
-            {
-                RatingType = replayDto.ReplayRatingInfo.RatingType,
-                ToonIds = replayDto.ReplayPlayers.Select(s => s.Player.ToonId).ToList()
-            };
+        replayDto.ReplayRatingInfo = await dataService.GetOnlineRating(replayDto);
 
-        List<PlayerRatingReplayCalcDto> playerCalcRatings = await dataService.GetToonIdCalcRatings(request, cts.Token);
-
-        if (mauiRating == null)
+        if (replayDto.ReplayRatingInfo != null)
         {
-            mauiRating = replayDto.ReplayRatingInfo;
+            foreach (var replayPlayer in replayDto.ReplayPlayers)
+            {
+                var replayPlayerRating = replayDto.ReplayRatingInfo.RepPlayerRatings
+                    .FirstOrDefault(f => f.GamePos == replayPlayer.GamePos);
+
+                if (replayPlayerRating == null)
+                {
+                    continue;
+                }
+                replayPlayer.MmrChange = replayPlayerRating.RatingChange;
+            }
         }
-        replayDto.ReplayRatingInfo = dataService.GetOnlineRating(replayDto, playerCalcRatings);
-        await InvokeAsync(() => StateHasChanged());
+        replayRatingInfo?.Update(replayDto.ReplayRatingInfo);
     }
 
     private void SetMauiRatings()
     {
         replayDto.ReplayRatingInfo = mauiRating;
 
-        if (mauiRating == null)
+        if (replayDto.ReplayRatingInfo == null)
         {
+            replayRatingInfo?.Update(replayDto.ReplayRatingInfo);
             return;
         }
 
         foreach (var replayPlayer in replayDto.ReplayPlayers)
         {
-            var replayPlayerRating = mauiRating.RepPlayerRatings
+            var replayPlayerRating = replayDto.ReplayRatingInfo.RepPlayerRatings
                 .FirstOrDefault(f => f.GamePos == replayPlayer.GamePos);
 
             if (replayPlayerRating == null)
@@ -391,7 +427,7 @@
 
             replayPlayer.MmrChange = replayPlayerRating.RatingChange;
         }
-        mauiRating = null;
+        replayRatingInfo?.Update(replayDto.ReplayRatingInfo);
     }
 
     private void DetailsClose()
@@ -495,7 +531,7 @@
                         Title = new Title()
                         {
                             Display = true,
-                            Text = new IndexableOption<string>("Middle"),
+                            Text = new IndexableOption<string>($"Middle - {gameloops.Length} changes"),
                             Color = "yellow",
                             Font = new Font()
                             {

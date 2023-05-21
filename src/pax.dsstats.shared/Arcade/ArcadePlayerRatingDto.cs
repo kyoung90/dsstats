@@ -34,6 +34,7 @@ public record ArcadeReplayListDto
     public int RegionId { get; set; }
     public int WinnerTeam { get; set; }
     public int Duration { get; set; }
+    public double MmrChange { get; set; }
 }
 
 
@@ -61,6 +62,7 @@ public record ArcadeReplayPlayerDto
 
 public record ArcadeReplayRatingDto
 {
+    public RatingType RatingType { get; set; }
     public float ExpectationToWin { get; set; }
     public List<ArcadeReplayPlayerRatingDto> ArcadeReplayPlayerRatings { get; set; } = new();
 }
@@ -95,4 +97,33 @@ public record ArcadePlayerRatingDetailDto
     public double Consistency { get; set; }
     public double Confidence { get; set; }
     public ArcadePlayerRatingChangeDto? ArcadePlayerRatingChange { get; set; }
+}
+
+public record ArcadeReplayListRatingDto : ArcadeReplayListDto
+{
+    public ArcadeReplayRatingListDto? ArcadeReplayRating { get; set; }
+    public List<ArcadeReplayPlayerListDto> ArcadeReplayPlayers { get; set; } = new();
+}
+
+public record ArcadeReplayPlayerListDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int SlotNumber { get; set; }
+    public ArcadePlayerListDto ArcadePlayer { get; set; } = null!;
+}
+
+public record ArcadePlayerListDto
+{
+    public int ArcadePlayerId { get; set; }
+}
+
+public record ArcadeReplayRatingListDto
+{
+    public List<ArcadeReplayPlayerRatingListDto> ArcadeReplayPlayerRatings { get; set; } = new();
+}
+
+public record ArcadeReplayPlayerRatingListDto
+{
+    public int GamePos { get; set; }
+    public float RatingChange { get; set; }
 }

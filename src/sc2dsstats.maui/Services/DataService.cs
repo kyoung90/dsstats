@@ -14,6 +14,7 @@ public partial class DataService : IDataService
     private readonly IRatingRepository ratingRepository;
     private readonly IFromServerSwitchService fromServerSwitchService;
     private readonly PlayerService playerService;
+    private readonly DecodeService decodeService;
     private readonly ILogger<DataService> logger;
     private readonly HttpClient httpClient;
 
@@ -23,6 +24,7 @@ public partial class DataService : IDataService
                        IRatingRepository ratingRepository,
                        IFromServerSwitchService fromServerSwitchService,
                        PlayerService playerService,
+                       DecodeService decodeService,
                        ILogger<DataService> logger)
     {
         this.replayRepository = replayRepository;
@@ -31,6 +33,7 @@ public partial class DataService : IDataService
         this.ratingRepository = ratingRepository;
         this.fromServerSwitchService = fromServerSwitchService;
         this.playerService = playerService;
+        this.decodeService = decodeService;
         this.logger = logger;
         httpClient = new HttpClient();
         // httpClient.BaseAddress = new Uri("https://localhost:7174");
@@ -239,9 +242,9 @@ public partial class DataService : IDataService
         return await Task.FromResult(new List<BuildResponseReplay>());
     }
 
-    public async Task<ToonIdRatingResponse> GetToonIdRatings(ToonIdRatingRequest request, CancellationToken token)
+    public async Task<ToonIdRatingResponse> GetPlayerIdRatings(PlayerIdRatingRequest request, CancellationToken token)
     {
-        return await ServerGetToonIdRatings(request, token);
+        return await ServerGetPlayerIdRatings(request, token);
     }
 
     public async Task<int> GetEventReplaysCount(ReplaysRequest request, CancellationToken token = default)
@@ -296,14 +299,14 @@ public partial class DataService : IDataService
         return await Task.FromResult(new RatingChangesResult());
     }
 
-    public async Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token)
+    public async Task<List<PlayerRatingReplayCalcDto>> GetPlayerIdCalcRatings(PlayerIdRatingRequest request, CancellationToken token)
     {
-        return await ServerGetToonIdCalcRatings(request, token);
+        return await ServerGetPlayerIdCalcRatings(request, token);
     }
 
-    public ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos)
+    public async Task<ReplayRatingDto?> GetOnlineRating(ReplayDetailsDto replayDto)
     {
-        return ratingRepository.GetOnlineRating(replayDto, calcDtos);
+        return await decodeService.GetOnlineRating(replayDto);
     }
 
     public async Task<CmdrStrengthResult> GetCmdrStrengthResults(CmdrStrengthRequest request, CancellationToken token)

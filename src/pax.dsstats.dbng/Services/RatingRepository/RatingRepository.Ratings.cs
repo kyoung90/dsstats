@@ -98,12 +98,12 @@ public partial class RatingRepository
 
         if (request.Uploaders && !Data.IsMaui)
         {
-            ratings = ratings.Where(x => x.IsUploader);
+            ratings = ratings.Where(x => x.Player.UploaderId != null);
         }
 
         if (!String.IsNullOrEmpty(request.Search))
         {
-            ratings = ratings.Where(x => x.Player.Name.ToUpper().Contains(request.Search.ToUpper()));
+            ratings = ratings.Where(x => x.Player.Name.ToUpper().Contains(request.Search.Trim().ToUpper()));
         }
 
         return ratings;
@@ -132,6 +132,39 @@ public partial class RatingRepository
         };
     }
 
+    public async Task<ToonIdRatingResponse> GetPlayerIdRatings(PlayerIdRatingRequest request, CancellationToken token)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        var toonIds = request.PlayerIds.Select(s => s.ToonId).ToList();
+
+        var ratingQuery = context.PlayerRatings
+            .Where(x => toonIds.Contains(x.Player.ToonId));
+
+        if (request.RatingType != shared.RatingType.None)
+        {
+            ratingQuery = ratingQuery.Where(x => x.RatingType == request.RatingType);
+        }
+
+        var ratings = await ratingQuery
+                .OrderByDescending(o => o.Rating)
+                .Take(10)
+                .ProjectTo<PlayerRatingDetailDto>(mapper.ConfigurationProvider)
+                .ToListAsync(token);
+
+        ratings = ratings.Where(x => request.PlayerIds.Any(a => a.ToonId == x.Player.ToonId
+                                                            && a.RealmId == x.Player.RealmId
+                                                            && a.RegionId == x.Player.RegionId))
+                        .ToList();                                                                 
+
+
+        return new ToonIdRatingResponse()
+        {
+            Ratings = ratings
+        };
+    }
+
     public async Task<List<PlayerRatingReplayCalcDto>> GetToonIdCalcRatings(ToonIdRatingRequest request, CancellationToken token)
     {
         using var scope = scopeFactory.CreateScope();
@@ -141,7 +174,27 @@ public partial class RatingRepository
             .Where(x => x.RatingType == request.RatingType
                 && request.ToonIds.Contains(x.Player.ToonId))
             .ProjectTo<PlayerRatingReplayCalcDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ToListAsync(token);
+    }
+
+    public async Task<List<PlayerRatingReplayCalcDto>> GetPlayerIdCalcRatings(PlayerIdRatingRequest request, CancellationToken token)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        var toonIds = request.PlayerIds.Select(s => s.ToonId).ToList();
+
+        var calcDtos = await context.PlayerRatings
+            .Where(x => x.RatingType == request.RatingType
+                && toonIds.Contains(x.Player.ToonId))
+            .ProjectTo<PlayerRatingReplayCalcDto>(mapper.ConfigurationProvider)
+            .ToListAsync(token);
+
+        calcDtos = calcDtos.Where(x => request.PlayerIds.Any(a => a.ToonId == x.Player.ToonId
+                                                                  && a.RealmId == x.Player.RealmId
+                                                                  && a.RegionId == x.Player.RegionId))
+                            .ToList();
+        return calcDtos;
     }
 
     public ReplayRatingDto? GetOnlineRating(ReplayDetailsDto replayDto, List<PlayerRatingReplayCalcDto> calcDtos)

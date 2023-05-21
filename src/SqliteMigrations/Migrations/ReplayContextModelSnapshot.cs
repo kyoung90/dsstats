@@ -924,6 +924,9 @@ namespace SqliteMigrations.Migrations
                     b.Property<float>("ExpectationToWin")
                         .HasColumnType("REAL");
 
+                    b.Property<bool>("IsPreRating")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("LeaverType")
                         .HasColumnType("INTEGER");
 
