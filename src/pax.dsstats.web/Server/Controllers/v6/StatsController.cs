@@ -3,7 +3,8 @@ using pax.dsstats.dbng.Repositories;
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
 using pax.dsstats.shared.Arcade;
-using System.ComponentModel.DataAnnotations.Schema;
+using pax.dsstats.shared.Interfaces;
+using pax.dsstats.shared.Services;
 
 namespace pax.dsstats.web.Server.Controllers.v6
 {
@@ -14,17 +15,35 @@ namespace pax.dsstats.web.Server.Controllers.v6
         private readonly IReplayRepository replayRepository;
         private readonly BuildService buildService;
         private readonly IStatsService statsService;
+        private readonly IDurationService durationService;
+        private readonly ITimelineService timelineService;
+        private readonly IDsUpdateService dsupdateService;
+        private readonly IWinrateService winrateService;
+        private readonly ISynergyService synergyService;
+        private readonly IDamageService damageService;
         private readonly CmdrsService cmdrService;
 
         public StatsController(IReplayRepository replayRepository,
                                BuildService buildService,
                                IStatsService statsService,
+                               IDurationService durationService,
+                               ITimelineService timelineService,
+                               IDsUpdateService dsupdateService,
+                               IWinrateService winrateService,
+                               ISynergyService synergyService,
+                               IDamageService damageService,
                                CmdrsService cmdrService)
         {
             this.replayRepository = replayRepository;
             this.buildService = buildService;
             this.statsService = statsService;
+            this.durationService = durationService;
+            this.timelineService = timelineService;
+            this.dsupdateService = dsupdateService;
+            this.winrateService = winrateService;
             this.cmdrService = cmdrService;
+            this.synergyService = synergyService;
+            this.damageService = damageService;
         }
 
         [HttpGet]
@@ -330,6 +349,48 @@ namespace pax.dsstats.web.Server.Controllers.v6
         public async Task<ActionResult<List<ReplayPlayerChartDto>>> GetPlayerRatingChartData([FromBody] PlayerId playerId, int ratingType)
         {
             return await statsService.GetPlayerRatingChartData(playerId, (RatingType)ratingType);
+        }
+
+        [HttpPost]
+        [Route("duration")]
+        public async Task<ActionResult<DurationResponse>> GetDuration(DurationRequest request, CancellationToken token)
+        {
+            return await durationService.GetDuration(request, token);
+        }
+
+        [HttpPost]
+        [Route("timeline")]
+        public async Task<ActionResult<TimelineResponse>> GetTimeline(TimelineRequest request, CancellationToken token)
+        {
+            return await timelineService.GetTimeline(request, token);
+        }
+
+        [HttpGet]
+        [Route("dsupdates/{timeperiod:int}")]
+        public async Task<ActionResult<List<DsUpdateInfo>>> GetDsUpdate(int timeperiod, CancellationToken token)
+        {
+            return await dsupdateService.GetDsUpdates((TimePeriod)timeperiod, token);
+        }
+
+        [HttpPost]
+        [Route("winrate")]
+        public async Task<ActionResult<WinrateResponse>> GetWinrate(WinrateRequest request, CancellationToken token)
+        {
+            return await winrateService.GetWinrate(request, token);
+        }
+
+        [HttpPost]
+        [Route("synergy")]
+        public async Task<ActionResult<SynergyResponse>> GetSynergy(SynergyRequest request, CancellationToken token)
+        {
+            return await synergyService.GetSynergy(request, token);
+        }
+
+        [HttpPost]
+        [Route("damage")]
+        public async Task<ActionResult<DamageResponse>> GetDamage(DamageRequest request, CancellationToken token)
+        {
+            return await damageService.GetDamage(request, token);
         }
     }
 }

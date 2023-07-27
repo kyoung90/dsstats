@@ -10,6 +10,7 @@ using pax.dsstats.dbng.Services.ServerStats;
 using pax.dsstats.shared;
 using pax.dsstats.shared.Arcade;
 using pax.dsstats.shared.Interfaces;
+using pax.dsstats.shared.Services;
 using pax.dsstats.web.Server.Attributes;
 using pax.dsstats.web.Server.Hubs;
 using pax.dsstats.web.Server.Services;
@@ -79,6 +80,12 @@ builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<CrawlerService>();
 builder.Services.AddScoped<IServerStatsService, ServerStatsService>();
 builder.Services.AddScoped<ReplaysMergeService>();
+builder.Services.AddScoped<IDurationService, DurationService>();
+builder.Services.AddScoped<ITimelineService, TimelineService>();
+builder.Services.AddScoped<IDsUpdateService, DsUpdateService>();
+builder.Services.AddScoped<IWinrateService, WinrateService>();
+builder.Services.AddScoped<ISynergyService, SynergyService>();
+builder.Services.AddScoped<IDamageService, DamageService>();
 
 builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
@@ -125,6 +132,13 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
+    // var importService = scope.ServiceProvider.GetRequiredService<pax.dsstats.web.Server.Services.Import.ImportService>();
+    //importService.ImportInit();
+    // importService.FixPeza().GetAwaiter().GetResult();
+
+    //var cheatService = scope.ServiceProvider.GetRequiredService<CheatDetectService>();
+    //var result = cheatService.AdjustReplays(DateTime.MinValue).GetAwaiter().GetResult();
+    //Console.WriteLine(result);
 }
 
 // Configure the HTTP request pipeline.

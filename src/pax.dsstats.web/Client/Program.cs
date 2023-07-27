@@ -26,5 +26,11 @@ builder.Services.AddChartJs(options =>
 builder.Services.AddTransient<IDataService, DataService>();
 builder.Services.AddTransient<IArcadeService, ArcadeService>();
 builder.Services.AddScoped<IServerStatsService, ServerStatsService>();
+builder.Services.AddScoped<IDurationService, DurationService>();
+builder.Services.AddScoped<ITimelineService, TimelineService>();
+builder.Services.AddScoped<IDsUpdateService, DsUpdateService>();
+builder.Services.AddScoped<IWinrateService, WinrateService>();
+builder.Services.AddScoped<ISynergyService, SynergyService>();
+builder.Services.AddScoped<IDamageService, DamageService>();
 
 await builder.Build().RunAsync();

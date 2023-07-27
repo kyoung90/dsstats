@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using pax.dsstats.dbng.Services;
+using pax.dsstats.shared;
 using System.Reflection;
 
 namespace pax.dsstats.dbng;
@@ -36,6 +38,13 @@ public class ReplayContext : DbContext
     public virtual DbSet<ArcadePlayerRating> ArcadePlayerRatings { get; set; } = null!;
     public virtual DbSet<ArcadeReplayPlayerRating> ArcadeReplayPlayerRatings { get; set; } = null!;
     public virtual DbSet<ArcadePlayerRatingChange> ArcadePlayerRatingChanges { get; set; } = null!;
+    public virtual DbSet<DsUpdate> DsUpdates { get; set; } = null!;
+
+    public DbSet<DRangeResult> DRangeResults { get; set; } = null!;
+    public DbSet<TimelineQueryData> TimelineQueryDatas { get; set; } = null!;
+    public DbSet<WinrateEnt> WinrateEnts { get; set; } = null!;
+    public DbSet<SynergyEnt> SynergyEnts { get; set; } = null!;
+    public DbSet<DamageEnt> DamageEnts { get; set; } = null!;
 
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
@@ -150,6 +159,35 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<ReplayRating>(entity =>
         {
             entity.HasIndex(i => i.RatingType);
+        });
+
+        modelBuilder.Entity<DsUpdate>(entity =>
+        {
+            entity.HasIndex(i => i.Time);
+        });
+
+        modelBuilder.Entity<DRangeResult>(entity => {
+            entity.HasNoKey();
+        });
+
+        modelBuilder.Entity<TimelineQueryData>(entity =>
+        {
+            entity.HasNoKey();
+        });
+
+        modelBuilder.Entity<WinrateEnt>(entity =>
+        {
+            entity.HasNoKey();
+        });
+
+        modelBuilder.Entity<SynergyEnt>(entity =>
+        {
+            entity.HasNoKey();
+        });
+
+        modelBuilder.Entity<DamageEnt>(entity =>
+        {
+            entity.HasNoKey();
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)

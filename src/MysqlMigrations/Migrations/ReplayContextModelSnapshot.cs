@@ -16,7 +16,7 @@ namespace MysqlMigrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.16")
+                .HasAnnotation("ProductVersion", "6.0.19")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("ReplayUploader", b =>
@@ -347,6 +347,34 @@ namespace MysqlMigrations.Migrations
                     b.HasIndex("Race", "OppRace");
 
                     b.ToTable("CommanderMmrs");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.DsUpdate", b =>
+                {
+                    b.Property<int>("DsUpdateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Change")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Commander")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DiscordId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Time")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime(0)");
+
+                    b.HasKey("DsUpdateId");
+
+                    b.HasIndex("Time");
+
+                    b.ToTable("DsUpdates");
                 });
 
             modelBuilder.Entity("pax.dsstats.dbng.Event", b =>
@@ -1019,6 +1047,41 @@ namespace MysqlMigrations.Migrations
                     b.ToTable("ReplayViewCounts");
                 });
 
+            modelBuilder.Entity("pax.dsstats.dbng.Services.TimelineQueryData", b =>
+                {
+                    b.Property<double>("AvgGain")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AvgOppRating")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AvgOppTeamRating")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AvgRating")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AvgTeamRating")
+                        .HasColumnType("double");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Race")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rmonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Ryear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.ToTable("TimelineQueryDatas");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.SkipReplay", b =>
                 {
                     b.Property<int>("SkipReplayId")
@@ -1204,6 +1267,23 @@ namespace MysqlMigrations.Migrations
                         .IsUnique();
 
                     b.ToTable("Uploaders");
+                });
+
+            modelBuilder.Entity("pax.dsstats.shared.DRangeResult", b =>
+                {
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DRange")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Race")
+                        .HasColumnType("int");
+
+                    b.Property<double>("WinsOrRating")
+                        .HasColumnType("double");
+
+                    b.ToTable("DRangeResults");
                 });
 
             modelBuilder.Entity("ReplayUploader", b =>

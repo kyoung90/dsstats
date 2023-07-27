@@ -1,0 +1,16 @@
+﻿@page "/stats/synergy"
+@layout StatsLayout
+
+@using pax.dsstats.shared;
+
+<PageTitle>Stats</PageTitle>
+
+<sc2dsstats.razorlib.Stats.Synergy.SynergyComponent Request="request" Interests="null"></sc2dsstats.razorlib.Stats.Synergy.SynergyComponent>
+
+@code {
+    SynergyRequest request = new()
+        {
+            RatingType = RatingType.Cmdr,
+            TimePeriod = TimePeriod.Patch2_71
+        };
+}

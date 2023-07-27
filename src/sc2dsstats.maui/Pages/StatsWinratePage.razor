@@ -1,0 +1,17 @@
+﻿@page "/stats/winrate"
+@layout StatsLayout
+
+@using pax.dsstats.shared;
+
+<PageTitle>Stats</PageTitle>
+
+<sc2dsstats.razorlib.Stats.Winrate.WinrateComponent Request="WinrateRequest"></sc2dsstats.razorlib.Stats.Winrate.WinrateComponent>
+
+@code {
+    WinrateRequest WinrateRequest = new()
+        {
+            TimePeriod = TimePeriod.Past90Days,
+            RatingType = RatingType.Cmdr,
+            WinrateType = WinrateType.AvgGain
+        };
+}

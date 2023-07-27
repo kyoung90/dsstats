@@ -9,7 +9,7 @@ namespace pax.dsstats.web.Server.Services.Import;
 public partial class ImportService
 {
     private readonly Channel<Replay> ImportChannel = Channel.CreateUnbounded<Replay>();
-    private object lockobject = new();
+    private readonly object lockobject = new();
     private bool importRunning;
 
     private async Task ConsumeImportChannel()
@@ -60,7 +60,7 @@ public partial class ImportService
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError($"failed importing replay: {ex.Message}");
+                    logger.LogError("failed importing replay: {ex}", ex.Message);
                     if (File.Exists(replay.Blobfile))
                     {
                         File.Move(replay.Blobfile, replay.Blobfile + ".error");
@@ -78,16 +78,15 @@ public partial class ImportService
                             {
                                 File.Move(replay.Blobfile, replay.Blobfile + ".done");
                             }
-                            
 
                             if (!blobCaches.TryRemove(replay.Blobfile, out cache))
                             {
-                                logger.LogWarning($"failed removing blob cache: {replay.Blobfile}");
+                                logger.LogWarning("failed removing blob cache: {Blobfile}", replay.Blobfile);
                             }
 
                             if (!blobCaches.Any())
                             {
-                                logger.LogWarning($"replays imported: {imports}, dups: {dups}, errors: {errors}");
+                                logger.LogWarning("replays imported: {imports}, dups: {dups}, errors: {errors}", imports, dups, errors);
 
                                 sw.Stop();
 
@@ -133,7 +132,6 @@ public partial class ImportService
         {
             await context.SaveChangesAsync();
         }
-        await SetPreRatings(replay);
 
         dbCache.ReplayHashes[replay.ReplayHash] = replay.ReplayId;
         foreach (var replayPlayer in replay.ReplayPlayers)
@@ -144,6 +142,8 @@ public partial class ImportService
             }
             dbCache.SpawnHashes[replayPlayer.LastSpawnHash] = replay.ReplayId;
         }
+        
+        await SetPreRatings(replay);
     }
 
     private static void AdjustImportValues(Replay replay)

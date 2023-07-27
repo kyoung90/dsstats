@@ -1,6 +1,7 @@
 
 using pax.dsstats.dbng.Services;
 using pax.dsstats.shared;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -183,6 +184,64 @@ public static class ReplayExtensions
         sb.Append(request.Breakpoint.ToString());
         return sb.ToString();
     }
+
+    public static string GenMemKey(this DurationRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsDuration");
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.WithBrawl);
+        sb.Append(request.WithRating);
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this TimelineRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsTimeline");
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.RatingType.ToString());
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this WinrateRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsWinrate");
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.FromRating.ToString());
+        sb.Append(request.Interest.ToString());
+        sb.Append(request.ToRating.ToString());
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this SynergyRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsSynergy");
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.FromRating);
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.ToRating);
+        sb.Append(request.WithLeavers.ToString());
+        sb.Append(request.Exp2WinOffset.ToString());
+        return sb.ToString();
+    }
+
+    public static string GenMemKey(this DamageRequest request)
+    {
+        StringBuilder sb = new();
+        sb.Append("StatsDamage");
+        sb.Append(request.TimePeriod.ToString());
+        sb.Append(request.Exp2WinOffset.ToString());
+        sb.Append(request.RatingType.ToString());
+        sb.Append(request.FromRating.ToString());
+        sb.Append(request.Interest.ToString());
+        sb.Append(request.ToRating.ToString());
+        return sb.ToString();
+    }
+
 
     public static string GetMd5Hash(MD5 md5Hash, string input)
     {
