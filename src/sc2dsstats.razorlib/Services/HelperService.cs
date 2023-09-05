@@ -50,10 +50,17 @@ public static class HelperService
 
     public static string TimeFromGameloop(int gameloop)
     {
-        var duration = gameloop / 22.4;
+        var duration = (int)(gameloop / 22.4);
         return duration >= 3600 ?
               TimeSpan.FromSeconds(duration).ToString(@"hh\:mm\:ss")
             : TimeSpan.FromSeconds(duration).ToString(@"mm\:ss");
+    }
+
+    public static string TimeFromSeconds(int seconds)
+    {
+        return seconds >= 3600 ?
+              TimeSpan.FromSeconds(seconds).ToString(@"hh\:mm\:ss")
+            : TimeSpan.FromSeconds(seconds).ToString(@"mm\:ss");
     }
 
     public static (int, int[], int) GetMiddleInfo(string middleString, int duration)
@@ -135,6 +142,41 @@ public static class HelperService
         sumTeam2 = Math.Max(sumTeam2, 0);
 
         return (Math.Round(sumTeam1 * 100.0 / (double)gameloops[^1], 2), Math.Round(sumTeam2 * 100.0 / (double)gameloops[^1], 2));
+    }
+
+    public static List<Commander> GetCommanders(string? cmdrString)
+    {
+        if (string.IsNullOrEmpty(cmdrString))
+        {
+            return new();
+        }
+
+        var intCmdrs = cmdrString.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        List<Commander> cmdrs = new();
+        foreach (var intCmdr in intCmdrs)
+        {
+            if (int.TryParse(intCmdr, out var i))
+            {
+                cmdrs.Add((Commander)i);
+            }
+        }
+        return cmdrs;
+    }
+
+    public static string SanitizePlayerName(string playerName)
+    {
+        if (string.IsNullOrWhiteSpace(playerName) || playerName.Equals("null", StringComparison.OrdinalIgnoreCase))
+        {
+            return "N/A"; // Handle empty or null names
+        }
+
+        // Define a list of characters you want to remove or replace
+        char[] invalidChars = { '<', '>', '&', '"' };
+
+        // Replace invalid characters with a safe character (e.g., space)
+        string sanitizedName = new string(playerName.Select(c => invalidChars.Contains(c) ? ' ' : c).ToArray());
+
+        return sanitizedName;
     }
 }
 

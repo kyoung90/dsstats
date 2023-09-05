@@ -15,7 +15,7 @@ namespace SqliteMigrations.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.19");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.21");
 
             modelBuilder.Entity("pax.dsstats.dbng.ArcadePlayer", b =>
                 {
@@ -507,6 +507,9 @@ namespace SqliteMigrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("ArcadeDefeatsSinceLastUpload")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("DisconnectCount")
                         .HasColumnType("INTEGER");
 
@@ -547,6 +550,9 @@ namespace SqliteMigrations.Migrations
                 {
                     b.Property<int>("PlayerRatingId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArcadeDefeatsSinceLastUpload")
                         .HasColumnType("INTEGER");
 
                     b.Property<double>("Confidence")
@@ -1252,6 +1258,41 @@ namespace SqliteMigrations.Migrations
                     b.ToTable("Uploaders");
                 });
 
+            modelBuilder.Entity("pax.dsstats.shared.DamageEnt", b =>
+                {
+                    b.Property<int>("AvgAPM")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvgArmy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("AvgGas")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("AvgIncome")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvgKills")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvgUpgrades")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Breakpoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Commander")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mvp")
+                        .HasColumnType("INTEGER");
+
+                    b.ToTable("DamageEnts");
+                });
+
             modelBuilder.Entity("pax.dsstats.shared.DRangeResult", b =>
                 {
                     b.Property<int>("Count")
@@ -1267,6 +1308,52 @@ namespace SqliteMigrations.Migrations
                         .HasColumnType("REAL");
 
                     b.ToTable("DRangeResults");
+                });
+
+            modelBuilder.Entity("pax.dsstats.shared.SynergyEnt", b =>
+                {
+                    b.Property<double>("AvgGain")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AvgRating")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Commander")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("NormalizedAvgGain")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Teammate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("INTEGER");
+
+                    b.ToTable("SynergyEnts");
+                });
+
+            modelBuilder.Entity("pax.dsstats.shared.WinrateEnt", b =>
+                {
+                    b.Property<double>("AvgGain")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AvgRating")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Commander")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("INTEGER");
+
+                    b.ToTable("WinrateEnts");
                 });
 
             modelBuilder.Entity("ReplayUploader", b =>

@@ -26,7 +26,7 @@ builder.Host.ConfigureAppConfiguration((context, config) =>
 
 // Add services to the container.
 
-var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 42));
+var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 43));
 var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionString"];
 var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
 
@@ -86,6 +86,7 @@ builder.Services.AddScoped<IDsUpdateService, DsUpdateService>();
 builder.Services.AddScoped<IWinrateService, WinrateService>();
 builder.Services.AddScoped<ISynergyService, SynergyService>();
 builder.Services.AddScoped<IDamageService, DamageService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 builder.Services.AddTransient<IStatsService, StatsService>();
 builder.Services.AddTransient<IReplayRepository, ReplayRepository>();
@@ -132,13 +133,9 @@ if (app.Environment.IsProduction())
 // DEBUG
 if (app.Environment.IsDevelopment())
 {
-    // var importService = scope.ServiceProvider.GetRequiredService<pax.dsstats.web.Server.Services.Import.ImportService>();
-    //importService.ImportInit();
-    // importService.FixPeza().GetAwaiter().GetResult();
-
-    //var cheatService = scope.ServiceProvider.GetRequiredService<CheatDetectService>();
-    //var result = cheatService.AdjustReplays(DateTime.MinValue).GetAwaiter().GetResult();
-    //Console.WriteLine(result);
+    var ratingsService = scope.ServiceProvider.GetRequiredService<RatingsService>();
+    // ratingsService.NoUploadAdjustment().Wait();
+    // ratingsService.ProduceRatings(recalc: true).Wait();
 }
 
 // Configure the HTTP request pipeline.
