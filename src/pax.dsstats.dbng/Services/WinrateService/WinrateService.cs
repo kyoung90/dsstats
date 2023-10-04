@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace pax.dsstats.dbng.Services;
 
-public class WinrateService : IWinrateService
+public partial class WinrateService : IWinrateService
 {
     private readonly ReplayContext context;
     private readonly IMemoryCache memoryCache;
@@ -33,7 +33,7 @@ public class WinrateService : IWinrateService
         if (!memoryCache.TryGetValue(memKey, out WinrateResponse response)) 
         { 
             response = await ProduceWinrate(request, token);
-            memoryCache.Set(memKey, response, TimeSpan.FromHours(24));
+            memoryCache.Set(memKey, response, TimeSpan.FromHours(3));
         }
 
         return response;
@@ -41,7 +41,8 @@ public class WinrateService : IWinrateService
 
     private async Task<WinrateResponse> ProduceWinrate(WinrateRequest request, CancellationToken token)
     {
-        var data = await GetDataFromRaw(request, token);
+        var data = request.ComboRating ? await GetComboDataFromRaw(request, token) 
+            : await GetDataFromRaw(request, token);
 
         if (request.RatingType == RatingType.Std || request.RatingType == RatingType.StdTE)
         {
@@ -57,46 +58,6 @@ public class WinrateService : IWinrateService
             Interest = request.Interest,
             WinrateEnts = data,
         };
-    }
-
-    private async Task<List<WinrateEnt>> GetData(WinrateRequest request, CancellationToken token)
-    {
-        (var fromDate, var toDate) = Data.TimeperiodSelected(request.TimePeriod);
-
-        var group = request.Interest == Commander.None ?
-                    from r in context.Replays
-                    from rp in r.ReplayPlayers
-                    where r.GameTime > fromDate
-                        && toDate < DateTime.Now.AddDays(-2) ? r.GameTime < toDate : true
-                        && r.ReplayRatingInfo!.RatingType == request.RatingType
-                        && rp.Duration >= 300
-                    group rp by rp.Race into g
-                    select new WinrateEnt
-                    {
-                        Commander = g.Key,
-                        Count = g.Count(),
-                        Wins = g.Count(s => s.PlayerResult == PlayerResult.Win),
-                        AvgRating = Math.Round(g.Average(a => a.ReplayPlayerRatingInfo!.Rating), 2),
-                        AvgGain = Math.Round(g.Average(a => a.ReplayPlayerRatingInfo!.RatingChange), 2),
-                    } :
-                    from r in context.Replays
-                    from rp in r.ReplayPlayers
-                    where r.GameTime > fromDate
-                        && toDate < DateTime.Now.AddDays(-2) ? r.GameTime < toDate : true
-                        && r.ReplayRatingInfo!.RatingType == request.RatingType
-                        && rp.Duration >= 300
-                        && rp.Race == request.Interest
-                    group rp by rp.OppRace into g
-                    select new WinrateEnt
-                    {
-                        Commander = g.Key,
-                        Count = g.Count(),
-                        Wins = g.Count(s => s.PlayerResult == PlayerResult.Win),
-                        AvgRating = Math.Round(g.Average(a => a.ReplayPlayerRatingInfo!.Rating), 2),
-                        AvgGain = Math.Round(g.Average(a => a.ReplayPlayerRatingInfo!.RatingChange), 2),
-                    };
-
-        return await group.ToListAsync(token);
     }
 
     private async Task<List<WinrateEnt>> GetDataFromRaw(WinrateRequest request, CancellationToken token)
@@ -155,73 +116,6 @@ public class WinrateService : IWinrateService
         var result = await context.WinrateEnts
             .FromSqlRaw(sql)
             .ToListAsync(token);
-
-        return result;
-    }
-
-    private async Task<List<WinrateEnt>> GetDataFromRawWithExp2Win(WinrateRequest request, CancellationToken token)
-    {
-        (var fromDate, var toDate) = Data.TimeperiodSelected(request.TimePeriod);
-
-        var fromRating = request.FromRating <= Data.MinBuildRating ? 0 : request.FromRating;
-        var toRating = request.ToRating >= Data.MaxBuildRating ? 10000 : request.ToRating;
-        var tempTableName = Guid.NewGuid().ToString();
-
-        await context.Database.ExecuteSqlRawAsync($@"
-            CREATE TEMPORARY TABLE `{tempTableName}` AS
-            SELECT rp.ReplayId, MIN(rpr.Rating) AS minRating, MAX(rpr.Rating) AS maxRating
-            FROM ReplayPlayers AS rp
-            INNER JOIN RepPlayerRatings AS rpr ON rp.ReplayPlayerId = rpr.ReplayPlayerId
-            INNER JOIN Replays AS r ON r.ReplayId = rp.ReplayId
-            WHERE r.GameTime > '{fromDate.ToString("yyyy-MM-dd")}'
-            {(toDate < DateTime.Today.AddDays(-2) ? $"AND r.GameTime < '{toDate.ToString("yyyy-MM-dd")}'" : "")}
-            GROUP BY rp.ReplayId;
-        ");
-
-        var sql = request.Interest == Commander.None ?
-            $@"
-                SELECT
-                  rp.Race AS commander,
-                  COUNT(*) AS count,
-                  ROUND(AVG(rpr.Rating), 2) AS avgrating,
-                  ROUND(AVG(rpr.RatingChange), 2) AS avggain,
-                  SUM(CASE WHEN rp.PlayerResult = 1 THEN 1 ELSE 0 END) AS wins
-                FROM Replays AS r
-                INNER JOIN ReplayRatings AS rr ON rr.ReplayId = r.ReplayId
-                INNER JOIN ReplayPlayers AS rp ON rp.ReplayId = r.ReplayId
-                INNER JOIN RepPlayerRatings AS rpr ON rpr.ReplayPlayerId = rp.ReplayPlayerId
-                INNER JOIN `{tempTableName}` AS tpr ON r.ReplayId = tpr.ReplayId
-                WHERE rr.RatingType = {(int)request.RatingType}
-                  AND rp.Duration > 300
-                  AND rr.ExpectationToWin >= {((50 - request.Exp2WinOffset) / 100.0).ToString(CultureInfo.InvariantCulture)} AND rr.ExpectationToWin <= {((50 + request.Exp2WinOffset) / 100.0).ToString(CultureInfo.InvariantCulture)}
-                  AND tpr.minRating >= {fromRating} AND tpr.maxRating <= {toRating}
-                GROUP BY rp.Race;
-            "
-            :
-            $@"
-                SELECT
-                  rp.OppRace AS commander,
-                  COUNT(*) AS count,
-                  ROUND(AVG(rpr.Rating), 2) AS avgrating,
-                  ROUND(AVG(rpr.RatingChange), 2) AS avggain,
-                  SUM(CASE WHEN rp.PlayerResult = 1 THEN 1 ELSE 0 END) AS wins
-                FROM Replays AS r
-                INNER JOIN ReplayRatings AS rr ON rr.ReplayId = r.ReplayId
-                INNER JOIN ReplayPlayers AS rp ON rp.ReplayId = r.ReplayId
-                INNER JOIN RepPlayerRatings AS rpr ON rpr.ReplayPlayerId = rp.ReplayPlayerId
-                INNER JOIN `{tempTableName}` AS tpr ON r.ReplayId = tpr.ReplayId
-                WHERE rr.RatingType = {(int)request.RatingType}
-                  AND rp.Duration > 300
-                  AND rr.ExpectationToWin >= {((50 - request.Exp2WinOffset) / 100.0).ToString(CultureInfo.InvariantCulture)} AND rr.ExpectationToWin <= {((50 + request.Exp2WinOffset) / 100.0).ToString(CultureInfo.InvariantCulture)}
-                  AND tpr.minRating >= {fromRating} AND tpr.maxRating <= {toRating}
-                GROUP BY rp.OppRace;
-            ";
-
-        var result = await context.WinrateEnts
-            .FromSqlRaw(sql)
-            .ToListAsync(token);
-
-        await context.Database.ExecuteSqlRawAsync($"DROP TEMPORARY TABLE `{tempTableName}`;");
 
         return result;
     }

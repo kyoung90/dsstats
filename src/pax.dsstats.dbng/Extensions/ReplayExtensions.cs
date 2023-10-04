@@ -158,6 +158,7 @@ public static class ReplayExtensions
         sb.Append(request.Interest);
         sb.Append('|');
         sb.Append(request.Team);
+        sb.Append(request.ComboRating.ToString());
         return sb.ToString();
     }
 
@@ -201,6 +202,7 @@ public static class ReplayExtensions
         sb.Append("StatsTimeline");
         sb.Append(request.TimePeriod.ToString());
         sb.Append(request.RatingType.ToString());
+        sb.Append(request.ComboRating.ToString());
         return sb.ToString();
     }
 
@@ -214,6 +216,7 @@ public static class ReplayExtensions
         sb.Append(request.FromRating.ToString());
         sb.Append(request.Interest.ToString());
         sb.Append(request.ToRating.ToString());
+        sb.Append(request.ComboRating.ToString());
         return sb.ToString();
     }
 

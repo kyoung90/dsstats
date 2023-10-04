@@ -1,4 +1,4 @@
-//v 1.1
+//v 1.6
 
 const cmdrIconsMap = new Map();
 
@@ -252,6 +252,26 @@ function setBubbleChartTooltips(vs, min, max, rMin, rMax, chartId) {
     };
 }
 
+function setFlipBubbleChartTooltips(vs, min, max, rMin, rMax, chartId) {
+    const chart = Chart.getChart(chartId);
+
+    if (chart == undefined) {
+        return;
+    }
+
+    chart.options.plugins.tooltip.callbacks.label = (tooltipItem) => {
+        if (tooltipItem == undefined) {
+            return "";
+        }
+        let avgStrength = Math.round((((tooltipItem.raw.r - rMin) * (max - min)) / (rMax - rMin)) + min);
+        if (vs) {
+            return [vs + " vs " + tooltipItem.raw.label, "Winrate " + tooltipItem.raw.y + "%", "AvgGain: " + tooltipItem.raw.x, "AvgRating: " + avgStrength];
+        } else {
+            return [tooltipItem.raw.label, "Winrate " + tooltipItem.raw.y + "%", "AvgGain: " + tooltipItem.raw.x, "AvgRating: " + avgStrength];
+        }
+    };
+}
+
 
 function setZeroLineColor(defaultColor, defaultTickColor, zeroColor, chartId) {
     const chart = Chart.getChart(chartId);
@@ -301,6 +321,64 @@ function setZeroLineColor(defaultColor, defaultTickColor, zeroColor, chartId) {
     }
 
     chart.options.scales.x.ticks.color = (context) => {
+        if (context.tick.value === 50) {
+            return 'red';
+        } else {
+            return defaultTickColor;
+        }
+    }
+
+    chart.update();
+}
+
+function setFlipZeroLineColor(defaultColor, defaultTickColor, zeroColor, chartId) {
+    const chart = Chart.getChart(chartId);
+
+    if (chart == undefined) {
+        return;
+    }
+
+    chart.options.scales.x.grid.color = (context) => {
+        if (context.tick.value === 0) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.x.grid.tickColor = (context) => {
+        if (context.tick.value === 0) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.x.ticks.color = (context) => {
+        if (context.tick.value === 0) {
+            return 'red';
+        } else {
+            return defaultTickColor;
+        }
+    }
+
+    chart.options.scales.y.grid.color = (context) => {
+        if (context.tick.value === 50) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.y.grid.tickColor = (context) => {
+        if (context.tick.value === 50) {
+            return zeroColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
+    chart.options.scales.y.ticks.color = (context) => {
         if (context.tick.value === 50) {
             return 'red';
         } else {

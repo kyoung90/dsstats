@@ -307,6 +307,115 @@ namespace SqliteMigrations.Migrations
                     b.ToTable("BattleNetInfos");
                 });
 
+            modelBuilder.Entity("pax.dsstats.dbng.ComboPlayerRating", b =>
+                {
+                    b.Property<int>("ComboPlayerRatingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Consistency")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Pos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("RatingType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ComboPlayerRatingId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("RatingType");
+
+                    b.ToTable("ComboPlayerRatings");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.ComboReplayPlayerRating", b =>
+                {
+                    b.Property<int>("ComboReplayPlayerRatingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Change")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Confidence")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Consistency")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("GamePos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReplayPlayerId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ComboReplayPlayerRatingId");
+
+                    b.HasIndex("ReplayPlayerId")
+                        .IsUnique();
+
+                    b.ToTable("ComboReplayPlayerRatings");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.ComboReplayRating", b =>
+                {
+                    b.Property<int>("ComboReplayRatingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("ExpectationToWin")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsPreRating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LeaverType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RatingType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReplayId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ComboReplayRatingId");
+
+                    b.HasIndex("RatingType");
+
+                    b.HasIndex("ReplayId")
+                        .IsUnique();
+
+                    b.ToTable("ComboReplayRatings");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.CommanderMmr", b =>
                 {
                     b.Property<int>("CommanderMmrId")
@@ -1453,6 +1562,39 @@ namespace SqliteMigrations.Migrations
                     b.Navigation("Uploader");
                 });
 
+            modelBuilder.Entity("pax.dsstats.dbng.ComboPlayerRating", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.ComboReplayPlayerRating", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.ReplayPlayer", "ReplayPlayer")
+                        .WithOne("ComboReplayPlayerRating")
+                        .HasForeignKey("pax.dsstats.dbng.ComboReplayPlayerRating", "ReplayPlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReplayPlayer");
+                });
+
+            modelBuilder.Entity("pax.dsstats.dbng.ComboReplayRating", b =>
+                {
+                    b.HasOne("pax.dsstats.dbng.Replay", "Replay")
+                        .WithOne("ComboReplayRating")
+                        .HasForeignKey("pax.dsstats.dbng.ComboReplayRating", "ReplayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Replay");
+                });
+
             modelBuilder.Entity("pax.dsstats.dbng.NoUploadResult", b =>
                 {
                     b.HasOne("pax.dsstats.dbng.Player", "Player")
@@ -1680,6 +1822,8 @@ namespace SqliteMigrations.Migrations
 
             modelBuilder.Entity("pax.dsstats.dbng.Replay", b =>
                 {
+                    b.Navigation("ComboReplayRating");
+
                     b.Navigation("ReplayPlayers");
 
                     b.Navigation("ReplayRatingInfo");
@@ -1692,6 +1836,8 @@ namespace SqliteMigrations.Migrations
 
             modelBuilder.Entity("pax.dsstats.dbng.ReplayPlayer", b =>
                 {
+                    b.Navigation("ComboReplayPlayerRating");
+
                     b.Navigation("ReplayPlayerRatingInfo");
 
                     b.Navigation("Spawns");
