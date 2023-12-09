@@ -46,13 +46,13 @@ class Program
 
         var services = new ServiceCollection();
 
-        var serverVersion = new MySqlServerVersion(new Version(5, 7, 44));
+        var serverVersion = new MySqlServerVersion(new Version(8, 0, 35));
         var jsonStrg = File.ReadAllText("/data/localserverconfig.json");
         var json = JsonSerializer.Deserialize<JsonElement>(jsonStrg);
         var config = json.GetProperty("ServerConfig");
-        var connectionString = config.GetProperty("DsstatsConnectionString").GetString();
+        var connectionString = config.GetProperty("Dsstats8ConnectionString").GetString();
         // var connectionString = config.GetProperty("ProdConnectionString").GetString();
-        var importConnectionString = config.GetProperty("ImportConnectionString").GetString() ?? "";
+        var importConnectionString = config.GetProperty("Import8ConnectionString").GetString() ?? "";
 
         services.AddOptions<DbImportOptions>()
             .Configure(x =>

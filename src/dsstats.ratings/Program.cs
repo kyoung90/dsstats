@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using dsstats.db8;
 using dsstats.db8.AutoMapper;
 using dsstats.db8.Extensions;
@@ -23,8 +21,8 @@ class Program
         var jsonStrg = File.ReadAllText("/data/localserverconfig.json");
         var json = JsonSerializer.Deserialize<JsonElement>(jsonStrg);
         var config = json.GetProperty("ServerConfig");
-        var importConnectionString = config.GetProperty("ImportConnectionString").GetString() ?? "";
-        var mySqlConnectionString = config.GetProperty("DsstatsConnectionString").GetString();
+        var importConnectionString = config.GetProperty("Import8ConnectionString").GetString() ?? "";
+        var mySqlConnectionString = config.GetProperty("Dsstats8ConnectionString").GetString();
         // var mySqlConnectionString = config.GetProperty("ProdConnectionString").GetString();
 
         services.AddOptions<DbImportOptions>()

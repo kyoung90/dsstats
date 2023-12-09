@@ -15,7 +15,9 @@ public class Uploader
     }
     public int UploaderId { get; set; }
     public Guid AppGuid { get; set; }
+    [MaxLength(10)]
     public string AppVersion { get; set; } = "";
+    [MaxLength(50)]
     public string Identifier { get; set; } = "Anonymous";
     [Precision(0)]
     public DateTime LatestUpload { get; set; }
@@ -193,7 +195,9 @@ public class Replay
     public int Downloads { get; set; }
     [MaxLength(4000)]
     public string Middle { get; set; } = null!;
+    [MaxLength(20)]
     public string CommandersTeam1 { get; set; } = null!;
+    [MaxLength(20)]
     public string CommandersTeam2 { get; set; } = null!;
     public int? ReplayEventId { get; set; }
     public ReplayEvent? ReplayEvent { get; set; }

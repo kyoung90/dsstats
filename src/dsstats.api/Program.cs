@@ -46,9 +46,9 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 // Add services to the container.
-var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 44));
-var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionString"];
-var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
+var serverVersion = new MySqlServerVersion(new System.Version(8, 0, 35));
+var connectionString = builder.Configuration["ServerConfig:Dsstats8ConnectionString"];
+var importConnectionString = builder.Configuration["ServerConfig:Import8ConnectionString"];
 
 builder.Services.AddOptions<DbImportOptions>()
     .Configure(x => x.ImportConnectionString = importConnectionString ?? "");
@@ -59,7 +59,7 @@ builder.Services.AddDbContext<ReplayContext>(options =>
     {
         p.CommandTimeout(30);
         p.EnableRetryOnFailure();
-        p.MigrationsAssembly("MysqlMigrations");
+        p.MigrationsAssembly("Mysql8Migrations");
         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
     })
     //.EnableDetailedErrors()
