@@ -40,14 +40,14 @@ namespace Mysql8Migrations.Migrations
                     ArcadeReplayId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     RegionId = table.Column<int>(type: "int", nullable: false),
-                    BnetBucketId = table.Column<long>(type: "bigint", nullable: false),
-                    BnetRecordId = table.Column<long>(type: "bigint", nullable: false),
                     GameMode = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(0)", precision: 0, nullable: false),
                     Duration = table.Column<int>(type: "int", nullable: false),
                     PlayerCount = table.Column<int>(type: "int", nullable: false),
                     TournamentEdition = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     WinnerTeam = table.Column<int>(type: "int", nullable: false),
+                    BnetBucketId = table.Column<long>(type: "bigint", nullable: false),
+                    BnetRecordId = table.Column<long>(type: "bigint", nullable: false),
                     Imported = table.Column<DateTime>(type: "datetime(0)", precision: 0, nullable: false),
                     ReplayHash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
