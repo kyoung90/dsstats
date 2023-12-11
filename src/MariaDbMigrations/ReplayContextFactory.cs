@@ -11,6 +11,7 @@ public class ReplayContextFactory : IDesignTimeDbContextFactory<ReplayContext>
     {
         var json = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText("/data/localserverconfig.json"));
         var config = json.GetProperty("ServerConfig");
+        // var connectionString = config.GetProperty("MariaDbProdConnectionString").GetString();
         var connectionString = config.GetProperty("MariaDbConnectionString").GetString();
         var serverVersion = new MariaDbServerVersion(new Version(11, 1, 2));
 

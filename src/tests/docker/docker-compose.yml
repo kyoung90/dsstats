@@ -2,12 +2,12 @@ version: '3.3'
 
 services:
   mysql:
-    image: mysql:5.7
+    image: mariadb
     volumes:
       - /data:/data
       - ./db:/var/lib/mysql
       - ./certs:/certs
-      - ./mysql:/etc/mysql
+      - ./alternatives/my.cnf:/etc/alternatives/my.cnf
     ports:
       - "3306:3306"
     environment:
