@@ -1265,88 +1265,61 @@ namespace MariaDbMigrations.Migrations
 
             var SetPlayerRatingPos = @"CREATE PROCEDURE `SetPlayerRatingPos`()
 BEGIN
-	SET @pos = 0;
-    UPDATE PlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 1
-    ORDER BY Rating DESC, PlayerId;
-    
-    SET @pos = 0;
-    UPDATE PlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 2
-    ORDER BY Rating DESC, PlayerId;
-
-    SET @pos = 0;
-    UPDATE PlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 3
-    ORDER BY Rating DESC, PlayerId;
-
-    SET @pos = 0;
-    UPDATE PlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 4
-    ORDER BY Rating DESC, PlayerId;
+    UPDATE PlayerRatings AS pr
+    INNER JOIN (
+        SELECT
+            PlayerRatingId,
+            RANK() OVER (PARTITION BY RatingType ORDER BY Rating DESC, PlayerId) AS Pos
+        FROM
+            PlayerRatings
+    ) AS ranked
+    ON pr.PlayerRatingId = ranked.PlayerRatingId
+    SET pr.Pos = ranked.Pos;
 END
 ";
             var SetComboPlayerRatingPos = @"CREATE PROCEDURE `SetComboPlayerRatingPos`()
 BEGIN
-	SET @pos = 0;
-    UPDATE ComboPlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 1
-    ORDER BY Rating DESC, PlayerId;
-    
-    SET @pos = 0;
-    UPDATE ComboPlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 2
-    ORDER BY Rating DESC, PlayerId;
-
-    SET @pos = 0;
-    UPDATE ComboPlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 3
-    ORDER BY Rating DESC, PlayerId;
-
-    SET @pos = 0;
-    UPDATE ComboPlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 4
-    ORDER BY Rating DESC, PlayerId;
+    UPDATE ComboPlayerRatings AS cpr
+    INNER JOIN (
+        SELECT
+            PlayerId,
+            RANK() OVER (PARTITION BY RatingType ORDER BY Rating DESC, PlayerId) AS Pos
+        FROM
+            ComboPlayerRatings
+    ) AS ranked
+    ON cpr.PlayerId = ranked.PlayerId
+    SET cpr.Pos = ranked.Pos;
 END
 ";
             var SetArcadePlayerRatingPos = @"CREATE PROCEDURE `SetArcadePlayerRatingPos`()
 BEGIN
-	SET @pos = 0;
-    UPDATE ArcadePlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 1
-    ORDER BY Rating DESC, ArcadePlayerId;
-    
-    SET @pos = 0;
-    UPDATE ArcadePlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 2
-    ORDER BY Rating DESC, ArcadePlayerId;
-
-    SET @pos = 0;
-    UPDATE ArcadePlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 3
-    ORDER BY Rating DESC, ArcadePlayerId;
-
-    SET @pos = 0;
-    UPDATE ArcadePlayerRatings
-    SET Pos = (@pos:=@pos+1)
-    WHERE RatingType = 4
-    ORDER BY Rating DESC, ArcadePlayerId;
+    UPDATE ArcadePlayerRatings AS apr
+    INNER JOIN (
+        SELECT
+            ArcadePlayerId,
+            RANK() OVER (PARTITION BY RatingType ORDER BY Rating DESC, ArcadePlayerId) AS Pos
+        FROM
+            ArcadePlayerRatings
+    ) AS ranked
+    ON apr.ArcadePlayerId = ranked.ArcadePlayerId
+    SET apr.Pos = ranked.Pos;
 END
 ";
+            var CreateMaterializedArcadeReplays = @"CREATE PROCEDURE `CreateMaterializedArcadeReplays`()
+BEGIN
+	TRUNCATE TABLE MaterializedArcadeReplays;
+    INSERT INTO MaterializedArcadeReplays (ArcadeReplayId, CreatedAt, WinnerTeam, Duration, GameMode)
+    SELECT `a`.`ArcadeReplayId`, `a`.`CreatedAt`, `a`.`WinnerTeam`, `a`.`Duration`, `a`.`GameMode`
+    FROM `ArcadeReplays` AS `a`
+    WHERE (((((`a`.`CreatedAt` >= '2021-02-01') AND (`a`.`PlayerCount` = 6)) AND (`a`.`Duration` >= 300)) AND (`a`.`WinnerTeam` > 0)) AND NOT (`a`.`TournamentEdition`)) AND `a`.`GameMode` IN (3, 7, 4)
+    ORDER BY `a`.`CreatedAt`, `a`.`ArcadeReplayId`;
+END
+";
+
             migrationBuilder.Sql(SetArcadePlayerRatingPos);
             migrationBuilder.Sql(SetComboPlayerRatingPos);
             migrationBuilder.Sql(SetPlayerRatingPos);
+            migrationBuilder.Sql(CreateMaterializedArcadeReplays);
         }
 
         /// <inheritdoc />
