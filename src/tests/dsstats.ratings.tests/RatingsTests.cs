@@ -31,12 +31,12 @@ public class RatingsTests
         }
 
         var services = new ServiceCollection();
-        var serverVersion = new MySqlServerVersion(new Version(5, 7, 43));
+        var serverVersion = new MariaDbServerVersion(new Version(11, 1, 2));
         var jsonStrg = File.ReadAllText("/data/localserverconfig.json");
         var json = JsonSerializer.Deserialize<JsonElement>(jsonStrg);
         var config = json.GetProperty("ServerConfig");
-        var connectionString = config.GetProperty("TestConnectionString").GetString();
-        var importConnectionString = config.GetProperty("ImportTestConnectionString").GetString() ?? "";
+        var connectionString = config.GetProperty("MariaDbTestConnectionString").GetString();
+        var importConnectionString = config.GetProperty("MariaDbTestImportConnectionString").GetString() ?? "";
 
         services.AddOptions<DbImportOptions>()
             .Configure(x =>
@@ -50,7 +50,7 @@ public class RatingsTests
             options.UseMySql(connectionString, serverVersion, p =>
             {
                 p.CommandTimeout(300);
-                p.MigrationsAssembly("MysqlMigrations");
+                p.MigrationsAssembly("MariaDbMigrations");
                 p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
             });
         });

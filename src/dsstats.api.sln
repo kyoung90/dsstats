@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.api", "dsstats.api\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.shared", "dsstats.shared\dsstats.shared.csproj", "{C781A19C-22E9-45A8-9978-C8ECDDF8BFB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MysqlMigrations", "MysqlMigrations\MysqlMigrations.csproj", "{404AB369-BCC6-4DDE-83FC-D5083373D513}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.ratings.lib", "dsstats.ratings.lib\dsstats.ratings.lib.csproj", "{84F9EE3B-79CF-4EB3-81DD-E07F339FF434}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.db8", "dsstats.db8\dsstats.db8.csproj", "{944B6F40-AD94-454F-B93D-EE143239D722}"
@@ -22,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.ratings", "dsstats.ratings\dsstats.ratings.csproj", "{4ABC4B7B-9FEA-4AD9-B385-3CADFDFBDA25}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SC2ArcadeCrawler", "SC2ArcadeCrawler\SC2ArcadeCrawler.csproj", "{9F1DD2F4-21EF-41DC-9592-1E9846AD98D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MariaDbMigrations", "MariaDbMigrations\MariaDbMigrations.csproj", "{22712C23-3E3D-48CA-8C31-CCB734307945}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +37,6 @@ Global
 		{C781A19C-22E9-45A8-9978-C8ECDDF8BFB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C781A19C-22E9-45A8-9978-C8ECDDF8BFB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C781A19C-22E9-45A8-9978-C8ECDDF8BFB8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{404AB369-BCC6-4DDE-83FC-D5083373D513}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{404AB369-BCC6-4DDE-83FC-D5083373D513}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{404AB369-BCC6-4DDE-83FC-D5083373D513}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{404AB369-BCC6-4DDE-83FC-D5083373D513}.Release|Any CPU.Build.0 = Release|Any CPU
 		{84F9EE3B-79CF-4EB3-81DD-E07F339FF434}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{84F9EE3B-79CF-4EB3-81DD-E07F339FF434}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84F9EE3B-79CF-4EB3-81DD-E07F339FF434}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,6 +65,10 @@ Global
 		{9F1DD2F4-21EF-41DC-9592-1E9846AD98D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F1DD2F4-21EF-41DC-9592-1E9846AD98D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F1DD2F4-21EF-41DC-9592-1E9846AD98D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22712C23-3E3D-48CA-8C31-CCB734307945}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22712C23-3E3D-48CA-8C31-CCB734307945}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22712C23-3E3D-48CA-8C31-CCB734307945}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22712C23-3E3D-48CA-8C31-CCB734307945}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

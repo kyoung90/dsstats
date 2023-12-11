@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.ratings.lib", "..\d
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.db8", "..\dsstats.db8\dsstats.db8.csproj", "{CE061FC7-1552-4EF6-8373-C6078F6D01ED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MysqlMigrations", "..\MysqlMigrations\MysqlMigrations.csproj", "{4088D030-45CF-4E18-9619-308FE5044E11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MariaDbMigrations", "..\MariaDbMigrations\MariaDbMigrations.csproj", "{0F50BB27-E775-4747-ABB1-A906E952C170}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{CE061FC7-1552-4EF6-8373-C6078F6D01ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE061FC7-1552-4EF6-8373-C6078F6D01ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE061FC7-1552-4EF6-8373-C6078F6D01ED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4088D030-45CF-4E18-9619-308FE5044E11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4088D030-45CF-4E18-9619-308FE5044E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4088D030-45CF-4E18-9619-308FE5044E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4088D030-45CF-4E18-9619-308FE5044E11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F50BB27-E775-4747-ABB1-A906E952C170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F50BB27-E775-4747-ABB1-A906E952C170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F50BB27-E775-4747-ABB1-A906E952C170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F50BB27-E775-4747-ABB1-A906E952C170}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -23,7 +23,7 @@
     <ProjectReference Include="..\..\dsstats.maui\SqliteMigrations\SqliteMigrations.csproj" />
     <ProjectReference Include="..\..\dsstats.ratings.lib\dsstats.ratings.lib.csproj" />
     <ProjectReference Include="..\..\dsstats.shared\dsstats.shared.csproj" />
-    <ProjectReference Include="..\..\MysqlMigrations\MysqlMigrations.csproj" />
+    <ProjectReference Include="..\..\MariaDbMigrations\MariaDbMigrations.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -46,9 +46,9 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 // Add services to the container.
-var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 44));
-var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionString"];
-var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
+var serverVersion = new MariaDbServerVersion(new Version(11, 1, 2));
+var connectionString = builder.Configuration["ServerConfig:MariaDbConnectionString"];
+var importConnectionString = builder.Configuration["ServerConfig:MariaDbImportConnectionString"];
 
 builder.Services.AddOptions<DbImportOptions>()
     .Configure(x => x.ImportConnectionString = importConnectionString ?? "");
@@ -59,7 +59,7 @@ builder.Services.AddDbContext<ReplayContext>(options =>
     {
         p.CommandTimeout(30);
         p.EnableRetryOnFailure();
-        p.MigrationsAssembly("MysqlMigrations");
+        p.MigrationsAssembly("MariaDbMigrations");
         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
     })
     //.EnableDetailedErrors()
