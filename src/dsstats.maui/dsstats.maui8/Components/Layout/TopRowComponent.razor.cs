@@ -165,6 +165,11 @@ public partial class TopRowComponent : ComponentBase, IDisposable
 
     private void UpdateService_UpdateProgress(object? sender, UpdateProgressEvent e)
     {
+        if (!string.IsNullOrEmpty(e.Error))
+        {
+            toastService.ShowError($"Update failed: {e.Error}");
+        }
+
         updateDownloadProgress = e.Progress;
         InvokeAsync(() => StateHasChanged());
     }

@@ -117,4 +117,5 @@ public class GitHubUpdateService(ILogger<GitHubUpdateService> logger) : IUpdateS
 public class UpdateProgressEvent : EventArgs
 {
     public int Progress { get; init; }
+    public string? Error { get; init; }
 }

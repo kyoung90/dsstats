@@ -74,6 +74,7 @@ public class StoreUpdateService(ILogger<StoreUpdateService> logger) : IUpdateSer
                 if (failedUpdates.Count > 0)
                 {
                     logger.LogError("app update failed: {errorlist}", string.Join(", ", failedUpdates.Select(s => s.PackageFamilyName)));
+                    OnUpdateProgress(new() { Error = string.Join(", ", failedUpdates.Select(s => s.PackageFamilyName)) });
                 }
             }
             else
@@ -84,6 +85,7 @@ public class StoreUpdateService(ILogger<StoreUpdateService> logger) : IUpdateSer
         catch (Exception ex)
         {
             logger.LogError("app update failed: {error}", ex.Message);
+            OnUpdateProgress(new() { Error = ex.Message });
         }
         return false;
     }
