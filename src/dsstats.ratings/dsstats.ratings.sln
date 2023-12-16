@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.db8", "..\dsstats.d
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MysqlMigrations", "..\MysqlMigrations\MysqlMigrations.csproj", "{4088D030-45CF-4E18-9619-308FE5044E11}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mysql8Migrations", "..\Mysql8Migrations\Mysql8Migrations.csproj", "{376DF98D-F80B-49F0-8157-A4A904CC10AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4088D030-45CF-4E18-9619-308FE5044E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4088D030-45CF-4E18-9619-308FE5044E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4088D030-45CF-4E18-9619-308FE5044E11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{376DF98D-F80B-49F0-8157-A4A904CC10AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{376DF98D-F80B-49F0-8157-A4A904CC10AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{376DF98D-F80B-49F0-8157-A4A904CC10AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{376DF98D-F80B-49F0-8157-A4A904CC10AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

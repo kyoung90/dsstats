@@ -35,7 +35,7 @@ class Program
         services.AddLogging(options =>
         {
             options.SetMinimumLevel(LogLevel.Information);
-            options.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+            options.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Information);
             options.AddConsole();
         });
 
@@ -61,7 +61,7 @@ class Program
 
         if (args.Length == 0)
         {
-            args = ["combo"];
+            args = ["sc2arcade"];
         }
 
         Stopwatch sw = Stopwatch.StartNew();

@@ -46,7 +46,7 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 // Add services to the container.
-var serverVersion = new MySqlServerVersion(new System.Version(8, 0, 35));
+var serverVersion = new MySqlServerVersion(new System.Version(8, 2, 0));
 var connectionString = builder.Configuration["ServerConfig:Dsstats8ConnectionString"];
 var importConnectionString = builder.Configuration["ServerConfig:Import8ConnectionString"];
 
@@ -125,8 +125,8 @@ using var scope = app.Services.CreateScope();
 var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
 mapper.ConfigurationProvider.AssertConfigurationIsValid();
 
-//var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-//context.Database.Migrate();
+var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+context.Database.Migrate();
 
 var uploadSerivce = scope.ServiceProvider.GetRequiredService<UploadService>();
 uploadSerivce.ImportInit();
