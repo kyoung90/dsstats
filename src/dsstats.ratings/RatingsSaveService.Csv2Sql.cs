@@ -26,7 +26,7 @@ public partial class RatingsSaveService
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 360;
+            command.CommandTimeout = 500;
 
             command.CommandText = @$"
 DROP TABLE IF EXISTS {tempTable};

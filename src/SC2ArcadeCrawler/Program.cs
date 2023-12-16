@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using pax.dsstats.web.Server.Services.Arcade;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace SC2ArcadeCrawler;
 
@@ -18,8 +17,8 @@ class Program
         var jsonStrg = File.ReadAllText("/data/localserverconfig.json");
         var json = JsonSerializer.Deserialize<JsonElement>(jsonStrg);
         var config = json.GetProperty("ServerConfig");
-        var connectionString = config.GetProperty("MariaDbImportConnectionString").GetString();
-        var importConnectionString = config.GetProperty("MariaDbImportConnectionString").GetString() ?? "";
+        var connectionString = config.GetProperty("Dsstats8ConnectionString").GetString();
+        var importConnectionString = config.GetProperty("Import8ConnectionString").GetString() ?? "";
 
         services.AddOptions<DbImportOptions>()
             .Configure(x =>
@@ -64,8 +63,15 @@ class Program
 
         var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
 
+        DateTime tillDate = new DateTime(2021, 2, 1);
+
+        if (args.Length == 1 && int.TryParse(args[0], out int days))
+        {
+            tillDate = DateTime.Today.AddDays(-days);
+        }
+
         // crawlerService.GetLobbyHistory(DateTime.Today.AddDays(-2)).Wait();
-        crawlerService.GetLobbyHistory(new DateTime(2021, 2, 1), default).Wait();
+        crawlerService.GetLobbyHistory(tillDate, default).Wait();
 
         Console.WriteLine("done.");
         Console.ReadLine();

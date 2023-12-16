@@ -35,7 +35,7 @@ class Program
         services.AddLogging(options =>
         {
             options.SetMinimumLevel(LogLevel.Information);
-            options.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Information);
+            options.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
             options.AddConsole();
         });
 
@@ -98,6 +98,11 @@ class Program
                 logger.LogInformation("Checking lastSpawnHashes");
                 SetLastSpawnHashes(serviceProvider);
                 CheckLastSpawnHashDuplicates(serviceProvider);
+            }
+            else if (args[0] == "xy")
+            {
+                logger.LogInformation("Getting unique xy unit coordinates");
+                GetXYCoordinates(serviceProvider);
             }
             else
             {
@@ -244,7 +249,7 @@ class Program
         var logger = mscope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         MD5 md5Hash = MD5.Create();
 
-        var lsDups = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText("/data/ds/lsdups.json")) ?? new(); 
+        var lsDups = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText("/data/ds/lsdups.json")) ?? new();
 
         foreach (var ent in lsDups)
         {
@@ -328,5 +333,72 @@ class Program
             DeleteReplay(throwReplay.ReplayHash, context, logger);
             context.SaveChanges();
         }
+    }
+
+    private static void GetXYCoordinates(ServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
+        Dictionary<XYPos, int> XYPoss = new();
+
+        int skip = 0;
+        int take = 100000;
+
+        var poss = GetPoss(skip, take, context);
+
+        while(poss.Count > 0)
+        {
+            foreach (var pos in poss)
+            {
+                if (string.IsNullOrEmpty(pos))
+                {
+                    continue;
+                }
+
+                var xys = pos.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < xys.Length; i += 2)
+                {
+                    XYPos xYPos = new() 
+                    {
+                        X = int.Parse(xys[i]),
+                        Y = int.Parse(xys[i + 1])
+                    };
+
+                    if (XYPoss.ContainsKey(xYPos))
+                    {
+                        XYPoss[xYPos]++;
+                    }
+                    else
+                    {
+                        XYPoss[xYPos] = 1;
+                    }
+                }
+            }
+            skip += take;
+            poss = GetPoss(skip, take, context);
+        }
+
+        foreach (var ent in XYPoss.OrderBy(o => o.Key))
+        {
+            Console.WriteLine($"{ent.Key.X}|{ent.Key.Y} => {ent.Value}");
+        }
+    }
+
+
+    private static List<string> GetPoss(int skip, int take, ReplayContext context)
+    {
+        return context.SpawnUnits
+            .OrderBy(o => o.SpawnUnitId)
+            .Skip(skip)
+            .Take(take)
+            .Select(s => s.Poss)
+            .ToList();
+    }
+
+    public record XYPos
+    {
+        public int X { get; init; }
+        public int Y { get; init; }
     }
 }
