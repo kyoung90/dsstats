@@ -13,24 +13,13 @@ public partial class RatingService
 {
     public async Task ContinueComboRatings()
     {
-        // DEBUG - TODO
-        await DebugDeleteComboRatings();
-
         using var scope = scopeFactory.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         var ratingSaveService = scope.ServiceProvider.GetRequiredService<IRatingsSaveService>();
 
-        var latestComboRating = await context.ComboReplayRatings
-            .Where(x => !x.IsPreRating)
-            .OrderByDescending(o => o.Replay.GameTime)
-            .Select(s => s.Replay.GameTime)
-            .FirstOrDefaultAsync();
-
-        logger.LogWarning(latestComboRating.ToString());
-
         DsstatsCalcRequest dsstatsRequest = new()
         {
-            FromDate = latestComboRating,
+            FromDate = DateTime.UtcNow.AddHours(-2),
             GameModes = new List<int>() { 3, 4, 7 },
             Skip = 0,
             Take = 1000
@@ -60,6 +49,8 @@ public partial class RatingService
                     },
             BannedPlayers = new Dictionary<PlayerId, bool>().ToFrozenDictionary()
         };
+        
+        await CleanupComboPreRatings(context);
 
         ratingRequest.ReplayPlayerRatingAppendId = await context.ComboReplayPlayerRatings
             .OrderByDescending(o => o.ComboReplayPlayerRatingId)
@@ -72,7 +63,6 @@ public partial class RatingService
 
         ratingRequest.MmrIdRatings = await GetComboMmrIdRatings(calcDtos);
 
-        await CleanupComboPreRatings(context);
         
         List<shared.Calc.ReplayRatingDto> replayRatings = new();
         

@@ -1,3 +1,4 @@
+@using Microsoft.JSInterop
 @using dsstats.shared
 @using dsstats.shared.Extensions
 @using dsstats.shared.Interfaces
@@ -6,6 +7,7 @@
 @inject IReplaysService replaysService
 @inject IRemoteToggleService remoteToggleService
 @inject HttpClient httpClient
+@inject IJSRuntime JSRuntime
 
 @* <div class="card d-inline-block" @ontouchstart="TouchStart" @ontouchmove="TouchMove"> *@
 <div class="card d-inline-block @(interestPlayer == null ? "" : "visually-hidden")">
@@ -78,6 +80,15 @@
                                     </label>
                                 </div>
                             }
+                            @if (Replay.ReplayPlayers.Any(a => a.Duration < Replay.Duration - 90))
+                            {
+                                <div class="form-check form-switch">
+                                    <label class="form-check-label" style="user-select: none;">
+                                        Leavers
+                                        <input type="checkbox" class="form-check-input" @bind="showLeavers" @bind:after="@(() => replayMiddleChart?.AddLeaverAnnotations(showLeavers))" />
+                                    </label>
+                                </div>
+                            }
                         </fieldset>
                     </form>
                 </div>
@@ -132,9 +143,9 @@
             <div class="col-auto">
                 @if (replayRating is not null)
                 {
-                    <span>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Win probability of the team that won">
                         Expectation To Win:
-                        <span class="@(replayRating.ExpectationToWin > 0.5 ? "text-success fw-bold" : "text-danger fw-bold")">
+                        <span class="@(replayRating.ExpectationToWin >= 0.5 ? "text-success fw-bold" : "text-danger fw-bold")">
                             @((replayRating.ExpectationToWin * 100.0).ToString("N0"))%
                         </span>
                     </span>
@@ -196,6 +207,12 @@
             {
                 <div class="col-2">
                     <button type="button" class="btn btn-sm btn-dark" @onclick="@(() => showReplayPath = !showReplayPath)">FileName</button>
+                </div>
+                <div class="col-2">
+                    <a class="btn btn-sm btn-dark"
+                       href="@($"https://dsstats.pax77.org/replays?replay={Replay.ReplayHash}")">
+                        Link
+                    </a>
                 </div>
             }
             else
@@ -287,6 +304,7 @@
     ReplayMiddleChart? replayMiddleChart;
     bool showTierUps = false;
     bool showRefineries = false;
+    bool showLeavers = false;
 
     protected override void OnParametersSet()
     {
@@ -296,6 +314,15 @@
             replayHash = Replay.ReplayHash;
         }
         base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JSRuntime.InvokeVoidAsync("enableTooltips");
+        }
+        base.OnAfterRender(firstRender);
     }
 
     public void Init()
@@ -315,6 +342,7 @@
         showMiddleChart = false;
         showTierUps = false;
         showRefineries = false;
+        showLeavers = false;
         Breakpoint = Breakpoint.All;
         breakpointsCount = Math.Min(4, Replay.ReplayPlayers.Select(s => s.Spawns.Count).Max());
         buildPlayers.Clear();
@@ -351,6 +379,7 @@
         {
             showTierUps = false;
             showRefineries = false;
+            showLeavers = false;
         }
     }
 
