@@ -343,7 +343,7 @@ class Program
         Dictionary<XYPos, int> XYPoss = new();
 
         int skip = 0;
-        int take = 100000;
+        int take = 1000000;
 
         var poss = GetPoss(skip, take, context);
 
@@ -379,7 +379,7 @@ class Program
             poss = GetPoss(skip, take, context);
         }
 
-        foreach (var ent in XYPoss.OrderBy(o => o.Key))
+        foreach (var ent in XYPoss.OrderBy(x => x.Key.X).ThenBy(x => x.Key.Y))
         {
             Console.WriteLine($"{ent.Key.X}|{ent.Key.Y} => {ent.Value}");
         }
