@@ -43,11 +43,6 @@ public static partial class Parser
 
             Point pos = new(bornEvent.X, bornEvent.Y);
 
-            if (trackerPlayer.StagingArea.IsPointInside(pos))
-            {
-                continue;
-            }
-
             if (!IsSpawnUnit(trackerPlayer, pos))
             {
                 continue;
@@ -64,55 +59,9 @@ public static partial class Parser
 
     private static bool IsSpawnUnit(TrackerPlayer player, Point unitPos)
     {
-        int team = player.GamePos <= 3 ? 1 : 2;
-        Point teamBase = team == 1 ? Planetary : Nexus;
-
-        Point b1 = team == 1 ? player.StagingArea.South : player.StagingArea.East;
-        Point a1 = team == 1 ? player.StagingArea.West : player.StagingArea.North;
-
-        (Point a2, Point b2) = GetParallelLine(a1, b1, teamBase);
-
-        int shift1 = team == 1 ? 3 : -3;
-        int shift2 = shift1 * -1;
-
-        bool isLeftOfStagingArea = IsPointLeftOfLine(a1, b1, unitPos, 0);
-        bool isLeftOfBase = IsPointLeftOfLine(a2, b2, unitPos, 0);
-
-        if (team == 1)
-        {
-            return !isLeftOfStagingArea && isLeftOfBase;
-        }
-        else
-        {
-            return isLeftOfStagingArea && !isLeftOfBase;
-        }
-    }
-
-    private static (Point, Point) GetParallelLine(Point a, Point b, Point c)
-    {
-        // Calculate the direction vector of the original line (a-b)
-        double directionX = b.X - a.X;
-        double directionY = b.Y - a.Y;
-
-        // Calculate the coordinates of the new points based on the direction vector and point c
-        Point newPoint1 = new(Convert.ToInt32(c.X + directionX), Convert.ToInt32(c.Y + directionY));
-        Point newPoint2 = new(Convert.ToInt32(c.X - directionX), Convert.ToInt32(c.Y - directionY));
-
-        return (newPoint1, newPoint2);
-    }
-
-    private static bool IsPointLeftOfLine(Point a, Point b, Point c, int parallelShift)
-    {
-        // Adjust point coordinates based on the parallel shift
-        a = a with { X = a.X + parallelShift };
-        b = b with { X = b.X + parallelShift };
-        c = c with { X = c.X + parallelShift };
-
-        // Calculate the cross product of vectors (b - a) and (c - a)
-        double crossProduct = (b.X - a.X) * (c.Y - a.Y) - (c.X - a.X) * (b.Y - a.Y);
-
-        // If the cross product is positive, point c is to the left of the line
-        return crossProduct > 0;
+        return player.GamePos <= 3 ?
+            SpawnArea1.IsPointInside(unitPos) :
+            SpawnArea2.IsPointInside(unitPos);
     }
 
     private static TrackerReplay? InitTrackerReplay(Dictionary<int, TrackerPlayer> playerMap,

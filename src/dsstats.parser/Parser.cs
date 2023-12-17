@@ -14,7 +14,8 @@ public static partial class Parser
     public static Area Area6 { get; } = new Area(new Point(96, 22), new Point(78, 40), new Point(90, 52), new Point(108, 34));
     public static Point Planetary { get; } = new Point(160, 152);
     public static Point Nexus { get; } = new Point(96, 88);
-
+    public static Area SpawnArea1 { get; } = new Area(new(173, 147), new(155, 165), new(167, 177), new(185, 159));
+    public static Area SpawnArea2 { get; } = new Area(new(89, 63), new(71, 81), new(83, 93), new(101, 75));
 
     public static ParseResult ParseReplay(Sc2Replay replay)
     {
@@ -76,7 +77,7 @@ public static partial class Parser
             }
 
             failesafe_pos++;
-            
+
             MetadataPlayer? metaPlayer = null;
             if (metadata?.Players.Count >= failesafe_pos)
             {
@@ -122,12 +123,84 @@ public record Point(int X, int Y)
 {
     public static Point Zero = new(0, 0);
 };
-public record Area(Point South, Point West, Point North, Point East)
+
+public record Area
 {
+    public Area(Point south, Point west, Point north, Point east)
+    {
+        South = south;
+        West = west;
+        North = north;
+        East = east;
+        rectangleArea = CalculateArea();
+    }
+
+    public Point South { get; init; }
+    public Point West { get; init; }
+    public Point North { get; init; }
+    public Point East { get; init; }
+
+    private double rectangleArea;
+
+    private double CalculateArea()
+    {
+        double area = 0.5 * Math.Abs(
+            (North.X * East.Y + East.X * South.Y + South.X * West.Y + West.X * North.Y) -
+            (East.X * North.Y + South.X * East.Y + West.X * South.Y + North.X * West.Y)
+        );
+
+        return area;
+    }
+
     public bool IsPointInside(Point point)
     {
-        int windingNumber = ComputeWindingNumber(point);
-        return windingNumber != 0;
+        var triangle1 = CalculateTriangleArea(North, East, point);
+        var triangle2 = CalculateTriangleArea(East, South, point);
+        var triangle3 = CalculateTriangleArea(South, West, point);
+        var triangle4 = CalculateTriangleArea(West, North, point);
+
+        return Math.Abs(rectangleArea - (triangle1 + triangle2 + triangle3 + triangle4)) < 1e-10;
+    }
+
+    private static double CalculateTriangleArea(Point pointA, Point pointB, Point pointC)
+    {
+        return 0.5 * Math.Abs(
+            (pointA.X * (pointB.Y - pointC.Y) + pointB.X * (pointC.Y - pointA.Y) + pointC.X * (pointA.Y - pointB.Y))
+        );
+    }
+
+    private int Sum(Point a, Point b, Point c)
+    {
+        return Math.Abs((b.X * a.Y - a.X * b.Y) + (c.X * b.Y - b.X * c.Y) + (a.X * c.X - c.X * a.Y)) / 2;
+    }
+
+    public Area MoveTowards(Point targetPoint)
+    {
+        // Calculate the translation vector
+        int deltaX = targetPoint.X - Center().X;
+        int deltaY = targetPoint.Y - Center().Y;
+
+        // Translate each vertex of the rectangle
+        var south = new Point(South.X + deltaX, South.Y + deltaY);
+        var west = new Point(West.X + deltaX, West.Y + deltaY);
+        var north = new Point(North.X + deltaX, North.Y + deltaY);
+        var east = new Point(East.X + deltaX, East.Y + deltaY);
+
+        return new(south, west, north, east);
+    }
+
+    private Point Center()
+    {
+        double centerX = (South.X + North.X) / 2.0;
+        double centerY = (West.Y + East.Y) / 2.0;
+        return new Point(Convert.ToInt32(centerX), Convert.ToInt32(centerY));
+    }
+
+    public static Point Midpoint(Point A, Point L1, Point L2)
+    {
+        double midX = (A.X + (L1.X + L2.X) / 2.0) / 2.0;
+        double midY = (A.Y + (L1.Y + L2.Y) / 2.0) / 2.0;
+        return new Point(Convert.ToInt32(midX), Convert.ToInt32(midY));
     }
 
     public bool IsPointBetweenParallelLines(Point parallelLinePoint, Point checkPoint, int distance)
@@ -153,24 +226,11 @@ public record Area(Point South, Point West, Point North, Point East)
         return projectionCP >= 0 && projectionCP <= 1 && projectionNP >= 0 && projectionNP <= 1;
     }
 
-    private int ComputeWindingNumber(Point point)
-    {
-        if (IsLeft(North, East, point) 
-            && IsLeft(East, South, point) 
-            && IsLeft(South, West, point) 
-            && IsLeft(West, North, point))
-        {
-            return 1;
-        }
-        return 0;
-    }
 
-    private bool IsLeft(Point a, Point b, Point c)
-    {
-        return ((b.X - a.X) * (c.Y - a.Y) - (c.X - a.X) * (b.Y - a.Y)) > 0;
-    }
+    private static readonly Area _zero = new(Point.Zero, Point.Zero, Point.Zero, Point.Zero);
+    public static Area Zero => _zero;
 
-    public static Area Zero = new(Point.Zero, Point.Zero, Point.Zero, Point.Zero);
+
 }
 
 

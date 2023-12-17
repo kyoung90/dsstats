@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.shared", "..\dsstat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pax.dsstats.parser", "..\dsstats.maui\pax.dsstats.parser\pax.dsstats.parser.csproj", "{E71C94AC-A3C7-4665-B3DC-41C7F018B41D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dsstats.parser", "..\dsstats.parser\dsstats.parser.csproj", "{221FE72C-E654-4104-9D3F-96C9F698F477}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.parser", "..\dsstats.parser\dsstats.parser.csproj", "{221FE72C-E654-4104-9D3F-96C9F698F477}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dsstats.parse.tests", "..\dsstats.parse.tests\dsstats.parse.tests.csproj", "{6977DDB4-5248-4A9C-BB28-CEE6C318E6A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{221FE72C-E654-4104-9D3F-96C9F698F477}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{221FE72C-E654-4104-9D3F-96C9F698F477}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{221FE72C-E654-4104-9D3F-96C9F698F477}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6977DDB4-5248-4A9C-BB28-CEE6C318E6A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6977DDB4-5248-4A9C-BB28-CEE6C318E6A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6977DDB4-5248-4A9C-BB28-CEE6C318E6A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6977DDB4-5248-4A9C-BB28-CEE6C318E6A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
