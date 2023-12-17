@@ -5,6 +5,26 @@ namespace dsstats.parser;
 
 public static partial class Parser
 {
+    private static readonly List<string> UpgradeStartIgnoreList = new()
+        {
+            "Mineral",
+            "AFK",
+            "Staging",
+            "Decoration",
+            "Mastery",
+            "Spooky",
+            "Emote",
+        };
+
+    private static readonly List<string> UpgradeIgnoreList = new()
+        {
+            "HighCapacityMode",
+            "HornerMySignificantOtherBuffHan",
+            "HornerMySignificantOtherBuffHorner",
+            "StagingAreaNextSpawn",
+            "MineralIncome",
+        };
+
 
     private static void ParseTrackerEvents(ReplayDto replayDto, TrackerEvents trackerEvents)
     {
@@ -15,11 +35,115 @@ public static partial class Parser
 
         ArgumentNullException.ThrowIfNull(trackerReplay, "init trackerevents failed.");
 
-        SetUnits(trackerReplay, trackerEvents.SUnitBornEvents);
+        SetUnitsAndCommander(trackerReplay, trackerEvents.SUnitBornEvents);
+        SetUpgrades(trackerReplay, trackerEvents.SUpgradeEvents);
+        SetStats(trackerReplay, trackerEvents.SPlayerStatsEvents);
+        SetMiddleChanges(trackerReplay, trackerEvents.SUnitOwnerChangeEvents);
+        SetRefinieries(trackerReplay, trackerEvents.SUnitTypeChangeEvents);
 
     }
 
-    private static void SetUnits(TrackerReplay trackerReplay, ICollection<SUnitBornEvent> sUnitBornEvents)
+    private static void SetUpgrades(TrackerReplay trackerReplay, ICollection<SUpgradeEvent> sUpgradeEvents)
+    {
+        foreach (var upgradeEvent in sUpgradeEvents)
+        {
+            if (upgradeEvent.Gameloop < 2)
+            {
+                continue;
+            }
+
+            var trackerPlayer = GetTrackerPlayer(trackerReplay.PlayerMap, upgradeEvent.PlayerId);
+
+            if (trackerPlayer is null)
+            {
+                continue;
+            }
+
+            if (upgradeEvent.UpgradeTypeName.Equals("Tier2", StringComparison.Ordinal)
+                || upgradeEvent.UpgradeTypeName.Equals("Tier3", StringComparison.Ordinal))
+            {
+                trackerPlayer.Tiers.Add(new()
+                {
+                    Gameloop = upgradeEvent.Gameloop,
+                });
+                continue;
+            }
+
+            if (FilterUpgrades(upgradeEvent.UpgradeTypeName, trackerPlayer.Commander))
+            {
+                continue;
+            }
+
+            trackerPlayer.Upgrades.Add(new()
+            {
+                Name = upgradeEvent.UpgradeTypeName,
+                Gameloop = upgradeEvent.Gameloop,
+            });
+        }
+    }
+
+    private static void SetStats(TrackerReplay trackerReplay, ICollection<SPlayerStatsEvent> sPlayerStatsEvents)
+    {
+        foreach (SPlayerStatsEvent statsEvent in sPlayerStatsEvents)
+        {
+            if (statsEvent.MineralsCollectionRate == 0)
+            {
+                continue;
+            }
+
+            var trackerPlayer = GetTrackerPlayer(trackerReplay.PlayerMap, statsEvent.PlayerId);
+
+            if (trackerPlayer is null)
+            {
+                continue;
+            }
+
+            trackerPlayer.Stats.Add(new()
+            {
+                Gameloop = statsEvent.Gameloop,
+                Income = statsEvent.MineralsCollectionRate,
+                ArmyValue = statsEvent.MineralsUsedActiveForces,
+                KilledValue = statsEvent.MineralsKilledArmy,
+                UpgradesSpent = statsEvent.MineralsUsedCurrentTechnology
+            });
+        }
+    }
+
+    private static void SetMiddleChanges(TrackerReplay trackerReplay, ICollection<SUnitOwnerChangeEvent> sUnitOwnerChangeEvents)
+    {
+        foreach (var changeEvent in sUnitOwnerChangeEvents.Where(x => x.UnitTagIndex == 20))
+        {
+            trackerReplay.MiddleChanges.Add(new()
+            {
+                Gameloop = changeEvent.Gameloop,
+                Team = changeEvent.UpkeepPlayerId switch
+                {
+                    13 => 1,
+                    14 => 2,
+                    _ => 0
+                }
+            });
+        }
+    }
+
+    private static void SetRefinieries(TrackerReplay trackerReplay, ICollection<SUnitTypeChangeEvent> sUnitTypeChangeEvents)
+    {
+        foreach (var player in trackerReplay.PlayerMap.Values)
+        {
+            foreach (var refinery in player.Refineries)
+            {
+                var changeEvent = sUnitTypeChangeEvents.FirstOrDefault(f => f.UnitTagIndex == refinery.UnitTagIndex
+                    && f.UnitTagRecycle == refinery.UnitTagRecycle);
+
+                if (changeEvent is not null)
+                {
+                    refinery.Gameloop = changeEvent.Gameloop == 0 ? 1 : changeEvent.Gameloop;
+                }
+            }
+        }
+    }
+
+    private static void SetUnitsAndCommander(TrackerReplay trackerReplay, ICollection<SUnitBornEvent> sUnitBornEvents)
     {
         foreach (var bornEvent in sUnitBornEvents)
         {
@@ -127,6 +251,14 @@ public static partial class Parser
             {
                 trackerPlayer.Commander = GetCommanderFromWorker(bornEvent.UnitTypeName);
             }
+            else if (bornEvent.UnitTypeName.StartsWith("MineralField", StringComparison.Ordinal))
+            {
+                trackerPlayer.Refineries.Add(new()
+                {
+                    UnitTagIndex = bornEvent.UnitTagIndex,
+                    UnitTagRecycle = bornEvent.UnitTagRecycle
+                });
+            }
         }
 
         if (nexusBornEvent == null || planetaryBornEvent == null
@@ -202,6 +334,31 @@ public static partial class Parser
         public Commander Commander { get; set; }
         public int GamePos { get; set; }
         public List<TrackerPlayerUnit> Units { get; set; } = new();
+        public List<TrackerPlayerRefinery> Refineries { get; set; } = new();
+        public List<TrackerPlayerStat> Stats { get; set; } = new();
+        public List<TrackerPlayerTiers> Tiers { get; set; } = new();
+        public List<TrackerPlayerUpgrades> Upgrades { get; set; } = new();
+    }
+
+    internal record TrackerPlayerTiers
+    {
+        public int Gameloop { get; set; }
+    }
+
+    internal record TrackerPlayerUpgrades
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Gameloop { get; set; }
+    }
+
+
+    internal record TrackerPlayerStat
+    {
+        public int Gameloop { get; set; }
+        public int Income { get; set; }
+        public int ArmyValue { get; set; }
+        public int KilledValue { get; set; }
+        public int UpgradesSpent { get; set; }
     }
 
     internal record TrackerPlayerUnit
@@ -209,7 +366,13 @@ public static partial class Parser
         public string Name { get; set; } = string.Empty;
         public int Gameloop { get; set; }
         public Point Pos { get; set; } = Point.Zero;
-        public UnitType UnitType { get; set; }
+    }
+
+    internal record TrackerPlayerRefinery
+    {
+        public int UnitTagIndex { get; set; }
+        public int UnitTagRecycle { get; set; }
+        public int Gameloop { set; get; }
     }
 
     internal record TrackerReplay
@@ -219,13 +382,12 @@ public static partial class Parser
         public Point Cannon { get; init; } = Point.Zero;
         public Point Bunker { get; init; } = Point.Zero;
         public Dictionary<int, TrackerPlayer> PlayerMap { get; set; } = new();
+        public List<TrackerReplayMiddleChange> MiddleChanges { get; set; } = new();
     }
-}
 
-public enum UnitType
-{
-    None = 0,
-    Build = 1,
-    Spawn = 2,
-    Tier = 3
+    internal record TrackerReplayMiddleChange
+    {
+        public int Team { get; set; }
+        public int Gameloop { get; set; }
+    }
 }
