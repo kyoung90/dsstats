@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using dsstats.parser;
 using pax.dsstats.parser;
 using s2protocol.NET;
 
@@ -19,13 +20,23 @@ class Program
 
     static async Task Main(string[] args)
     {
-        var files = Directory.GetFiles(replayFolder, "*SC2Replay", SearchOption.TopDirectoryOnly);
+        //string[] files;
+        //if (args.Length == 0)
+        //{
+        //    files = Directory.GetFiles(replayFolder, "*SC2Replay", SearchOption.TopDirectoryOnly);
+        //}
+        //else
+        //{
+        //    files = [args[0]];
+        //}
 
-        if (files.Length == 0)
-        {
-            Console.WriteLine("no replays found.");
-            return;
-        }
+        //if (files.Length == 0)
+        //{
+        //    Console.WriteLine("no replays found.");
+        //    return;
+        //}
+
+        string[] files = [@"C:\Users\pax77\Documents\StarCraft II\Accounts\107095918\2-S2-1-226401\Replays\Multiplayer\Direct Strike (6130).SC2Replay"];
 
         Console.WriteLine($"found {files.Length} replays. Decoding ...");
 
@@ -58,6 +69,8 @@ class Program
                     ReportError(file, outputFile, "sc2Replay was null.");
                     continue;
                 }
+
+                var result = Parser.ParseReplay(sc2Replay);
 
                 var dsReplay = Parse.GetDsReplay(sc2Replay);
 
