@@ -5,28 +5,7 @@ namespace dsstats.parser;
 
 public static partial class Parser
 {
-    private static readonly List<string> UpgradeStartIgnoreList = new()
-        {
-            "Mineral",
-            "AFK",
-            "Staging",
-            "Decoration",
-            "Mastery",
-            "Spooky",
-            "Emote",
-        };
-
-    private static readonly List<string> UpgradeIgnoreList = new()
-        {
-            "HighCapacityMode",
-            "HornerMySignificantOtherBuffHan",
-            "HornerMySignificantOtherBuffHorner",
-            "StagingAreaNextSpawn",
-            "MineralIncome",
-        };
-
-
-    private static void ParseTrackerEvents(ReplayDto replayDto, TrackerEvents trackerEvents)
+    private static TrackerReplay ParseTrackerEvents(ReplayDto replayDto, TrackerEvents trackerEvents)
     {
         Dictionary<int, TrackerPlayer> playerMap = GetPlayerMap(trackerEvents.SPlayerSetupEvents);
 
@@ -41,6 +20,7 @@ public static partial class Parser
         SetMiddleChanges(trackerReplay, trackerEvents.SUnitOwnerChangeEvents);
         SetRefinieries(trackerReplay, trackerEvents.SUnitTypeChangeEvents);
 
+        return trackerReplay;
     }
 
     private static void SetUpgrades(TrackerReplay trackerReplay, ICollection<SUpgradeEvent> sUpgradeEvents)
@@ -174,7 +154,7 @@ public static partial class Parser
 
             trackerPlayer.Units.Add(new()
             {
-                Name = bornEvent.UnitTypeName,
+                Name = FixUnitName(bornEvent.UnitTypeName, trackerPlayer.Commander),
                 Gameloop = bornEvent.Gameloop,
                 Pos = pos
             });
@@ -267,7 +247,56 @@ public static partial class Parser
             return null;
         }
 
-        foreach (var player in playerMap.Values)
+        int duration = 0;
+        int winnerTeam = 0;
+        int bunkerDown = 0;
+        int cannonDown = 0;
+        if (nexusBornEvent.SUnitDiedEvent is not null)
+        {
+            duration = nexusBornEvent.SUnitDiedEvent.Gameloop;
+            winnerTeam = 1;
+        }
+        else if (planetaryBornEvent.SUnitDiedEvent is not null)
+        {
+            duration = planetaryBornEvent.SUnitDiedEvent.Gameloop;
+            winnerTeam = 2;
+        }
+        if (cannonBornEvent.SUnitDiedEvent is not null)
+        {
+            cannonDown = cannonBornEvent.SUnitDiedEvent.Gameloop;
+        }
+        if (bunkerBornEvent.SUnitDiedEvent is not null)
+        {
+            bunkerDown = bunkerBornEvent.SUnitDiedEvent.Gameloop;
+        }
+
+        var replay = new TrackerReplay()
+        {
+            Nexus = new(nexusBornEvent.X, nexusBornEvent.Y),
+            Planetary = new(planetaryBornEvent.X, planetaryBornEvent.Y),
+            Cannon = new(cannonBornEvent.X, cannonBornEvent.Y),
+            Bunker = new(bunkerBornEvent.X, bunkerBornEvent.Y),
+            PlayerMap = playerMap,
+            NexusOrCCDiedGameloop = duration,
+            WinnerTeam = winnerTeam,
+            BunkerDown = bunkerDown,
+            CannonDown = cannonDown,
+        };
+
+        SetObjectivesAndPlayerPos(replay);
+
+        return replay;
+    }
+
+    private static void SetObjectivesAndPlayerPos(TrackerReplay replay)
+    {
+        if (replay.Nexus != Nexus)
+        {
+            // todo: set objectives
+            throw new ArgumentOutOfRangeException(nameof(replay.Nexus));
+        }
+
+        foreach (var player in replay.PlayerMap.Values)
         {
             player.GamePos = player.StagingArea switch
             {
@@ -280,15 +309,6 @@ public static partial class Parser
                 _ => 0
             };
         }
-
-        return new()
-        {
-            Nexus = new(nexusBornEvent.X, nexusBornEvent.Y),
-            Planetary = new(planetaryBornEvent.X, planetaryBornEvent.Y),
-            Cannon = new(cannonBornEvent.X, cannonBornEvent.Y),
-            Bunker = new(bunkerBornEvent.X, bunkerBornEvent.Y),
-            PlayerMap = playerMap
-        };
     }
 
     private static Commander GetCommanderFromWorker(string unitTypeName)
@@ -377,12 +397,18 @@ public static partial class Parser
 
     internal record TrackerReplay
     {
+        public Area SpawnArea1 { get; set; } = Area.Zero;
+        public Area SpawnArea2 { get; set; } = Area.Zero;
         public Point Nexus { get; init; } = Point.Zero;
         public Point Planetary { get; init; } = Point.Zero;
         public Point Cannon { get; init; } = Point.Zero;
         public Point Bunker { get; init; } = Point.Zero;
+        public int CannonDown { get; init; }
+        public int BunkerDown { get; init; }
         public Dictionary<int, TrackerPlayer> PlayerMap { get; set; } = new();
         public List<TrackerReplayMiddleChange> MiddleChanges { get; set; } = new();
+        public int NexusOrCCDiedGameloop {  get; set; }
+        public int WinnerTeam { get; set; }
     }
 
     internal record TrackerReplayMiddleChange

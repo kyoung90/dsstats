@@ -84,4 +84,44 @@ public partial class Parser
 
         return false;
     }
+
+    private static string FixUnitName(string name, Commander cmdr)
+    {
+        // raynor viking
+        if (name.Equals("VikingFighter", StringComparison.Ordinal) || name.Equals("VikingAssault", StringComparison.Ordinal)) return "Viking";
+        if (name.Equals("DuskWings", StringComparison.Ordinal)) return "DuskWing";
+        if (name.Equals("HellionTank", StringComparison.Ordinal)) return "Hellion";
+        if (name.Equals("VikingMengskFighter", StringComparison.Ordinal) || name.Equals("VikingMengskAssault", StringComparison.Ordinal)) return "SkyFury";
+        // stukov lib
+        if (name.Equals("InfestedLiberatorViralSwarm", StringComparison.Ordinal)) return "InfestedLiberator";
+        // Zagara
+        if (name.Equals("InfestedAbomination", StringComparison.Ordinal)) return "Aberration";
+        // Horner viking
+        if (name.Equals("HornerDeimosVikingFighter", StringComparison.Ordinal) || name.Equals("HornerDeimosVikingAssault", StringComparison.Ordinal)) return "DeimosViking";
+        if (name.Equals("HornerAssaultGalleonUpgraded", StringComparison.Ordinal)) return "AssaultGalleon";
+        // Terrran thor
+        if (name.Equals("ThorAP", StringComparison.Ordinal)) return "Thor";
+
+        if (name.Equals("TychusTychus", StringComparison.Ordinal)) return "Tychus";
+        if (name.Equals("DehakaHero", StringComparison.Ordinal)) return "Dehaka";
+
+        if (cmdr == Commander.Mengsk && name.Equals("Marauder", StringComparison.Ordinal)) return "AegisGuard";
+
+        var race = cmdr.ToString();
+        if (name.Equals(race, StringComparison.Ordinal)) return name;
+
+        if (cmdr != Commander.None && cmdr != Commander.Zerg)
+        {
+            if (name.StartsWith(race, StringComparison.Ordinal)) return name[race.Length..];
+            if (name.EndsWith(race, StringComparison.Ordinal)) return name[..^race.Length];
+        }
+
+        if (name.Contains("Starlight", StringComparison.Ordinal)) return name.Replace("Starlight", "");
+        if (name.Contains("Lightweight", StringComparison.Ordinal)) return name.Replace("Lightweight", "");
+        if (name.StartsWith("Hero", StringComparison.Ordinal) && name.EndsWith("WaveUnit", StringComparison.Ordinal)) return name[4..^8];
+        if (name.EndsWith("MP", StringComparison.Ordinal)) return name[0..^2];
+        if (name.EndsWith("Alternate", StringComparison.Ordinal)) return name[0..^9];
+
+        return name;
+    }
 }

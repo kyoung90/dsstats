@@ -19,7 +19,15 @@ public static partial class Parser
 
     public static ParseResult ParseReplay(Sc2Replay replay)
     {
-        if (replay.Details?.Title != "Direct Strike")
+        if (replay.Details is null)
+        {
+            return new()
+            {
+                Error = "no details found."
+            };
+        }
+
+        if (!replay.Details.Title.Equals("Direct Strike", StringComparison.Ordinal))
         {
             return new()
             {
@@ -47,7 +55,10 @@ public static partial class Parser
 
         try
         {
-            ParseTrackerEvents(replayDto, replay.TrackerEvents);
+            var trackerReplay = ParseTrackerEvents(replayDto, replay.TrackerEvents);
+            replayDto = MapTrackerReplay(replayDto, trackerReplay);
+
+            // todo lastspawn / replay stats
         }
         catch (Exception ex)
         {
@@ -68,6 +79,7 @@ public static partial class Parser
         List<ReplayPlayerDto> replayPlayers = [];
 
         int failesafe_pos = 0;
+        bool fsActive = players.All(a => a.WorkingSetSlotId == 0);
 
         foreach (var player in players)
         {
@@ -98,7 +110,7 @@ public static partial class Parser
                 Clan = player.ClanName,
                 Race = race,
                 APM = metaPlayer?.APM == null ? 0 : Convert.ToInt32(metaPlayer.APM),
-                GamePos = player.WorkingSetSlotId == 0 ? failesafe_pos : player.WorkingSetSlotId,
+                GamePos = fsActive ? failesafe_pos : player.WorkingSetSlotId + 1,
                 Player = new PlayerDto()
                 {
                     Name = player.Name,
@@ -109,6 +121,31 @@ public static partial class Parser
             });
         }
         return replayPlayers;
+    }
+
+    private static int GetSecondsFromGameloop(int gameloop)
+    {
+        return Convert.ToInt32(gameloop / 22.4);
+    }
+
+    private static int GetGameloopFromSeconds(int seconds)
+    {
+        return Convert.ToInt32(seconds * 22.4);
+    }
+
+    private static Breakpoint GetBreakpoint(int gameloop)
+    {
+        return gameloop switch
+        {
+            _ when gameloop >= 6240 && gameloop <= 7209 => Breakpoint.Min5,
+            _ when gameloop >= 12960 && gameloop <= 13928 => Breakpoint.Min10,
+            _ when gameloop >= 19680 && gameloop <= 20649 => Breakpoint.Min15,
+            _ => Breakpoint.None
+        };
+
+        //if (gameloop >= 6240 && gameloop < 7209)
+        //(gameloop >= 12960 && gameloop < 13928)
+        //(gameloop >= 19680 && gameloop < 20649)))
     }
 }
 
@@ -124,7 +161,7 @@ public record Point(int X, int Y)
     public static Point Zero = new(0, 0);
 };
 
-public record Area
+public sealed record Area
 {
     public Area(Point south, Point west, Point north, Point east)
     {
@@ -230,7 +267,15 @@ public record Area
     private static readonly Area _zero = new(Point.Zero, Point.Zero, Point.Zero, Point.Zero);
     public static Area Zero => _zero;
 
+    public bool Equals(Area? other)
+    {
+        return (South == other?.South && West == other?.West && North == other?.North && East == other?.East);
+    }
 
+    public override int GetHashCode()
+    {
+        return (South.GetHashCode() + West.GetHashCode() + North.GetHashCode() + East.GetHashCode());
+    }
 }
 
 
