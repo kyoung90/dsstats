@@ -71,6 +71,11 @@ public static partial class Parser
                 continue;
             }
 
+            if (statsEvent.Gameloop > trackerReplay.NexusOrCCDiedGameloop)
+            {
+                continue;
+            }
+
             var trackerPlayer = GetTrackerPlayer(trackerReplay.PlayerMap, statsEvent.PlayerId);
 
             if (trackerPlayer is null)

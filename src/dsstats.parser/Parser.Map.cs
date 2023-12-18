@@ -19,17 +19,27 @@ public static partial class Parser
             var mappedReplayPlayer = GetReplayPlayer(replayPlayer, ent.Value, trackerReplay);
             replayPlayers.Add(mappedReplayPlayer);
         }
+
+        var allBps = replayPlayers.SelectMany(s => s.Spawns).Where(x => x.Breakpoint == Breakpoint.All);
+        int duration = GetSecondsFromGameloop(trackerReplay.NexusOrCCDiedGameloop);
+
         replayDto = replayDto with
         {
             ReplayPlayers = replayPlayers,
-            Duration = GetSecondsFromGameloop(trackerReplay.NexusOrCCDiedGameloop),
+            Duration = duration,
             CommandersTeam1 = '|' + string.Join('|', replayPlayers
                     .Where(x => x.GamePos <= 3).OrderBy(o => o.GamePos).Select(s => (int)s.Race)) + '|',
             CommandersTeam2 = '|' + string.Join('|', replayPlayers
                     .Where(x => x.GamePos > 3).OrderBy(o => o.GamePos).Select(s => (int)s.Race)) + '|',
-            Cannon = trackerReplay.CannonDown,
-            Bunker = trackerReplay.BunkerDown,
-            Middle = GetMiddle(trackerReplay.MiddleChanges)
+            Cannon = GetSecondsFromGameloop(trackerReplay.CannonDown),
+            Bunker = GetSecondsFromGameloop(trackerReplay.BunkerDown),
+            Middle = GetMiddle(trackerReplay.MiddleChanges),
+            Minkillsum = allBps.Min(m => m.KilledValue),
+            Maxkillsum = allBps.Max(m => m.KilledValue),
+            Minarmy = allBps.Min(m => m.ArmyValue),
+            Minincome = allBps.Min(m => m.Income),
+            Maxleaver = duration - replayPlayers.Min(m => m.Duration),
+            Playercount = (byte)replayPlayers.Count,
         };
 
         return replayDto;
@@ -55,6 +65,7 @@ public static partial class Parser
         var refineries = trackerPlayer.Refineries.Where(x => x.Gameloop > 0)
             .OrderBy(o => o.Gameloop)
             .ToList();
+        var spawns = GetSpawns(trackerPlayer, trackerReplay.NexusOrCCDiedGameloop);
 
         replayPlayer = replayPlayer with
         {
@@ -78,21 +89,32 @@ public static partial class Parser
                 },
                 Gameloop = s.Gameloop
             }).ToList(),
-            Spawns = GetSpawns(trackerPlayer)
+            Spawns = spawns
         };
-
-
 
         return replayPlayer;
     }
 
-    private static ICollection<SpawnDto> GetSpawns(TrackerPlayer trackerPlayer)
+    private static ICollection<SpawnDto> GetSpawns(TrackerPlayer trackerPlayer, int lastGameloop)
     {
         Dictionary<Breakpoint, Dictionary<string, List<Point>>> units = new();
         Dictionary<Breakpoint, int> maxGameLoops = new();
+        Dictionary<int, int> armyValues = new();
+
+        int lastloop = trackerPlayer.Units.FirstOrDefault()?.Gameloop ?? 0;
 
         foreach (var unit in trackerPlayer.Units.OrderBy(o => o.Gameloop))
         {
+            if (unit.Gameloop - lastloop > 400)
+            {
+                lastGameloop = unit.Gameloop;
+                var nextStat = trackerPlayer.Stats.FirstOrDefault(f => f.Gameloop > lastGameloop);
+                if (nextStat is not null)
+                {
+                    armyValues[lastGameloop] = nextStat.ArmyValue / 2;
+                }
+            }
+
             var unitBreakpoint = GetBreakpoint(unit.Gameloop);
 
             if (unitBreakpoint == Breakpoint.None)
@@ -140,8 +162,8 @@ public static partial class Parser
                 Gameloop = maxGameloop,
                 Breakpoint = ent.Key,
                 Income = trackerPlayer.Stats.Where(x => x.Gameloop <= maxGameloop).Sum(s => s.Income),
-                GasCount = trackerPlayer.Refineries.Where(x => x.Gameloop <= maxGameloop).Count(),
-                ArmyValue = (bpStat?.ArmyValue ?? 0) / 2,
+                GasCount = trackerPlayer.Refineries.Where(x => x.Gameloop != 0 && x.Gameloop <= maxGameloop).Count(),
+                ArmyValue = armyValues.Where(x => x.Key <= maxGameloop).Sum(s => s.Value),
                 KilledValue = bpStat?.KilledValue ?? 0,
                 UpgradeSpent = bpStat?.UpgradesSpent ?? 0,
                 Units = ent.Value.Select(s => new SpawnUnitDto()
@@ -155,8 +177,73 @@ public static partial class Parser
                 }).ToList()
             });
         }
+
+        var lastSpawn = GetLastSpawn(trackerPlayer, lastGameloop);
+        lastSpawn = lastSpawn with { ArmyValue = armyValues.Sum(s => s.Value) };
+
+        var dupSpawn = spawns.FirstOrDefault(f => f.ArmyValue == lastSpawn.ArmyValue);
+
+        if (dupSpawn is not null)
+        {
+            spawns.Remove(dupSpawn);
+            spawns.Add(dupSpawn with { Breakpoint = Breakpoint.All });
+        }
+        else
+        {
+            spawns.Add(lastSpawn);
+        }
+
         return spawns;
     }
+
+    private static SpawnDto GetLastSpawn(TrackerPlayer trackerPlayer, int lastGameloop)
+    {
+        Dictionary<string, List<Point>> units = new();
+
+        int gameloop = 0;
+
+        foreach (var unit in trackerPlayer.Units.OrderByDescending(o => o.Gameloop))
+        {
+            if (gameloop == 0)
+            {
+                gameloop = unit.Gameloop;
+            }
+            else if (gameloop - unit.Gameloop >= 400)
+            {
+                break;
+            }
+            if (!units.ContainsKey(unit.Name))
+            {
+                units[unit.Name] = [unit.Pos];
+            }
+            else
+            {
+                units[unit.Name].Add(unit.Pos);
+            }
+        }
+
+        var lastStats = trackerPlayer.Stats.LastOrDefault(f => f.Gameloop < lastGameloop);
+
+        return new()
+        {
+            Gameloop = lastStats?.Gameloop ?? 0,
+            Breakpoint = Breakpoint.All,
+            Income = trackerPlayer.Stats.Where(x => x.Gameloop <= lastGameloop).Sum(s => s.Income),
+            GasCount = trackerPlayer.Refineries.Where(x => x.Gameloop != 0).Count(),
+            KilledValue = lastStats?.KilledValue ?? 0,
+            UpgradeSpent = lastStats?.UpgradesSpent ?? 0,
+            Units = units.Select(s => new SpawnUnitDto()
+            {
+                Count = (byte)s.Value.Count,
+                Unit = new UnitDto()
+                {
+                    Name = s.Key
+                },
+                Poss = string.Join(',', s.Value.Select(s => $"{s.X},{s.Y}"))
+            }).ToList()
+        };
+    }
+
 
     private static Commander GetOppRace(TrackerPlayer player, TrackerReplay trackerReplay)
     {

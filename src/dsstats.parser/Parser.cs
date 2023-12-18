@@ -27,7 +27,7 @@ public static partial class Parser
             };
         }
 
-        if (!replay.Details.Title.Equals("Direct Strike", StringComparison.Ordinal))
+        if (!replay.Details.Title.StartsWith("Direct Strike", StringComparison.Ordinal))
         {
             return new()
             {
@@ -35,13 +35,16 @@ public static partial class Parser
             };
         }
 
+        bool tournamentEdition = replay.Details.Title.EndsWith("TE", StringComparison.Ordinal);
+
         ReplayDto replayDto = new()
         {
             FileName = replay.FileName,
             GameTime = DateTime.FromFileTimeUtc(replay.Details.TimeUTC),
             CommandersTeam1 = "",
             CommandersTeam2 = "",
-            ReplayPlayers = GetReplayPlayers(replay.Details.Players, replay.Metadata)
+            ReplayPlayers = GetReplayPlayers(replay.Details.Players, replay.Metadata),
+            TournamentEdition = tournamentEdition,
         };
 
         if (replay.TrackerEvents is null)
