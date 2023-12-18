@@ -100,5 +100,30 @@ namespace dsstats.parse.tests
 
             Assert.AreEqual(new Area(new(89, 63), new(71, 81), new(83, 93), new(101, 75)), movedArea);
         }
+
+        [TestMethod]
+        public void PointsInsideTest()
+        {
+            Area area1 = Parser.SpawnArea1;
+            Area area2 = Parser.SpawnArea2;
+
+            var pointsInside1 = area1.GetAllPointsInside();
+            var pointsInside2 = area2.GetAllPointsInside();
+
+            Assert.AreEqual(pointsInside1.Count, pointsInside2.Count);
+        }
+
+        [TestMethod]
+        public void NormalzedAreaTest()
+        {
+            Area area = Parser.SpawnArea1;
+
+            NormalizedArea normalizedArea = new(area);
+
+            Assert.AreEqual(Point.Zero, normalizedArea.West);
+
+            var normalizedPoint = normalizedArea.GetNormalizedPoint(area.West);
+            Assert.AreEqual(Point.Zero, normalizedPoint);
+        }
     }
 }

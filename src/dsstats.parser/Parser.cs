@@ -164,6 +164,44 @@ public record Point(int X, int Y)
     public static Point Zero = new(0, 0);
 };
 
+
+public sealed record NormalizedArea
+{
+    public Area Area { get; }
+    public NormalizedArea(Area area)
+    {
+        Area = area;
+        int translateX = -area.West.X;
+        int translateY = -area.West.Y;
+
+        // Translate all points to align WEST with (0, 0)
+        South = new Point(area.South.X + translateX, area.South.Y + translateY);
+        West = new Point(area.West.X + translateX, area.West.Y + translateY);
+        North = new Point(area.North.X + translateX, area.North.Y + translateY);
+        East = new Point(area.East.X + translateX, area.East.Y + translateY);
+
+
+    }
+
+    public Point South { get; init; }
+    public Point West { get; init; }
+    public Point North { get; init; }
+    public Point East { get; init; }
+
+    public Point GetNormalizedPoint(Point areaPoint)
+    {
+        // Calculate the inverse translation to get the normalized point
+        int translateX = -Area.West.X;
+        int translateY = -Area.West.Y;
+
+        // Translate the areaPoint to get the normalized point
+        int normalizedX = areaPoint.X + translateX;
+        int normalizedY = areaPoint.Y + translateY;
+
+        return new Point(normalizedX, normalizedY);
+    }
+}
+
 public sealed record Area
 {
     public Area(Point south, Point west, Point north, Point east)
@@ -264,6 +302,30 @@ public sealed record Area
 
         // Check if checkPoint is between the lines
         return projectionCP >= 0 && projectionCP <= 1 && projectionNP >= 0 && projectionNP <= 1;
+    }
+
+    public List<Point> GetAllPointsInside()
+    {
+        List<Point> pointsInside = new();
+
+        // Calculate the bounding box
+        int minX = Math.Min(South.X, Math.Min(West.X, Math.Min(North.X, East.X)));
+        int minY = Math.Min(South.Y, Math.Min(West.Y, Math.Min(North.Y, East.Y)));
+        int maxX = Math.Max(South.X, Math.Max(West.X, Math.Max(North.X, East.X)));
+        int maxY = Math.Max(South.Y, Math.Max(West.Y, Math.Max(North.Y, East.Y)));
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int y = minY; y <= maxY; y++)
+            {
+                if (IsPointInside(new Point(x, y)))
+                {
+                    pointsInside.Add(new Point(x, y));
+                }
+            }
+        }
+
+        return pointsInside;
     }
 
 

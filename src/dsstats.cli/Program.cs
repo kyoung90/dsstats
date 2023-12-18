@@ -29,6 +29,8 @@ class Program
 
     static void Main(string[] args)
     {
+
+
         // seed test player pool
 
         for (int i = 2; i < poolCount + 2; i++)
@@ -101,12 +103,18 @@ class Program
 
         var serviceProvider = services.BuildServiceProvider();
 
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+
         Stopwatch sw = Stopwatch.StartNew();
+        
+        UnitPositions.CreatePosLayout(context);
+
 
         // TestReplayHashV2(serviceProvider);
         // CheckDups("92722fb3aa4fef611ebb9896702e821a", "b28ca9eee507e3729612ba1489f1ba00", serviceProvider);
         // CheckLastSpawnHash("92722fb3aa4fef611ebb9896702e821a", "b28ca9eee507e3729612ba1489f1ba00", serviceProvider);
-        TestLastSpawnHash(serviceProvider);
+        // TestLastSpawnHash(serviceProvider);
 
         sw.Stop();
         Console.WriteLine($"job done in {sw.ElapsedMilliseconds} ms.");
