@@ -49,15 +49,19 @@ public static class UnitPositions
         List<PointInfo> points1 = GetPointInfos(normalizedArea1, units1, unitNames);
         List<PointInfo> points2 = GetPointInfos(normalizedArea2, units2, unitNames);
 
-        points1.AddRange(points2);
-
-        UnitMap unitMap = new()
+        UnitMap unitMap1 = new()
         {
             Infos = points1,
         };
+        UnitMap unitMap2 = new()
+        {
+            Infos = points2,
+        };
 
-        var json = JsonSerializer.Serialize(unitMap, new JsonSerializerOptions() { WriteIndented = true });
-        File.WriteAllText("/data/ds/unitmap.json",  json);
+        var json1 = JsonSerializer.Serialize(unitMap1, new JsonSerializerOptions() { WriteIndented = true });
+        File.WriteAllText("/data/ds/unitmap1.json",  json1);
+        var json2 = JsonSerializer.Serialize(unitMap2, new JsonSerializerOptions() { WriteIndented = true });
+        File.WriteAllText("/data/ds/unitmap2.json", json2);
     }
 
     private static List<PointInfo> GetPointInfos(NormalizedArea normalizedArea, List<SpawnUnit> units, Dictionary<int, string> unitNames)
