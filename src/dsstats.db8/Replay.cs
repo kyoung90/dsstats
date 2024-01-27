@@ -69,6 +69,7 @@ public class Player
     {
         ReplayPlayers = new HashSet<ReplayPlayer>();
         PlayerRatings = new HashSet<PlayerRating>();
+        ComboPlayerRatings = new HashSet<ComboPlayerRating>();
     }
     public int PlayerId { get; set; }
     [MaxLength(50)]
@@ -84,6 +85,7 @@ public class Player
     public virtual Uploader? Uploader { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<PlayerRating> PlayerRatings { get; set; }
+    public virtual ICollection<ComboPlayerRating> ComboPlayerRatings { get; set; }
 }
 
 public class PlayerRating
@@ -197,6 +199,8 @@ public class Replay
     public string CommandersTeam2 { get; set; } = null!;
     public int? ReplayEventId { get; set; }
     public ReplayEvent? ReplayEvent { get; set; }
+    public int? TourneyMatchId { get; set; }
+    public TourneyMatch? TourneyMatch { get; set; }
     public ReplayRating? ReplayRatingInfo { get; set; }
     public ComboReplayRating? ComboReplayRating { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }

@@ -186,3 +186,10 @@ public enum UnitColor
     Color14 = 14,
     Color15 = 15,
 }
+
+public enum MatchResult
+{
+    None = 0,
+    TeamAWin = 1,
+    TeamBWin = 2
+}

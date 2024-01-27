@@ -128,3 +128,4 @@ public record EventListDto
     public string? WinnerTeam { get; init; }
     public GameMode GameMode { get; init; }
 }
+

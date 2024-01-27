@@ -14,8 +14,8 @@ public class TourneysService(ReplayContext context) : ITourneysService
             .Select(s => new TourneyDto()
             {
                 Name = s.Name,
-                EventGuid = s.EventGuid,
-                EventStart = s.EventStart,
+                TourneyGuid = s.EventGuid,
+                StartDate = s.EventStart,
                 GameMode = s.GameMode,
                 WinnerTeam = s.WinnerTeam
             }).ToListAsync();

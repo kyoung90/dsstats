@@ -50,6 +50,11 @@ public class ReplayContext : DbContext
     public virtual DbSet<ComboReplayRating> ComboReplayRatings { get; set; } = null!;
     public virtual DbSet<ComboReplayPlayerRating> ComboReplayPlayerRatings { get; set; } = null!;
 
+    public virtual DbSet<TourneyPlayer> TourneyPlayers { get; set; } = null!;
+    public virtual DbSet<TourneyMatch> TourneyMatches { get; set; } = null!;
+    public virtual DbSet<TourneyTeam> TourneyTeams { get; set; } = null!;
+    public virtual DbSet<Tourney> Tourneys { get; set; } = null!; 
+
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
 
@@ -207,6 +212,26 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<DsUpgrade>(entity =>
         {
             entity.HasIndex(i => i.Upgrade);
+        });
+
+        modelBuilder.Entity<Tourney>(entity =>
+        {
+            entity.HasIndex(i => i.TourneyGuid);
+        });
+
+        modelBuilder.Entity<TourneyPlayer>(entity =>
+        {
+            entity.HasIndex(i => i.TourneyPlayerGuid);
+        });
+
+        modelBuilder.Entity<TourneyTeam>(entity =>
+        {
+            entity.HasIndex(i => i.TeamGuid);
+        });
+
+        modelBuilder.Entity<TourneyMatch>(entity =>
+        {
+            entity.HasIndex(i => i.TourneyMatchGuid);
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)
