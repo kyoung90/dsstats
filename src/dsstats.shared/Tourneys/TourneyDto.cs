@@ -41,3 +41,13 @@ public record TourneyMatchCreateDto
     public Commander Ban2 { get; set; }
     public Commander Ban3 { get; set; }
 }
+
+public record TourneyMatchResult
+{
+    public Guid TourneyMatchGuid { set; get; }
+    public MatchResult MatchResult { get; set; }
+    public Commander Ban1 { get; set; }
+    public Commander Ban2 { get; set; }
+    public Commander Ban3 { get; set; }
+    public List<string> ReplayHashes { get; set; } = [];
+}

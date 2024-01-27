@@ -191,5 +191,15 @@ public enum MatchResult
 {
     None = 0,
     TeamAWin = 1,
-    TeamBWin = 2
+    TeamBWin = 2,
+    TeamABye = 3
+}
+
+public enum TourneyMode
+{
+    None = 0,
+    RoundRobin = 1,
+    Swiss = 2,
+    Bracket = 3,
+    UpperAndLowerBracket = 4
 }

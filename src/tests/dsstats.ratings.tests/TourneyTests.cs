@@ -147,4 +147,145 @@ public class TourneyTests
 
         Assert.AreEqual(10,  teams.Count());
     }
+
+    [TestMethod]
+    public async Task T04AddTeamsTest()
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+
+        var tourney = context.Tourneys.FirstOrDefault();
+        Assert.IsNotNull(tourney);
+
+        TourneyTeamCreateDto createDto = new()
+        {
+            TourneyGuid = tourney.TourneyGuid,
+            Name = "TestTeam 77",
+            Players = playerPool.Skip(30).Take(3).Select(s => new PlayerId(s.ToonId, s.RealmId, s.RegionId)).ToList()
+        };
+
+        var result = await tourneyService.AddTourneyTeam(createDto);
+
+        Assert.IsFalse(result == Guid.Empty);
+    }
+
+    [TestMethod]
+    public async Task T05AddMatchTest()
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+
+        var tourney = context.Tourneys
+            .Include(i => i.TourneyTeams)
+            .FirstOrDefault();
+        Assert.IsNotNull(tourney);
+        Assert.IsTrue(tourney.TourneyTeams.Count() > 2);
+
+        TourneyMatchCreateDto createDto = new()
+        {
+            TourneyGuid = tourney.TourneyGuid,
+            Round = 1,
+            TeamAGuid = tourney.TourneyTeams.ElementAt(0).TeamGuid,
+            TeamBGuid = tourney.TourneyTeams.ElementAt(1).TeamGuid,
+            Ban1 = Commander.Tychus
+        };
+
+        var result = await tourneyService.AddTourneyMatch(createDto);
+
+        Assert.IsFalse(result == Guid.Empty);
+    }
+
+    [TestMethod]
+    public async Task T06ReportMatchResultTest()
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+
+        var tourney = context.Tourneys
+            .Include(i => i.TourneyMatches)
+            .FirstOrDefault();
+        Assert.IsNotNull(tourney);
+        Assert.IsTrue(tourney.TourneyMatches.Count() > 0);
+
+        var tourneyMatch = tourney.TourneyMatches.First();
+
+        TourneyMatchResult result = new()
+        {
+            TourneyMatchGuid = tourneyMatch.TourneyMatchGuid,
+            MatchResult = MatchResult.TeamAWin,
+            Ban1 = Commander.Tychus
+        };
+
+        var reportResult = await tourneyService.ReportMatchResult(result);
+
+        Assert.IsTrue(reportResult);
+    }
+
+    [TestMethod]
+    public async Task T06RoundRobinBracketTest()
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+
+        var tourney = context.Tourneys
+            .Include(i => i.TourneyMatches)
+            .FirstOrDefault();
+        Assert.IsNotNull(tourney);
+
+        //TourneyTeamCreateDto createDto = new()
+        //{
+        //    TourneyGuid = tourney.TourneyGuid,
+        //    Name = "TestTeam 78",
+        //    Players = playerPool.Skip(33).Take(3).Select(s => new PlayerId(s.ToonId, s.RealmId, s.RegionId)).ToList()
+        //};
+        //await tourneyService.AddTourneyTeam(createDto);
+
+        tourney.TourneyMatches.Clear();
+        await context.SaveChangesAsync();
+
+        var result = await tourneyService.CreateRoundRobinBracket(tourney.TourneyGuid);
+
+        Assert.IsTrue(result);
+
+        var tourneyMatches = await context.TourneyMatches
+            .Where(x => x.TourneyId == tourney.TourneyId && x.Round == 1)
+            .ToListAsync();
+
+        Assert.IsTrue(tourneyMatches.Count > 0);
+
+        var byeMatches = tourneyMatches.Where(x => x.MatchResult == MatchResult.TeamABye)
+            .ToList();
+
+        Assert.AreEqual(1, byeMatches.Count);
+    }
+
+    [TestMethod]
+    public async Task T07SwissTest()
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+
+        var tourney = context.Tourneys
+            .Include(i => i.TourneyMatches)
+            .FirstOrDefault();
+        Assert.IsNotNull(tourney);
+
+        tourney.TourneyMatches.Clear();
+        await context.SaveChangesAsync();
+
+        var result = await tourneyService.CreateNewSwissRound(tourney.TourneyGuid);
+
+        Assert.IsTrue(result);
+
+        var tourneyMatches = await context.TourneyMatches
+            .Where(x => x.TourneyId == tourney.TourneyId && x.Round == 1)
+            .ToListAsync();
+
+        Assert.IsTrue(tourneyMatches.Count > 0);
+    }
 }
