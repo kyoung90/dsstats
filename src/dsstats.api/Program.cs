@@ -6,6 +6,7 @@ using dsstats.db8.AutoMapper;
 using dsstats.db8services;
 using dsstats.db8services.DsData;
 using dsstats.db8services.Import;
+using dsstats.db8services.Tourneys;
 using dsstats.ratings;
 using dsstats.shared;
 using dsstats.shared.Interfaces;
@@ -112,6 +113,7 @@ builder.Services.AddScoped<ITourneysService, TourneysService>();
 builder.Services.AddScoped<IUnitmapService, UnitmapService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
+builder.Services.AddScoped<TourneyNgService>();
 
 if (builder.Environment.IsProduction())
 {
@@ -144,7 +146,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    var dsDataService = scope.ServiceProvider.GetRequiredService<IDsDataService>();
+    var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
+
+    // tourneyService.DeleteTourney(new Guid("98388097-5da9-4c66-ac8b-402879fb35c3"));
+    // tourneyService.CreateGDSLTourney().Wait();
 }
 
 // app.UseHttpsRedirection();

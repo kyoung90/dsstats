@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using dsstats.shared;
 using pax.dsstats.parser;
 using s2protocol.NET;
 
@@ -19,6 +20,11 @@ class Program
 
     static async Task Main(string[] args)
     {
+        CreateJonsFiles(@"C:\data\ds\Tourneys\IV. GDSL OFFICIAL TOURNAMENT").Wait();
+        Console.WriteLine("job done.");
+        Console.ReadLine();
+        return;
+
         var files = Directory.GetFiles(replayFolder, "*SC2Replay", SearchOption.TopDirectoryOnly);
 
         if (files.Length == 0)
@@ -127,5 +133,56 @@ class Program
         File.WriteAllText(errorFile, error);
         errorFiles.Add(inputFile);
         Console.WriteLine($"error decoding {inputFile}: {error}");
+    }
+
+    public static async Task CreateJonsFiles(string path)
+    {
+        ReplayDecoder decoder = new(assemblyPath);
+
+        ReplayDecoderOptions options = new ReplayDecoderOptions()
+        {
+            Initdata = true,
+            Details = true,
+            Metadata = true,
+            MessageEvents = false,
+            TrackerEvents = true,
+            GameEvents = false,
+            AttributeEvents = false
+        };
+
+        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+
+        List<ReplayDto> replays = new();
+        using var md5 = MD5.Create();
+
+        await foreach (var result in decoder.DecodeParallelWithErrorReport(files, 8, options))
+        {
+            if (result.Sc2Replay is null)
+            {
+                Console.WriteLine($"{result.ReplayPath} => {result.Exception}");
+                continue;
+            }
+
+            var dsReplay = Parse.GetDsReplay(result.Sc2Replay);
+
+            if (dsReplay is null)
+            {
+                Console.WriteLine($"{result.ReplayPath} => dsReplay is null");
+                continue;
+            }
+
+            var replayDto = Parse.GetReplayDto(dsReplay, md5);
+
+            if (replayDto is null)
+            {
+                Console.WriteLine($"{result.ReplayPath} => replayDto is null");
+                continue;
+            }
+
+            replays.Add(replayDto);
+        }
+
+        var json = JsonSerializer.Serialize(replays);
+        File.WriteAllText("/data/ds/gdslreplays.json", json);
     }
 }

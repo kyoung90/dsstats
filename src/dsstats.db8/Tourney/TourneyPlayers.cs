@@ -1,7 +1,6 @@
 ﻿using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace dsstats.db8;
 

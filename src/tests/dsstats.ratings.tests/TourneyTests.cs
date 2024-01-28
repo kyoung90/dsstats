@@ -55,7 +55,7 @@ public class TourneyTests
         services.AddMemoryCache();
         services.AddAutoMapper(typeof(AutoMapperProfile));
 
-        services.AddScoped<TeamsCreateService>();
+        services.AddScoped<TourneyNgService>();
 
         services.AddScoped<IReplayRepository, ReplayRepository>();
 
@@ -67,7 +67,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
         context.Database.EnsureDeleted();
         context.Database.Migrate();
 
@@ -88,7 +88,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys.FirstOrDefault();
         Assert.IsNotNull(tourney);
@@ -132,7 +132,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys.FirstOrDefault();
         Assert.IsNotNull(tourney);
@@ -153,7 +153,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys.FirstOrDefault();
         Assert.IsNotNull(tourney);
@@ -175,7 +175,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys
             .Include(i => i.TourneyTeams)
@@ -202,7 +202,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys
             .Include(i => i.TourneyMatches)
@@ -229,7 +229,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys
             .Include(i => i.TourneyMatches)
@@ -268,7 +268,7 @@ public class TourneyTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var tourneyService = scope.ServiceProvider.GetRequiredService<TeamsCreateService>();
+        var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
 
         var tourney = context.Tourneys
             .Include(i => i.TourneyMatches)
