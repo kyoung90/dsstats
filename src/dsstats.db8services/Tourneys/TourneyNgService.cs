@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace dsstats.db8services.Tourneys;
 
-public partial class TourneyNgService(ReplayContext context)
+public partial class TourneyNgService(ReplayContext context, IMapper mapper)
 {
     public async Task<Guid> CreateTournament(TourneyCreateDto createDto)
     {

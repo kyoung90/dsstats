@@ -150,6 +150,9 @@ if (app.Environment.IsDevelopment())
 
     // tourneyService.DeleteTourney(new Guid("98388097-5da9-4c66-ac8b-402879fb35c3"));
     // tourneyService.CreateGDSLTourney().Wait();
+
+    var replays = tourneyService.GetTourneyReplays(new() { Skip = 0, Take = 100 } ,default).GetAwaiter().GetResult();
+    Console.WriteLine("bab");
 }
 
 // app.UseHttpsRedirection();
