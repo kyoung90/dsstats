@@ -40,5 +40,6 @@ builder.Services.AddScoped<ITourneysService, TourneysService>();
 builder.Services.AddScoped<IUnitmapService, UnitmapService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
+builder.Services.AddScoped<ITourneyNgService, TourneyNgService>();
 
 await builder.Build().RunAsync();

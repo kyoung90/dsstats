@@ -1,0 +1,51 @@
+﻿@using dsstats.shared
+@using dsstats.shared.Interfaces
+@inject ITourneyNgService tourneyService
+
+<div class="d-inline-block p-2 rounded bgchart">
+    <h4>Direct Strike Tournaments</h4>
+</div>
+
+<div class="table-responsive tableFixHead">
+    <table class="tptable table w-auto">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Mode</th>
+                <th>Winner</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tourney in tourneys.OrderByDescending(o => o.StartDate))
+            {
+                <tr>
+                    <td>@tourney.Name</td>
+                    <td>@tourney.GameMode</td>
+                    <td>@tourney.WinnerTeam</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        _ = LoadData();
+        base.OnInitialized();
+    }
+
+    bool isLoading;
+
+    List<TourneyDto> tourneys = [];
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        await InvokeAsync(() => StateHasChanged());
+        tourneys = await tourneyService.GetTournaments();
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+}

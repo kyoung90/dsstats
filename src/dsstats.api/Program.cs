@@ -113,7 +113,7 @@ builder.Services.AddScoped<ITourneysService, TourneysService>();
 builder.Services.AddScoped<IUnitmapService, UnitmapService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
-builder.Services.AddScoped<TourneyNgService>();
+builder.Services.AddScoped<ITourneyNgService, TourneyNgService>();
 
 if (builder.Environment.IsProduction())
 {
@@ -146,13 +146,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    var tourneyService = scope.ServiceProvider.GetRequiredService<TourneyNgService>();
+    var tourneyService = scope.ServiceProvider.GetRequiredService<ITourneyNgService>();
 
     // tourneyService.DeleteTourney(new Guid("98388097-5da9-4c66-ac8b-402879fb35c3"));
     // tourneyService.CreateGDSLTourney().Wait();
 
-    var replays = tourneyService.GetTourneyReplays(new() { Skip = 0, Take = 100 } ,default).GetAwaiter().GetResult();
-    Console.WriteLine("bab");
+    // var replays = tourneyService.GetTourneyReplays(new() { Skip = 0, Take = 100 } ,default).GetAwaiter().GetResult();
+    // Console.WriteLine("bab");
 }
 
 // app.UseHttpsRedirection();

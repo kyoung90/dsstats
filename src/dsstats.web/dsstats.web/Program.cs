@@ -41,6 +41,7 @@ builder.Services.AddScoped<ITourneysService, TourneysService>();
 builder.Services.AddScoped<IUnitmapService, UnitmapService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
+builder.Services.AddScoped<ITourneyNgService, TourneyNgService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

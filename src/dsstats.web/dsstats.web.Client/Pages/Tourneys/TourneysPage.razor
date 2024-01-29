@@ -7,7 +7,9 @@
 
 <PageTitle>dsstats - tourneys</PageTitle>
 
-<h3>Recent Tournaments</h3>
+<dsstats.razorlib.TourneyNg.TourneysListComponent />
+
+@* <h3>Recent Tournaments</h3>
 <div class="table-responsive tableFixHead">
     <table class="tptable table w-auto">
         <thead>
@@ -28,15 +30,15 @@
             }
         </tbody>
     </table>
-</div>
+</div> *@
 
 @code {
-    List<TourneyDto> tourneys = new();
+    // List<TourneyDto> tourneys = new();
 
 
-    protected override async Task OnInitializedAsync()
-    {
-        tourneys = await tourneysService.GetTourneys();
-        await base.OnInitializedAsync();
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     tourneys = await tourneysService.GetTourneys();
+    //     await base.OnInitializedAsync();
+    // }
 }

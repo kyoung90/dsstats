@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using dsstats.db8;
-using dsstats.db8services.Import;
 using dsstats.shared;
+using dsstats.shared.Interfaces;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 
 namespace dsstats.db8services.Tourneys;
 
-public partial class TourneyNgService(ReplayContext context, IMapper mapper)
+public partial class TourneyNgService(ReplayContext context) : ITourneyNgService
 {
     public async Task<Guid> CreateTournament(TourneyCreateDto createDto)
     {
