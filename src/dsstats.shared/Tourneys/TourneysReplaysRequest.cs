@@ -7,6 +7,7 @@ public record TourneysReplaysRequest
     public Guid EventGuid { get; set; }
     public string Tournament { get; set; } = string.Empty;
     public List<TableOrder> Orders { get; set; } = new();
+    public string? ReplayHash { get; set; }
 }
 
 public record TourneysReplayListDto

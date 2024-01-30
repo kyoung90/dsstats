@@ -1,4 +1,5 @@
 ﻿using dsstats.shared;
+using dsstats.shared.Tourneys;
 using System.Globalization;
 using System.Numerics;
 using System.Text.Json.Serialization;
@@ -205,6 +206,26 @@ public static class HelperService
     }
 
     public static string GetGameMode(ReplayListDto replay)
+    {
+        if (!replay.TournamentEdition)
+        {
+            return replay.GameMode.ToString();
+        }
+        else
+        {
+            if (replay.GameMode == GameMode.Commanders)
+            {
+                return "Cmdrs TE";
+            }
+            if (replay.GameMode == GameMode.Standard)
+            {
+                return "Std TE";
+            }
+            return $"{replay.GameMode} TE";
+        }
+    }
+
+    public static string GetGameMode(TourneyReplayListDto replay)
     {
         if (!replay.TournamentEdition)
         {

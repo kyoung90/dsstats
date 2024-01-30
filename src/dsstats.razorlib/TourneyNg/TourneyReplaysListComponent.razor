@@ -1,0 +1,269 @@
+﻿@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using dsstats.razorlib.Replays
+@using dsstats.razorlib.Services
+@using dsstats.shared
+@using dsstats.shared.Interfaces
+@using dsstats.shared.Tourneys
+@inject ITourneyNgService tourneyService
+@inject IReplaysService replaysService
+@inject IJSRuntime JSRuntime
+
+@if (interestReplay is not null)
+{
+    <ReplayComponent Replay="interestReplay" IsCloseable="true" IsScrollable="true" OnCloseRequested="CloseReplay"
+                     OnScrollRequest="LoadNextReplay" />
+}
+
+<div class="@(interestReplay == null ? "" : "visually-hidden")">
+    
+    <div class="row mt-2" style="width: 75vw; max-width: 1100px;">
+        <div class="col-8 d-flex justify-content-between">
+            <div>
+                @if (isLoading)
+                {
+                    <div class="spinner-border spinner-border-sm text-danger" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                }
+            </div>
+            <div class="me-1">
+                <div class="d-flex bgchart border rounded border-secondary p-1">
+                    <div>
+                        <span class="bi bi-arrow-clockwise text-primary pointer" @onclick="e => Reload()"></span>
+                    </div>
+                    <div class="ms-2">
+                        # @totalCount.ToString("N0")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-auto">
+            <div class="table-responsive tableFixHead text-nowrap" style="max-width: 1150px; max-height: 80vh;" tabindex="1">
+                <table class="tptable table">
+                    <thead class="user-select-none">
+                        <tr>
+                            <CascadingValue Value="Request.Orders">
+                                <th scope="col" class="pointer" @onclick="@(e => SortList(e, "GameTime"))">
+                                    <SortArrow Property="GameTime">
+                                        GameTime
+                                    </SortArrow>
+                                </th>
+                                <th scope="col" class="pointer" @onclick="@(e => SortList(e, "Duration"))">
+                                    <SortArrow Property="Duration">
+                                        Duration
+                                    </SortArrow>
+                                </th>
+                                <th scope="col" class="pointer" @onclick="@(e => SortList(e, "CommandersTeam1"))">
+                                    <SortArrow Property="CommandersTeam1">
+                                        Team1
+                                    </SortArrow>
+                                </th>
+                                <th scope="col" class="pointer" @onclick="@(e => SortList(e, "CommandersTeam2"))">
+                                    <SortArrow Property="CommandersTeam2">
+                                        Team2
+                                    </SortArrow>
+                                </th>
+                                <th scope="col" class="pointer" @onclick="@(e => SortList(e, "GameMode"))">
+                                    <SortArrow Property="GameMode">
+                                        GameMode
+                                    </SortArrow>
+                                </th>
+                            </CascadingValue>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (totalCount == 0)
+                        {
+                            <tr>
+                                <td colspan="100">
+                                    <div>No data found.</div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <Virtualize @ref="virtualizeComponent" ItemsProvider="LoadReplays" Context="replay" ItemSize="47"
+                                        SpacerElement="tr">
+                                <ItemContent>
+                                    <tr @key="replay" id="@replay.ReplayHash" height="47px"
+                                        class="@(replay.ReplayHash == latestInterestReplayHash ? "table-primary pointer" : "pointer")"
+                                        @onclick="e => LoadReplay(replay.ReplayHash)">
+                                        <td>@replay.GameTime.ToString("yyyy-MM-dd")</td>
+                                        <td>@TimeSpan.FromSeconds(replay.Duration).ToString(@"hh\:mm\:ss")</td>
+                                        <td>
+                                            <ReplayTeam Team="@replay.CommandersTeam1" PlayerPos="0" WinnerTeam="replay.WinnerTeam == 1" />
+                                        </td>
+                                        <td>
+                                            <ReplayTeam Team="@replay.CommandersTeam2" PlayerPos="0" WinnerTeam="replay.WinnerTeam == 2" />
+                                        </td>
+                                        <td>@HelperService.GetGameMode(replay)</td>
+                                    </tr>
+                                </ItemContent>
+                                <Placeholder>
+                                    <tr height="47px">
+                                        <td colspan="100">Loading ...</td>
+                                    </tr>
+                                </Placeholder>
+                            </Virtualize>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter, EditorRequired]
+    public TourneysReplaysRequest Request { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<TourneysReplaysRequest> OnRequestChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _ = SetCount();
+        if (!string.IsNullOrEmpty(Request.ReplayHash))
+        {
+            _ = LoadReplay(Request.ReplayHash, true);
+        }
+        base.OnInitialized();
+    }
+
+    int totalCount = 0;
+    bool isLoading;
+    Virtualize<TourneyReplayListDto>? virtualizeComponent;
+    List<TourneyReplayListDto> latestReplays = [];
+    ReplayDto? interestReplay = null;
+    string? latestInterestReplayHash = null;
+
+    private async Task SetCount()
+    {
+        isLoading = true;
+        await InvokeAsync(() => StateHasChanged());
+        totalCount = await tourneyService.GetTourneyReplaysCount(Request, default);
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async ValueTask<ItemsProviderResult<TourneyReplayListDto>> LoadReplays(ItemsProviderRequest prRequest)
+    {
+        Request.Skip = prRequest.StartIndex;
+        Request.Take = Math.Min(prRequest.Count, totalCount - prRequest.StartIndex);
+
+        var response = await tourneyService.GetTourneyReplays(Request, prRequest.CancellationToken);
+        latestReplays = response;
+        return new ItemsProviderResult<TourneyReplayListDto>(response, totalCount);
+    }
+
+    private async Task Reload(bool dry = false)
+    {
+        await SetCount();
+        if (virtualizeComponent != null)
+        {
+            await InvokeAsync(async () =>
+            {
+                await virtualizeComponent.RefreshDataAsync();
+                StateHasChanged();
+            });
+        }
+        if (!dry)
+        {
+            await OnRequestChanged.InvokeAsync(Request);
+        }
+    }
+
+    private async Task LoadReplay(string replayHash, bool init = false)
+    {
+        isLoading = true;
+        await InvokeAsync(() => StateHasChanged());
+        interestReplay = await replaysService.GetReplay(replayHash);
+        if (interestReplay is not null)
+        {
+            Request.ReplayHash = interestReplay.ReplayHash;
+        }
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+        if (!init)
+        {
+            await OnRequestChanged.InvokeAsync(Request);
+        }
+    }
+
+    private void CloseReplay()
+    {
+        latestInterestReplayHash = interestReplay?.ReplayHash;
+        interestReplay = null;
+        Request.ReplayHash = null;
+        OnRequestChanged.InvokeAsync(Request);
+    }
+
+    private async Task SortList(MouseEventArgs e, string property)
+    {
+        var exOrder = Request.Orders.FirstOrDefault(f => f.Property == property);
+        if (e.ShiftKey)
+        {
+            if (exOrder == null)
+            {
+                Request.Orders.Add(new TableOrder()
+                    {
+                        Property = property
+                    });
+            }
+            else
+            {
+                exOrder.Ascending = !exOrder.Ascending;
+            }
+        }
+        else
+        {
+            Request.Orders.Clear();
+            Request.Orders.Add(new TableOrder()
+                {
+                    Property = property,
+                    Ascending = exOrder == null ? false : !exOrder.Ascending
+                });
+        }
+        await Reload();
+    }
+
+    private async Task LoadNextReplay(bool next)
+    {
+        if (interestReplay is null)
+        {
+            return;
+        }
+
+        var items = new List<TourneyReplayListDto>(latestReplays);
+        var item = items?.FirstOrDefault(f => f.ReplayHash == interestReplay.ReplayHash);
+
+        if (item is null)
+        {
+            return;
+        }
+
+        int index = items?.IndexOf(item) ?? -1;
+
+        if (index == 0 && !next)
+        {
+            return;
+        }
+
+        if (index == items?.Count - 1 && next)
+        {
+            return;
+        }
+
+        var newindex = next ? index + 1 : index - 1;
+
+        var newElement = items?[newindex];
+
+        await JSRuntime.InvokeVoidAsync("scrollToElementId", newElement?.ReplayHash);
+
+        await LoadReplay(newElement?.ReplayHash ?? "");
+    }
+}

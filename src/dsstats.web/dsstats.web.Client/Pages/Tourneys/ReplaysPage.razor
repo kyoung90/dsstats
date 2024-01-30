@@ -5,7 +5,8 @@
 
 <PageTitle>dsstats - tourneys replays</PageTitle>
 
-<EventReplaysComponent replaysRequest="Request" OnRequestChanged="RequestChanged" />
+@* <EventReplaysComponent replaysRequest="Request" OnRequestChanged="RequestChanged" /> *@
+<dsstats.razorlib.TourneyNg.TourneyReplaysListComponent Request="Request" OnRequestChanged="RequestChanged" />
 
 @code {
     TourneysReplaysRequest Request = new()
