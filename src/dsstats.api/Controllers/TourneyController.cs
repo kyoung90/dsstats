@@ -28,4 +28,11 @@ public class TourneyController(ITourneyNgService tourneyService) : Controller
     {
         return await tourneyService.GetTourneyReplaysCount(request, token);
     }
+
+    [HttpPost]
+    [Route("stats")]
+    public async Task<ActionResult<TourneyStatsResponse>> GetTourneyStats(TourneyStatsRequest request, CancellationToken token)
+    {
+        return await tourneyService.GetStats(request, token);
+    }
 }

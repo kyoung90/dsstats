@@ -50,3 +50,38 @@ public record TourneysStatsRequest
     public string? Tournament { get; set; }
     public string? Round { get; set; }
 }
+
+public record TourneyStatsRequest
+{
+    public Guid TourneyGuid { get; set; }
+}
+
+public record TourneyStatsResponse
+{
+    public int Players { get; set; }
+    public int Matches { get; set; }
+    public int Teams { get; set; }
+    public List<TourneyCommanderStat> CommanderStats { get; set; } = [];
+
+}
+
+public record TourneyCommanderStat
+{
+    public Commander Commander { get; init; }
+    public int Count { get; init; }
+    public int Wins { get; init; }
+    public int Bans { get; set; }
+}
+
+public record TourneyCommanderTableStat : TourneyCommanderStat
+{
+    public TourneyCommanderTableStat(TourneyCommanderStat stat)
+    {
+        Commander = stat.Commander;
+        Count = stat.Count;
+        Wins = stat.Wins;
+        Bans = stat.Bans;
+        Winrate = Count == 0 ? 0 : Math.Round(Wins * 100.0 / (double)Count, 2);
+    }
+    public double Winrate { get; init; }
+}

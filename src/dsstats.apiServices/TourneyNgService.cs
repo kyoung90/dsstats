@@ -44,7 +44,7 @@ public class TourneyNgService(HttpClient httpClient, ILogger<TourneyNgService> l
     {
         throw new NotImplementedException();
     }
-    
+
     public Task<bool> ReportMatchResult(TourneyMatchResult result)
     {
         throw new NotImplementedException();
@@ -96,4 +96,19 @@ public class TourneyNgService(HttpClient httpClient, ILogger<TourneyNgService> l
         return 0;
     }
 
+    public async Task<TourneyStatsResponse> GetStats(TourneyStatsRequest request, CancellationToken token = default)
+    {
+        try
+        {
+            var result = await httpClient.PostAsJsonAsync($"{tourneyController}/stats", request, token);
+            result.EnsureSuccessStatusCode();
+
+            return await result.Content.ReadFromJsonAsync<TourneyStatsResponse>() ?? new();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("failed getting tourney stats: {error}", ex.Message);
+        }
+        return new();
+    }
 }

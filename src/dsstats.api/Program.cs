@@ -153,6 +153,11 @@ if (app.Environment.IsDevelopment())
 
     // var replays = tourneyService.GetTourneyReplays(new() { Skip = 0, Take = 100 } ,default).GetAwaiter().GetResult();
     // Console.WriteLine("bab");
+
+    var stats = tourneyService.GetStats(new() { TourneyGuid = new("2a5b6d69-ac1c-4a98-9eb0-756ede2a8fc6") })
+        .GetAwaiter().GetResult();
+
+    Console.WriteLine(stats.ToString());
 }
 
 // app.UseHttpsRedirection();
