@@ -111,4 +111,9 @@ public class TourneyNgService(HttpClient httpClient, ILogger<TourneyNgService> l
         }
         return new();
     }
+
+    public Task CreateTournamentFromEvent(Guid eventGuid)
+    {
+        throw new NotImplementedException();
+    }
 }

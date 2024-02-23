@@ -11,6 +11,7 @@ public interface ITourneyNgService
     Task<bool> CreateRandomTeams(Guid tourneyGuid, RatingType ratingType);
     Task<bool> CreateRoundRobinBracket(Guid tourneyGuid);
     Task<Guid> CreateTournament(TourneyCreateDto createDto);
+    Task CreateTournamentFromEvent(Guid eventGuid);
     Task<List<TourneyDto>> GetTournaments();
     Task<List<TourneyReplayListDto>> GetTourneyReplays(TourneysReplaysRequest request, CancellationToken token);
     Task<int> GetTourneyReplaysCount(TourneysReplaysRequest request, CancellationToken token);

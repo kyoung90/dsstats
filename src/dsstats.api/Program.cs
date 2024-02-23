@@ -148,16 +148,11 @@ if (app.Environment.IsDevelopment())
 
     var tourneyService = scope.ServiceProvider.GetRequiredService<ITourneyNgService>();
 
-    // tourneyService.DeleteTourney(new Guid("98388097-5da9-4c66-ac8b-402879fb35c3"));
-    // tourneyService.CreateGDSLTourney().Wait();
-
-    // var replays = tourneyService.GetTourneyReplays(new() { Skip = 0, Take = 100 } ,default).GetAwaiter().GetResult();
-    // Console.WriteLine("bab");
-
-    var stats = tourneyService.GetStats(new() { TourneyGuid = new("2a5b6d69-ac1c-4a98-9eb0-756ede2a8fc6") })
-        .GetAwaiter().GetResult();
-
-    Console.WriteLine(stats.ToString());
+    // tourneyService.CreateTournamentFromEvent(new Guid("c5896c6e-fc11-4517-99a5-8b7c33a168e8")).Wait();
+    //tourneyService.CreateTournamentFromEvent(new Guid("d141c351-e767-41f0-be00-aaebf3cf2b06")).Wait();
+    //tourneyService.CreateTournamentFromEvent(new Guid("e8aadbe3-fa4b-40f4-a743-9002151ba485")).Wait();
+    //tourneyService.CreateTournamentFromEvent(new Guid("256ec245-6126-4823-84fe-983987f2fdd9")).Wait();
+    //tourneyService.CreateTournamentFromEvent(new Guid("2daf09c9-8440-46f4-b0a3-0beb0be5c238")).Wait();
 }
 
 // app.UseHttpsRedirection();
