@@ -153,6 +153,9 @@ if (app.Environment.IsDevelopment())
     //tourneyService.CreateTournamentFromEvent(new Guid("e8aadbe3-fa4b-40f4-a743-9002151ba485")).Wait();
     //tourneyService.CreateTournamentFromEvent(new Guid("256ec245-6126-4823-84fe-983987f2fdd9")).Wait();
     //tourneyService.CreateTournamentFromEvent(new Guid("2daf09c9-8440-46f4-b0a3-0beb0be5c238")).Wait();
+
+    // tourneyService.CreateRandomTeams(new Guid("96b8163b-a585-42aa-be6f-82e2611d0429"), RatingType.Std).Wait();
+    tourneyService.CreatePewPewTournament().Wait();
 }
 
 // app.UseHttpsRedirection();

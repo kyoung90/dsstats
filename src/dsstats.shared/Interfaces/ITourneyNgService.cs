@@ -17,4 +17,5 @@ public interface ITourneyNgService
     Task<int> GetTourneyReplaysCount(TourneysReplaysRequest request, CancellationToken token);
     Task<bool> ReportMatchResult(TourneyMatchResult result);
     Task<TourneyStatsResponse> GetStats(TourneyStatsRequest request, CancellationToken token = default);
+    Task CreatePewPewTournament();
 }

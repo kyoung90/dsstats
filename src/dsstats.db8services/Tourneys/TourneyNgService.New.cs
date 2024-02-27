@@ -1,12 +1,59 @@
 ﻿using dsstats.db8;
 using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.Json;
 
 namespace dsstats.db8services.Tourneys;
 
 public partial class TourneyNgService
 {
+    public async Task CreatePewPewTournament()
+    {
+        //var tourneyGuid = await CreateTournament(new TourneyCreateDto()
+        //{
+        //    Name = "PewPew Tourney",
+        //    EventStart = new DateTime(2024, 3, 2),
+        //    GameMode = GameMode.Standard
+        //});
+
+        var tourneyGuid = new Guid("96b8163b-a585-42aa-be6f-82e2611d0429");
+
+        Dictionary<RequestNames, double> players = [];
+        var paticipants = File.ReadAllLines("/data/ds/Tourneys/PewPew/participants.txt");
+
+        foreach (var line in paticipants)
+        {
+            var ents = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (ents.Length == 3)
+            {
+                var profileEnts = ents[1].Split("%7C", StringSplitOptions.RemoveEmptyEntries);
+                var profileId = int.Parse(profileEnts[0]);
+                var realmId = int.Parse(profileEnts[1]);
+                var regionId = int.Parse(profileEnts[2]);
+                var rating = double.Parse(ents[2]);
+                var name = ents[0];
+                players[new(name, profileId, regionId, realmId)] = rating;
+            }
+        }
+
+        StringBuilder sb = new();
+        var avgRating = Math.Round(players.Values.Average(), 0);
+
+
+        foreach (var player in players.OrderByDescending(o => o.Value))
+        {
+            sb.AppendLine($"{player.Key.Name} => {Math.Round(player.Value, 0)}");
+        }
+        sb.AppendLine($"Average rating: {avgRating}");
+
+        Console.WriteLine(sb.ToString());
+
+        var teams = CreateRandomTeams(players);
+        Console.WriteLine(teams);
+    }
+
+
     public async Task CreateTournamentFromEvent(Guid eventGuid)
     {
         var tourneyEvent = await context.Events.FirstOrDefaultAsync(f => f.EventGuid == eventGuid);
@@ -29,7 +76,7 @@ public partial class TourneyNgService
             .Include(i => i.ReplayPlayers)
                 .ThenInclude(i => i.Player)
             .Include(i => i.ReplayEvent)
-            .Where(x => x.ReplayEvent != null 
+            .Where(x => x.ReplayEvent != null
                 && x.ReplayEvent.EventId == tourneyEvent!.EventId)
             .ToListAsync();
 
@@ -67,7 +114,7 @@ public partial class TourneyNgService
             var team1 = AddTeamPlayers(players1, teams, tourneyGuid);
             var team2 = AddTeamPlayers(players2, teams, tourneyGuid);
 
-            team1.Name = replay.WinnerTeam == 1 ? replay.ReplayEvent?.WinnerTeam ?? string.Empty 
+            team1.Name = replay.WinnerTeam == 1 ? replay.ReplayEvent?.WinnerTeam ?? string.Empty
                 : replay.ReplayEvent?.RunnerTeam ?? string.Empty;
             team2.Name = replay.WinnerTeam == 2 ? replay.ReplayEvent?.WinnerTeam ?? string.Empty
                 : replay.ReplayEvent?.RunnerTeam ?? string.Empty;

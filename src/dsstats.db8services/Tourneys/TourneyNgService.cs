@@ -4,6 +4,8 @@ using dsstats.shared;
 using dsstats.shared.Interfaces;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using System.Text.Json;
 
 namespace dsstats.db8services.Tourneys;
 
@@ -252,6 +254,81 @@ public partial class TourneyNgService(ReplayContext context) : ITourneyNgService
         return true;
     }
 
+    private string CreateRandomTeams(Dictionary<RequestNames, double> players)
+    {
+        List<PlayerSortHelperNames> playerHelpers = players.Select(s => new PlayerSortHelperNames()
+        {
+            RequestNames = s.Key,
+            Rating = Convert.ToInt32(s.Value),
+        }).ToList();
+
+        var teamHelpers = CreateEvenThreePlayerTeams(playerHelpers);
+
+        StringBuilder sb = new();
+        foreach (var team in teamHelpers.OrderByDescending(o => o.TeamRating))
+        {
+            sb.AppendLine($"{team.Players[0].RequestNames.Name}'s Team => {team.TeamRating}");
+            foreach (var player in team.Players)
+            {
+                sb.AppendLine($"{player.RequestNames.Name} => {player.Rating}");
+            }
+            sb.AppendLine("----------------------");
+        }
+        return sb.ToString();
+    }
+
+    private List<TeamHelperNames> CreateEvenThreePlayerTeams(List<PlayerSortHelperNames> players)
+    {
+        List<TeamHelperNames> teams = [];
+
+        int teamCount = players.Count / 3;
+
+        if (teamCount == 0)
+        {
+            return [];
+        }
+
+        var avgRating = players.Average(a => a.Rating);
+
+        var orderedPlayers = players.OrderByDescending(a => a.Rating).ToList();
+
+        List<PlayerSortHelperNames> availablePlayers = new(orderedPlayers);
+
+        for (int i = 0; i < teamCount; i++)
+        {
+            var player = orderedPlayers[i];
+            availablePlayers.Remove(player);
+
+            teams.Add(new()
+            {
+                Players = [player]
+            });
+        }
+
+        // for (int i = 0; i < teams.Count; i++)
+        for (int i = teamCount - 1; i >= 0; i--)
+        {
+            // add two more player to team.Players so the TeamRating is as close to the avgRating as possible
+
+            var team = teams[i];
+            var remainingPlayers = 2;
+
+            while (remainingPlayers > 0 && availablePlayers.Count > 0)
+            {
+                var closestPlayer = availablePlayers
+                    .OrderBy(p => Math.Abs((team.TeamRating * team.Players.Count + p.Rating) / (team.Players.Count + 1) - avgRating))
+                    .First();
+
+                team.Players.Add(closestPlayer);
+                availablePlayers.Remove(closestPlayer);
+
+                remainingPlayers--;
+            }
+        }
+
+        return teams;
+    }
+
     private List<TeamHelper> CreateEvenThreePlayerTeams(List<PlayerSortHelper> players)
     {
         List<TeamHelper> teams = [];
@@ -340,6 +417,18 @@ internal record PlayerSortHelper
 internal record TeamHelper
 {
     public List<PlayerSortHelper> Players { get; set; } = [];
+    public int TeamRating => Players.Count == 0 ? 0 : Convert.ToInt32(Players.Average(a => a.Rating));
+}
+
+internal record PlayerSortHelperNames
+{
+    public RequestNames RequestNames { get; set; } = null!;
+    public int Rating { get; set; }
+}
+
+internal record TeamHelperNames
+{
+    public List<PlayerSortHelperNames> Players { get; set; } = [];
     public int TeamRating => Players.Count == 0 ? 0 : Convert.ToInt32(Players.Average(a => a.Rating));
 }
 
