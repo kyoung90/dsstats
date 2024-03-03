@@ -1,5 +1,7 @@
 using AutoMapper;
+using dsstats.db8.Aram;
 using dsstats.shared;
+using dsstats.shared.Aram;
 
 namespace dsstats.db8.AutoMapper;
 
@@ -86,7 +88,7 @@ public class AutoMapperProfile : Profile
         CreateMap<DsWeapon, DsWeaponDto>(MemberList.Destination);
         CreateMap<DsWeaponDto, DsWeapon>(MemberList.Source);
         CreateMap<BonusDamage, BonusDamageDto>(MemberList.Destination);
-        CreateMap<BonusDamageDto,BonusDamage>(MemberList.Source);
+        CreateMap<BonusDamageDto, BonusDamage>(MemberList.Source);
         CreateMap<DsAbility, DsAbilityDto>(MemberList.Destination);
         CreateMap<DsAbilityDto, DsAbility>(MemberList.Source);
         CreateMap<DsUpgrade, DsUpgradeDto>(MemberList.Destination);
@@ -98,5 +100,13 @@ public class AutoMapperProfile : Profile
         CreateMap<Faq, FaqDto>(MemberList.Destination);
         CreateMap<FaqDto, Faq>(MemberList.Source)
             .ForSourceMember(s => s.FaqId, opt => opt.DoNotValidate());
+
+        CreateMap<AramEvent, AramEventDto>(MemberList.Destination);
+        CreateMap<AramEventDto, AramEvent>(MemberList.Source)
+            .ForMember(m => m.Guid, opt => opt.Ignore());
+
+        CreateMap<AramPlayer, AramPlayerDto>(MemberList.Destination);
+        CreateMap<AramPlayerDto, AramPlayer>(MemberList.Source)
+            .ForMember(m => m.Guid, opt => opt.Ignore());
     }
 }

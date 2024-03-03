@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using dsstats.db8.Aram;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
@@ -51,6 +52,11 @@ public class ReplayContext : DbContext
     public virtual DbSet<ComboReplayPlayerRating> ComboReplayPlayerRatings { get; set; } = null!;
     public virtual DbSet<Faq> Faqs { get; set; } = null!;
     public virtual DbSet<FaqVote> FaqVotes { get; set; } = null!;
+
+    public virtual DbSet<AramEvent> AramEvents { get; set; } = null!;
+    public virtual DbSet<AramPlayer> AramPlayers { get; set; } = null!;
+    public virtual DbSet<AramMatch> AramMatches { get; set; } = null!;
+    public virtual DbSet<AramSlot> AramSlots { get; set; } = null!;
 
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
@@ -214,6 +220,16 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<Faq>(entity =>
         {
             entity.HasIndex(i => i.Question);
+        });
+
+        modelBuilder.Entity<AramEvent>(entity =>
+        {
+            entity.HasIndex(i => i.Guid);
+        });
+
+        modelBuilder.Entity<AramPlayer>(entity =>
+        {
+            entity.HasIndex(i => i.Guid);
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)
