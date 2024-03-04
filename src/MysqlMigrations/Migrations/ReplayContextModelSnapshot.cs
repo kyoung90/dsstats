@@ -75,11 +75,19 @@ namespace MysqlMigrations.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<int>("OpenMatches")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReportedMatches")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartTime")
                         .HasPrecision(0)
                         .HasColumnType("datetime(0)");
 
                     b.HasKey("AramEventId");
+
+                    b.HasIndex("EndTime");
 
                     b.HasIndex("Guid");
 
@@ -97,14 +105,14 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("AramEventId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AramPlayerId")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("Guid")
                         .HasColumnType("char(36)");
 
                     b.Property<float>("MatchHistoryScore")
                         .HasColumnType("float");
+
+                    b.Property<int>("MatchResult")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Replay1Id")
                         .HasColumnType("int");
@@ -118,14 +126,13 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("Team2Rating")
                         .HasColumnType("int");
 
-                    b.Property<int>("WinnerTeam")
-                        .HasColumnType("int");
-
                     b.HasKey("AramMatchId");
 
                     b.HasIndex("AramEventId");
 
-                    b.HasIndex("AramPlayerId");
+                    b.HasIndex("Guid");
+
+                    b.HasIndex("MatchResult");
 
                     b.HasIndex("Replay1Id");
 
@@ -142,13 +149,13 @@ namespace MysqlMigrations.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("AramPlayerId"));
 
-                    b.Property<int>("AmPlayerId")
+                    b.Property<int?>("AmPlayerId")
                         .HasColumnType("int");
 
                     b.Property<int>("AramEventId")
                         .HasColumnType("int");
 
-                    b.Property<int>("EuPlayerId")
+                    b.Property<int?>("EuPlayerId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("Guid")
@@ -168,12 +175,19 @@ namespace MysqlMigrations.Migrations
                     b.Property<int>("StartRating")
                         .HasColumnType("int");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<int>("Wins")
                         .HasColumnType("int");
 
                     b.HasKey("AramPlayerId");
 
+                    b.HasIndex("AmPlayerId");
+
                     b.HasIndex("AramEventId");
+
+                    b.HasIndex("EuPlayerId");
 
                     b.HasIndex("Guid");
 
@@ -1978,10 +1992,6 @@ namespace MysqlMigrations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("dsstats.db8.Aram.AramPlayer", null)
-                        .WithMany("AramMatches")
-                        .HasForeignKey("AramPlayerId");
-
                     b.HasOne("dsstats.db8.Replay", "Replay1")
                         .WithMany()
                         .HasForeignKey("Replay1Id");
@@ -1999,13 +2009,25 @@ namespace MysqlMigrations.Migrations
 
             modelBuilder.Entity("dsstats.db8.Aram.AramPlayer", b =>
                 {
+                    b.HasOne("dsstats.db8.Player", "AmPlayer")
+                        .WithMany()
+                        .HasForeignKey("AmPlayerId");
+
                     b.HasOne("dsstats.db8.Aram.AramEvent", "AramEvent")
                         .WithMany("AramPlayers")
                         .HasForeignKey("AramEventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("dsstats.db8.Player", "EuPlayer")
+                        .WithMany()
+                        .HasForeignKey("EuPlayerId");
+
+                    b.Navigation("AmPlayer");
+
                     b.Navigation("AramEvent");
+
+                    b.Navigation("EuPlayer");
                 });
 
             modelBuilder.Entity("dsstats.db8.Aram.AramSlot", b =>
@@ -2017,7 +2039,7 @@ namespace MysqlMigrations.Migrations
                         .IsRequired();
 
                     b.HasOne("dsstats.db8.Aram.AramPlayer", "AramPlayer")
-                        .WithMany()
+                        .WithMany("AramSlots")
                         .HasForeignKey("AramPlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2349,7 +2371,7 @@ namespace MysqlMigrations.Migrations
 
             modelBuilder.Entity("dsstats.db8.Aram.AramPlayer", b =>
                 {
-                    b.Navigation("AramMatches");
+                    b.Navigation("AramSlots");
                 });
 
             modelBuilder.Entity("dsstats.db8.ArcadePlayer", b =>

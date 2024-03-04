@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace dsstats.db8services;
 
-public class AramService(ReplayContext context, IMapper mapper)
+public partial class AramService(ReplayContext context, IMapper mapper)
 {
     public async Task<Guid> CreateAramEvent(AramEventDto aramEvent)
     {
@@ -30,6 +30,7 @@ public class AramService(ReplayContext context, IMapper mapper)
 
         var aramPlayer = mapper.Map<AramPlayerDto, AramPlayer>(player);
         aramPlayer.AramEventId = aramEvent.AramEventId;
+        aramPlayer.Status = PlayerStatus.Ready;
         context.AramPlayers.Add(aramPlayer);
         await context.SaveChangesAsync();
         return aramPlayer.Guid;
@@ -58,6 +59,7 @@ public class AramService(ReplayContext context, IMapper mapper)
         {
             var aramMatch = CreateAramMatch(aramEvent, match);
             context.AramMatches.Add(aramMatch);
+            aramEvent.OpenMatches++;
         }
         await context.SaveChangesAsync();
     }
@@ -76,6 +78,7 @@ public class AramService(ReplayContext context, IMapper mapper)
         {
             var aramPlayer = aramEvent.AramPlayers.First(f => f.Guid == playerInfo.Guid);
             aramPlayer.Matches++;
+            aramPlayer.Status = PlayerStatus.MatchOpen;
             aramMatch.AramSlots.Add(new()
             {
                 Pos = index + 1,
@@ -89,6 +92,7 @@ public class AramService(ReplayContext context, IMapper mapper)
         {
             var aramPlayer = aramEvent.AramPlayers.First(f => f.Guid == playerInfo.Guid);
             aramPlayer.Matches++;
+            aramPlayer.Status = PlayerStatus.MatchOpen;
             aramMatch.AramSlots.Add(new()
             {
                 Pos = index + 3 + 1,

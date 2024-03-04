@@ -225,11 +225,18 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<AramEvent>(entity =>
         {
             entity.HasIndex(i => i.Guid);
+            entity.HasIndex(i => i.EndTime);
         });
 
         modelBuilder.Entity<AramPlayer>(entity =>
         {
             entity.HasIndex(i => i.Guid);
+        });
+
+        modelBuilder.Entity<AramMatch>(entity =>
+        {
+            entity.HasIndex(i => i.Guid);
+            entity.HasIndex(i => i.MatchResult);
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)

@@ -196,3 +196,21 @@ public enum FaqLevel
     Intermediate = 2,
     Advanced = 3
 }
+
+public enum MatchResult
+{
+    None = 0,
+    Team1Win = 1,
+    Team2Win = 2,
+    Team1Bye = 3,
+    Team2Bye = 4,
+    Canceled = 5
+}
+
+public enum PlayerStatus
+{
+    None = 0,
+    Ready = 1,
+    MatchOpen = 2,
+    Paused = 3
+}

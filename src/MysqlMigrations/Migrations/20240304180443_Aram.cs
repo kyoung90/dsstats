@@ -392,40 +392,13 @@ namespace MysqlMigrations.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     StartTime = table.Column<DateTime>(type: "datetime(0)", precision: 0, nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime(0)", precision: 0, nullable: false),
-                    GameMode = table.Column<int>(type: "int", nullable: false)
+                    GameMode = table.Column<int>(type: "int", nullable: false),
+                    OpenMatches = table.Column<int>(type: "int", nullable: false),
+                    ReportedMatches = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AramEvents", x => x.AramEventId);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "AramPlayers",
-                columns: table => new
-                {
-                    AramPlayerId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Guid = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AmPlayerId = table.Column<int>(type: "int", nullable: false),
-                    EuPlayerId = table.Column<int>(type: "int", nullable: false),
-                    StartRating = table.Column<int>(type: "int", nullable: false),
-                    Wins = table.Column<int>(type: "int", nullable: false),
-                    Performance = table.Column<int>(type: "int", nullable: false),
-                    Matches = table.Column<int>(type: "int", nullable: false),
-                    AramEventId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AramPlayers", x => x.AramPlayerId);
-                    table.ForeignKey(
-                        name: "FK_AramPlayers_AramEvents_AramEventId",
-                        column: x => x.AramEventId,
-                        principalTable: "AramEvents",
-                        principalColumn: "AramEventId",
-                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -438,12 +411,11 @@ namespace MysqlMigrations.Migrations
                     Guid = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Team1Rating = table.Column<int>(type: "int", nullable: false),
                     Team2Rating = table.Column<int>(type: "int", nullable: false),
-                    WinnerTeam = table.Column<int>(type: "int", nullable: false),
+                    MatchResult = table.Column<int>(type: "int", nullable: false),
                     MatchHistoryScore = table.Column<float>(type: "float", nullable: false),
                     Replay1Id = table.Column<int>(type: "int", nullable: true),
                     Replay2Id = table.Column<int>(type: "int", nullable: true),
-                    AramEventId = table.Column<int>(type: "int", nullable: false),
-                    AramPlayerId = table.Column<int>(type: "int", nullable: true)
+                    AramEventId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -455,11 +427,6 @@ namespace MysqlMigrations.Migrations
                         principalColumn: "AramEventId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AramMatches_AramPlayers_AramPlayerId",
-                        column: x => x.AramPlayerId,
-                        principalTable: "AramPlayers",
-                        principalColumn: "AramPlayerId");
-                    table.ForeignKey(
                         name: "FK_AramMatches_Replays_Replay1Id",
                         column: x => x.Replay1Id,
                         principalTable: "Replays",
@@ -469,6 +436,46 @@ namespace MysqlMigrations.Migrations
                         column: x => x.Replay2Id,
                         principalTable: "Replays",
                         principalColumn: "ReplayId");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "AramPlayers",
+                columns: table => new
+                {
+                    AramPlayerId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Guid = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    StartRating = table.Column<int>(type: "int", nullable: false),
+                    Wins = table.Column<int>(type: "int", nullable: false),
+                    Performance = table.Column<int>(type: "int", nullable: false),
+                    Matches = table.Column<int>(type: "int", nullable: false),
+                    AmPlayerId = table.Column<int>(type: "int", nullable: true),
+                    EuPlayerId = table.Column<int>(type: "int", nullable: true),
+                    AramEventId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AramPlayers", x => x.AramPlayerId);
+                    table.ForeignKey(
+                        name: "FK_AramPlayers_AramEvents_AramEventId",
+                        column: x => x.AramEventId,
+                        principalTable: "AramEvents",
+                        principalColumn: "AramEventId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AramPlayers_Players_AmPlayerId",
+                        column: x => x.AmPlayerId,
+                        principalTable: "Players",
+                        principalColumn: "PlayerId");
+                    table.ForeignKey(
+                        name: "FK_AramPlayers_Players_EuPlayerId",
+                        column: x => x.EuPlayerId,
+                        principalTable: "Players",
+                        principalColumn: "PlayerId");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -503,6 +510,11 @@ namespace MysqlMigrations.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AramEvents_EndTime",
+                table: "AramEvents",
+                column: "EndTime");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AramEvents_Guid",
                 table: "AramEvents",
                 column: "Guid");
@@ -513,9 +525,14 @@ namespace MysqlMigrations.Migrations
                 column: "AramEventId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AramMatches_AramPlayerId",
+                name: "IX_AramMatches_Guid",
                 table: "AramMatches",
-                column: "AramPlayerId");
+                column: "Guid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AramMatches_MatchResult",
+                table: "AramMatches",
+                column: "MatchResult");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AramMatches_Replay1Id",
@@ -528,9 +545,19 @@ namespace MysqlMigrations.Migrations
                 column: "Replay2Id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AramPlayers_AmPlayerId",
+                table: "AramPlayers",
+                column: "AmPlayerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AramPlayers_AramEventId",
                 table: "AramPlayers",
                 column: "AramEventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AramPlayers_EuPlayerId",
+                table: "AramPlayers",
+                column: "EuPlayerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AramPlayers_Guid",

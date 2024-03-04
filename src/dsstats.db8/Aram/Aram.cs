@@ -21,6 +21,8 @@ public class AramEvent
     [Precision(0)]
     public DateTime EndTime { get; set; }
     public GameMode GameMode { get; set; }
+    public int OpenMatches { get; set; }
+    public int ReportedMatches { get; set; }
     public virtual ICollection<AramPlayer> AramPlayers { get; set; }
     public virtual ICollection<AramMatch> AramMatches { get; set; }
 }
@@ -29,21 +31,26 @@ public class AramPlayer
 {
     public AramPlayer()
     {
-        AramMatches = new HashSet<AramMatch>();
+        AramSlots = new HashSet<AramSlot>();
     }
     public int AramPlayerId { get; set; }
     public Guid Guid { get; set; } = Guid.NewGuid();
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
-    public int AmPlayerId { get; set; }
-    public int EuPlayerId { get; set; }
+    public PlayerStatus Status { get; set; }
     public int StartRating { get; set; }
     public int Wins { get; set; }
     public int Performance { get; set; }
     public int Matches { get; set; }
+    public int? AmPlayerId { get; set; }
+    [ForeignKey(nameof(AmPlayerId))]
+    public Player? AmPlayer { get; set; }
+    public int? EuPlayerId { get; set; }
+    [ForeignKey(nameof(EuPlayerId))]
+    public Player? EuPlayer { get; set; }
     public int AramEventId { get; set; }
     public virtual AramEvent? AramEvent { get; set; }
-    public virtual ICollection<AramMatch> AramMatches { get; set; }
+    public virtual ICollection<AramSlot> AramSlots { get; set; }
 }
 
 public class AramMatch
@@ -56,7 +63,7 @@ public class AramMatch
     public Guid Guid { get; set; } = Guid.NewGuid();
     public int Team1Rating { get; set; }
     public int Team2Rating { get; set; }
-    public int WinnerTeam { get; set; }
+    public MatchResult MatchResult{ get; set; }
     public float MatchHistoryScore { get; set; }
     public virtual ICollection<AramSlot> AramSlots { get; set; }
     public int? Replay1Id { get; set; }
