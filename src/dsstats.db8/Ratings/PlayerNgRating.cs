@@ -5,8 +5,7 @@ namespace dsstats.db8.Ratings;
 public class PlayerNgRating
 {
     public int PlayerNgRatingId { get; set; }
-    public RatingCalcType RatingCalcType { get; set; }
-    public RatingType RatingType { get; set; }
+    public RatingNgType RatingNgType { get; set; }
     public double Rating { get; set; }
     public int Games { get; set; }
     public int Wins { get; set; }
@@ -23,7 +22,7 @@ public class PlayerNgRating
 public class ReplayNgRating
 {
     public int ReplayNgRatingId { get; set; }
-    public RatingType RatingType { get; set; }
+    public RatingNgType RatingNgType { get; set; }
     public LeaverType LeaverType { get; set; }
     public float Exp2Win { get; set; }
     public int AvgRating { get; set; }
@@ -42,4 +41,13 @@ public class ReplayPlayerNgRating
     public float Confidence { get; set; }
     public int ReplayPlayerId { get; set; }
     public virtual ReplayPlayer? ReplayPlayer { get; set; }
+}
+
+public class ArcadeInfo
+{
+    public int ArcadeInfoId { get; set; }
+    public long BnetBucketId { get; set; }
+    public long BnetRecordId { get; set; }
+    public int ReplayId { get; set; }
+    public virtual Replay? Replay { get; set; }
 }

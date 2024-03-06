@@ -1,4 +1,5 @@
-﻿using dsstats.shared;
+﻿using dsstats.db8.Ratings;
+using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -199,12 +200,9 @@ public class Replay
     public ReplayEvent? ReplayEvent { get; set; }
     public ReplayRating? ReplayRatingInfo { get; set; }
     public ComboReplayRating? ComboReplayRating { get; set; }
+    public virtual ArcadeInfo? ArcadeInfo { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<Uploader> Uploaders { get; set; }
-    [NotMapped]
-    public int UploaderId { get; set; }
-    [NotMapped]
-    public string Blobfile { get; set; } = string.Empty;
 }
 
 public class ReplayPlayer
@@ -239,8 +237,8 @@ public class ReplayPlayer
     [MaxLength(300)]
     public string Refineries { get; set; } = null!;
     public string? LastSpawnHash { get; set; }
+    public int Views {  get; set; }
     public int Downloads { get; set; }
-    public int Views { get; set; }
     public int ReplayId { get; set; }
     public virtual Replay Replay { get; set; } = null!;
     public int PlayerId { get; set; }

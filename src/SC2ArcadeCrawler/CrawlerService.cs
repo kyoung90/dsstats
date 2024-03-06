@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 
-namespace pax.dsstats.web.Server.Services.Arcade;
+namespace SC2ArcadeCrawler;
 
 public partial class CrawlerService
 {

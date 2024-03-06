@@ -1,7 +1,7 @@
 ﻿using dsstats.db8;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace pax.dsstats.web.Server.Services.Arcade;
+namespace SC2ArcadeCrawler;
 
 public partial class CrawlerService
 {

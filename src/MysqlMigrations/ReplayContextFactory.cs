@@ -19,6 +19,7 @@ public class ReplayContextFactory : IDesignTimeDbContextFactory<ReplayContext>
         optionsBuilder.UseMySql(connectionString, serverVersion, x =>
         {
             x.EnableRetryOnFailure();
+            x.CommandTimeout(600);
             x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
             x.MigrationsAssembly("MysqlMigrations");
         });

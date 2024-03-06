@@ -1,7 +1,7 @@
 ﻿
 using dsstats.db8services;
 using dsstats.shared.Interfaces;
-using pax.dsstats.web.Server.Services.Arcade;
+using SC2ArcadeCrawler;
 
 namespace dsstats.api.Services;
 

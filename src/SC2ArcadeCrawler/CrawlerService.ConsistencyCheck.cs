@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace pax.dsstats.web.Server.Services.Arcade;
+namespace SC2ArcadeCrawler;
 
 public partial class CrawlerService
 {

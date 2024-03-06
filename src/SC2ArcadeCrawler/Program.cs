@@ -3,7 +3,6 @@ using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using pax.dsstats.web.Server.Services.Arcade;
 using System.Text.Json;
 
 namespace SC2ArcadeCrawler;

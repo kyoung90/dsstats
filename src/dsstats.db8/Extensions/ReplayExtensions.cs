@@ -6,6 +6,28 @@ namespace dsstats.db8.Extensions;
 
 public static class ReplayExtensions
 {
+    public static void GenHash(this Replay replay, MD5 md5hash)
+    {
+        if (!replay.ReplayPlayers.Any())
+        {
+            throw new ArgumentOutOfRangeException(nameof(replay));
+        }
+
+        StringBuilder sb = new();
+        foreach (var pl in replay.ReplayPlayers.OrderBy(o => o.GamePos))
+        {
+            if (pl.Player == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(replay));
+            }
+            sb.Append(pl.GamePos + pl.Race + pl.Player.ToonId);
+        }
+        sb.Append(replay.GameMode + replay.Playercount);
+        sb.Append(replay.Minarmy + replay.Minkillsum + replay.Minincome + replay.Maxkillsum);
+
+        replay.ReplayHash = shared.Extensions.ReplayExtensions.GetMd5Hash(md5hash, sb.ToString());
+    }
+
     public static void GenHashV2(this Replay replay, MD5 md5hash)
     {
         if (replay.ReplayPlayers.Count == 0)

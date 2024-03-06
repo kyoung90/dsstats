@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace pax.dsstats.web.Server.Services.Arcade;
+namespace SC2ArcadeCrawler;
 
 public partial class CrawlerService
 {

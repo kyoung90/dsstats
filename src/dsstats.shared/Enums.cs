@@ -196,3 +196,18 @@ public enum FaqLevel
     Intermediate = 2,
     Advanced = 3
 }
+
+public enum RatingNgType
+{
+    None = 0,
+    All = 1,
+    CmdrAll = 2,
+    StdAll = 3,
+    Cmdr = 4,
+    Std = 5,
+    CmdrTE = 6,
+    StdTE = 7,
+    Brawl = 8,
+    Std1v1 = 9,
+    Cmdr1v1 = 10
+}

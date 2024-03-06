@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using pax.dsstats.web.Server.Hubs;
-using pax.dsstats.web.Server.Services.Arcade;
+using SC2ArcadeCrawler;
 using System.Threading.RateLimiting;
 
 var MyAllowSpecificOrigins = "dsstatsOrigin";
@@ -154,11 +154,14 @@ context.Database.Migrate();
 var authContext = scope.ServiceProvider.GetRequiredService<DsAuthContext>();
 authContext.Database.Migrate();
 
-var uploadSerivce = scope.ServiceProvider.GetRequiredService<UploadService>();
-uploadSerivce.ImportInit();
+if (app.Environment.IsProduction())
+{
+    var uploadSerivce = scope.ServiceProvider.GetRequiredService<UploadService>();
+    uploadSerivce.ImportInit();
 
-var tourneyService = scope.ServiceProvider.GetRequiredService<ITourneysService>();
-tourneyService.SeedTourneys().Wait();
+    var tourneyService = scope.ServiceProvider.GetRequiredService<ITourneysService>();
+    tourneyService.SeedTourneys().Wait();
+}
 
 app.UseRateLimiter();
 
@@ -168,8 +171,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    // var userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
-    // userRepository.Seed().Wait();
+    var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
+    crawlerService.MapReplays().Wait();
 }
 
 // app.UseHttpsRedirection();
