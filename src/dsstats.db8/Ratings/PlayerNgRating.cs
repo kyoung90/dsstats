@@ -43,11 +43,3 @@ public class ReplayPlayerNgRating
     public virtual ReplayPlayer? ReplayPlayer { get; set; }
 }
 
-public class ArcadeInfo
-{
-    public int ArcadeInfoId { get; set; }
-    public long BnetBucketId { get; set; }
-    public long BnetRecordId { get; set; }
-    public int ReplayId { get; set; }
-    public virtual Replay? Replay { get; set; }
-}

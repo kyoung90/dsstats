@@ -37,8 +37,8 @@ public class ArcadeReplay
     public int WinnerTeam { get; set; }
     [Precision(0)]
     public DateTime Imported { get; set; }
-    [StringLength(64)]
-    public string ReplayHash { get; set; } = string.Empty;
+    public int? ReplayId { get; set; }
+    public virtual Replay? Replay { get; set; }
     public ArcadeReplayRating? ArcadeReplayRating { get; set; }
     public ICollection<ArcadeReplayPlayer> ArcadeReplayPlayers { get; set; }
 }

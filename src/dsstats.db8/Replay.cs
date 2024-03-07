@@ -200,7 +200,6 @@ public class Replay
     public ReplayEvent? ReplayEvent { get; set; }
     public ReplayRating? ReplayRatingInfo { get; set; }
     public ComboReplayRating? ComboReplayRating { get; set; }
-    public virtual ArcadeInfo? ArcadeInfo { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<Uploader> Uploaders { get; set; }
 }

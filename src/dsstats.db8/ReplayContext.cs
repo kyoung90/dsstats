@@ -56,7 +56,6 @@ public class ReplayContext : DbContext
     public virtual DbSet<PlayerNgRating> PlayerNgRatings { get; set; } = null!;
     public virtual DbSet<ReplayNgRating> ReplayNgRatings { get; set; } = null!;
     public virtual DbSet<ReplayPlayerNgRating> ReplayPlayerNgRatings { get; set; } = null!;
-    public virtual DbSet<ArcadeInfo> ArcadeInfos { get; set; } = null!;
 
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
@@ -171,7 +170,6 @@ public class ReplayContext : DbContext
             entity.HasIndex(i => new { i.GameMode, i.CreatedAt });
             entity.HasIndex(i => new { i.RegionId, i.GameMode, i.CreatedAt });
             entity.HasIndex(i => new { i.RegionId, i.BnetBucketId, i.BnetRecordId }).IsUnique();
-            entity.HasIndex(i => i.ReplayHash);
         });
 
         modelBuilder.Entity<ArcadePlayer>(entity =>
@@ -220,11 +218,6 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<Faq>(entity =>
         {
             entity.HasIndex(i => i.Question);
-        });
-
-        modelBuilder.Entity<ArcadeInfo>(entity =>
-        {
-            entity.HasIndex(i => new { i.BnetBucketId, i.BnetRecordId }).IsUnique();
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)

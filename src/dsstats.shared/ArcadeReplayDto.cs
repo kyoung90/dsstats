@@ -45,7 +45,6 @@ public record ArcadeReplayListDto
 
 public record ArcadeReplayDto
 {
-    public string ReplayHash { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public GameMode GameMode { get; set; }
     public int RegionId { get; set; }
