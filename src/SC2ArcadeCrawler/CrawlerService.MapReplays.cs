@@ -1,18 +1,15 @@
 ﻿using dsstats.db8;
-using dsstats.db8services;
 using dsstats.db8services.Import;
 using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Security.Cryptography;
 
 namespace SC2ArcadeCrawler;
 
 public partial class CrawlerService
 {
-    public async Task MapReplays()
+    public async Task MapReplays(DateTime fromDate)
     {
         await CleanUp();
         using var scope = serviceProvider.CreateScope();
@@ -22,9 +19,10 @@ public partial class CrawlerService
         int dsstatsReps = 0;
         int hits = 0;
         int skip = 0;
-        int take = 10_000;
+        int take = 100_000;
 
         var arcadeReplays = await context.ArcadeReplays
+            .Where(x => x.CreatedAt >= fromDate)
             .Include(i => i.ArcadeReplayPlayers)
                 .ThenInclude(i => i.ArcadePlayer)
             .OrderBy(o => o.CreatedAt)
@@ -59,20 +57,30 @@ public partial class CrawlerService
             arcadeReps += arcadeReplays.Count;
             dsstatsReps += dsstatsReplays.Count;
 
-
-            foreach (var ent in arcadeDic)
+            foreach (var ent in dsstatsDic)
             {
-                if (dsstatsDic.TryGetValue(ent.Key, out var replays)
+                if (arcadeDic.TryGetValue(ent.Key, out var replays)
                     && replays is not null)
                 {
                     hits++;
-                    AddDsstatsInfo(ent.Value, replays);
+                    AddDsstatsInfo(replays, ent.Value);
                 }
             }
+            //foreach (var ent in arcadeDic)
+            //{
+            //    if (dsstatsDic.TryGetValue(ent.Key, out var replays)
+            //        && replays is not null)
+            //    {
+            //        hits++;
+            //        AddDsstatsInfo(ent.Value, replays);
+            //    }
+            //}
             await context.SaveChangesAsync();
 
+            Console.Write($"Skip {skip}");
             skip += take;
             arcadeReplays = await context.ArcadeReplays
+                .Where(x => x.CreatedAt >= fromDate)
                 .Include(i => i.ArcadeReplayPlayers)
                     .ThenInclude(i => i.ArcadePlayer)
                 .OrderBy(o => o.CreatedAt)

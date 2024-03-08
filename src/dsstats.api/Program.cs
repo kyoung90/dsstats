@@ -172,7 +172,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
     var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-    crawlerService.MapReplays().Wait();
+    crawlerService.MapReplays(new DateTime(2023, 10, 15, 18, 00, 00)).Wait();
 }
 
 // app.UseHttpsRedirection();
