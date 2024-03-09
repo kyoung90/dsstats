@@ -39,7 +39,7 @@ public class ReplayPlayerNgRating
     public int Games { get; set; }
     public float Consistency { get; set; }
     public float Confidence { get; set; }
-    public int? ReplayPlayerId { get; set; }
+    public int ReplayPlayerId { get; set; }
     public virtual ReplayPlayer? ReplayPlayer { get; set; }
 }
 

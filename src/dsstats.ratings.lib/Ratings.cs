@@ -5,6 +5,112 @@ namespace dsstats.ratings.lib;
 
 public static class Ratings
 {
+    public static ReplayNgRatingResult? ProcessReplayNg(CalcDto calcDto, CalcRatingRequest request)
+    {
+        var calcData = GetCalcData(calcDto, request);
+
+        if (calcData is null)
+        {
+            return null;
+        }
+
+        List<ReplayPlayerNgRatingResult> playerRatings = new();
+
+        foreach (var player in calcData.WinnerTeam)
+        {
+            var playerRating = ProcessPlayerNg(player, calcData, request, isWinner: true);
+            playerRatings.Add(playerRating);
+        }
+
+        foreach (var player in calcData.LoserTeam)
+        {
+            var playerRating = ProcessPlayerNg(player, calcData, request, isWinner: false);
+            playerRatings.Add(playerRating);
+        }
+
+        return new()
+        {
+            RatingNgType = (RatingNgType)calcData.RatingType,
+            LeaverType = (LeaverType)calcData.LeaverType,
+            Exp2Win = MathF.Round((float)calcData.WinnerTeamExpecationToWin, 2),
+            ReplayId = calcDto.ReplayId,
+            ReplayPlayerNgRatingResults = playerRatings
+        };
+    }
+
+    private static ReplayPlayerNgRatingResult ProcessPlayerNg(PlayerCalcDto player,
+                                            CalcData calcData,
+                                            CalcRatingRequest request,
+                                            bool isWinner)
+    {
+        var teamConfidence = isWinner ? calcData.WinnerTeamConfidence : calcData.LoserTeamConfidence;
+        var playerImpact = GetPlayerImpact(player.CalcRating, teamConfidence, request);
+
+        var mmrDelta = 0.0;
+        var consistencyDelta = 0.0;
+        var confidenceDelta = 0.0;
+
+        var exp2win = isWinner ? calcData.WinnerTeamExpecationToWin : 1.0 - calcData.WinnerTeamExpecationToWin;
+        var result = isWinner ? 1 : 0;
+        if (player.IsLeaver)
+        {
+            mmrDelta =
+             -1 * CalculateMmrDelta(isWinner ? exp2win : 1.0 - exp2win, playerImpact, request.MmrOptions.EloK);
+        }
+        else
+        {
+            playerImpact *= calcData.LeaverImpact;
+            mmrDelta = CalculateMmrDelta(calcData.WinnerTeamExpecationToWin, playerImpact, request.MmrOptions.EloK);
+            consistencyDelta = Math.Abs(exp2win - result) < 0.50 ? 1.0 : 0.0;
+            confidenceDelta = 1 - Math.Abs(exp2win - result);
+
+            if (!isWinner)
+            {
+                mmrDelta *= -1;
+            }
+        }
+
+        double mmrAfter = player.CalcRating.Mmr + mmrDelta;
+        double consistencyAfter = ((player.CalcRating.Consistency * request.MmrOptions.consistencyBeforePercentage)
+            + (consistencyDelta * (1 - request.MmrOptions.consistencyBeforePercentage)));
+        double confidenceAfter = ((player.CalcRating.Confidence * request.MmrOptions.confidenceBeforePercentage)
+            + (confidenceDelta * (1 - request.MmrOptions.confidenceBeforePercentage)));
+
+        consistencyAfter = Math.Clamp(consistencyAfter, 0, 1);
+        confidenceAfter = Math.Clamp(confidenceAfter, 0, 1);
+
+        player.CalcRating.Consistency = consistencyAfter;
+        player.CalcRating.Confidence = confidenceAfter;
+        player.CalcRating.Games++;
+
+        if (!player.IsLeaver)
+        {
+            if (isWinner)
+            {
+                player.CalcRating.Wins++;
+            }
+            if (player.IsMvp)
+            {
+                player.CalcRating.Mvps++;
+            }
+        }
+
+        SetCmdr(player.CalcRating, player.Race);
+
+        var ratingChange = (float)(mmrAfter - player.CalcRating.Mmr);
+        player.CalcRating.Mmr = mmrAfter;
+
+        return new()
+        {
+            ReplayPlayerId = player.ReplayPlayerId,
+            Rating = (float)mmrAfter,
+            Change = ratingChange,
+            Games = player.CalcRating.Games,
+            Consistency = (float)player.CalcRating.Consistency,
+            Confidence = (float)player.CalcRating.Confidence,
+        };
+    }
+
     public static shared.Calc.ReplayRatingDto? ProcessReplay(CalcDto calcDto, CalcRatingRequest request)
     {
         var calcData = GetCalcData(calcDto, request);

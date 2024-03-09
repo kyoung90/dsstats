@@ -46,7 +46,64 @@ internal abstract class RatingCalcService(ReplayContext context, IOptions<DbImpo
             .ToDictionary(k => new PlayerId(k.ToonId, k.RealmId, k.RegionId), v => v.PlayerId);
         var connectionString = importOptions.Value.ImportConnectionString;
 
+        await SavePlayerRatings(request.MmrIdRatings, playerIds);
 
+    }
+
+    private async Task SavePlayerRatings(Dictionary<int, Dictionary<PlayerId, CalcRating>> playerRatings,
+                                         Dictionary<PlayerId, int> playerIds)
+    {
+        List<PlayerNgRatingCsv> ratings = new();
+        int i = 0;
+        foreach (var ent in playerRatings)
+        {
+            foreach (var entCalc in ent.Value.Values)
+            {
+                if (entCalc is null)
+                {
+                    continue;
+                }
+
+                if (!playerIds.TryGetValue(entCalc.PlayerId, out var playerId))
+                {
+                    continue;
+                }
+
+                i++;
+
+                var rating = GetPlayerRatingCsvLine(entCalc, ent.Key, i, playerId);
+
+                ratings.Add(rating);
+
+            }
+        }
+        await SaveCsvFile(ratings, GetFileName(RatingCalcType.Dsstats, "Replays"), FileMode.Create);
+    }
+
+    private static PlayerNgRatingCsv GetPlayerRatingCsvLine(CalcRating calcRating,
+                                            int ratingType,
+                                            int line,
+                                            int playerId)
+    {
+        var main = calcRating.CmdrCounts
+            .OrderByDescending(o => o.Value)
+            .FirstOrDefault();
+        var maincount = main.Key == Commander.None ? 0 : main.Value;
+
+        return new()
+        {
+            PlayerNgRatingId = line,
+            RatingNgType = ratingType,
+            Rating = calcRating.Mmr,
+            Games = calcRating.Games,
+            Wins = calcRating.Wins,
+            Mvp = calcRating.Mvps,
+            MainCount = maincount,
+            MainCmdr = (int)main.Key,
+            Consistency = calcRating.Consistency,
+            Confidence = calcRating.Confidence,
+            PlayerId = playerId,
+        };
     }
 
     protected virtual async Task SaveStepResult(List<shared.Calc.ReplayRatingDto> replayRatings,
