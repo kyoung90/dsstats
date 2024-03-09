@@ -9,9 +9,12 @@ using System.Globalization;
 
 namespace dsstats.ratings;
 
-internal abstract class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions)
+public abstract class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions)
 {
     private static readonly string mysqlDir = "/data/mysqlfiles";
+    protected readonly ReplayContext context = context;
+    private readonly IOptions<DbImportOptions> importOptions = importOptions;
+
     protected abstract Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest);
     protected abstract Task<CalcRatingRequest> GetCalcRatingRequestAsync(DateTime fromDate);
 
@@ -168,7 +171,7 @@ internal abstract class RatingCalcService(ReplayContext context, IOptions<DbImpo
 }
 
 
-internal record CalcRequest
+public record CalcRequest
 {
     public DateTime FromDate { get; set; } = new DateTime(2021, 2, 1);
     public RatingNgType RatingType { get; set; }

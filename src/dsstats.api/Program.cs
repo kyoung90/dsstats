@@ -129,6 +129,8 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 
+builder.Services.AddRatings();
+
 //builder.Services.AddScoped<EMailService>();
 
 if (builder.Environment.IsProduction())
@@ -171,8 +173,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-    crawlerService.MapReplays(new DateTime(2023, 10, 15, 18, 00, 00)).Wait();
+    //var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
+    //crawlerService.MapReplays(new DateTime(2023, 10, 15, 18, 00, 00)).Wait();
+
+    var dsstatsRatingCalcService = scope.ServiceProvider.GetRequiredService<DsstatsRatingCalcService>();
+    dsstatsRatingCalcService.ProduceRatings(new()
+    {
+        RatingType = RatingNgType.All
+    }).Wait();
 }
 
 // app.UseHttpsRedirection();
