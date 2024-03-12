@@ -202,6 +202,7 @@ public class Replay
     public ComboReplayRating? ComboReplayRating { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<Uploader> Uploaders { get; set; }
+    public virtual ICollection<ArcadeReplay> ArcadeReplays { get; set; }
 }
 
 public class ReplayPlayer

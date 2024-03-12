@@ -4,22 +4,25 @@ using dsstats.db8;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace dsstats.ratings;
 
-public abstract class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions)
+public abstract class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions, ILogger logger)
 {
     private static readonly string mysqlDir = "/data/mysqlfiles";
     protected readonly ReplayContext context = context;
-    private readonly IOptions<DbImportOptions> importOptions = importOptions;
+    protected readonly IOptions<DbImportOptions> importOptions = importOptions;
 
     protected abstract Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest);
     protected abstract Task<CalcRatingRequest> GetCalcRatingRequestAsync(DateTime fromDate);
 
     public async Task ProduceRatings(CalcRequest request)
     {
+        Stopwatch sw = Stopwatch.StartNew();
         var calcDtos = await GetCalcDtosAsync(request);
         var ratingRequest = await GetCalcRatingRequestAsync(request.FromDate);
 
@@ -35,11 +38,14 @@ public abstract class RatingCalcService(ReplayContext context, IOptions<DbImport
                 }
             }
             await SaveStepResult(replayRatings, ratingRequest);
+            replayRatings.Clear();
 
             request.Skip += request.Take;
             calcDtos = await GetCalcDtosAsync(request);
         }
         await SaveResult(ratingRequest);
+        sw.Stop();
+        logger.LogWarning("Raings produced in {time} min.", sw.Elapsed.ToString(@"mm\:ss"));
     }
 
     protected virtual async Task SaveResult(CalcRatingRequest request)

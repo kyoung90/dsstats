@@ -152,11 +152,11 @@ public partial class CrawlerService
     private static int CalculatePlayerHitScore(List<ArcadeReplayPlayer> arcadePlayers, List<ReplayPlayer> dsstatsPlayers)
     {
         var arcadePlayerIds = arcadePlayers.OrderBy(o => o.SlotNumber)
-                                           .Select(s => new PlayerId(s.ArcadePlayer.ProfileId, s.ArcadePlayer.RealmId, s.ArcadePlayer.RegionId))
+                                           .Select(s => new dsstats.shared.PlayerId(s.ArcadePlayer.ProfileId, s.ArcadePlayer.RealmId, s.ArcadePlayer.RegionId))
                                            .ToList();
 
         var dsstatsPlayerIds = dsstatsPlayers.OrderBy(o => o.GamePos)
-                                             .Select(s => new PlayerId(s.Player.ToonId, s.Player.RealmId, s.Player.RegionId))
+                                             .Select(s => new dsstats.shared.PlayerId(s.Player.ToonId, s.Player.RealmId, s.Player.RegionId))
                                              .ToList();
 
         int orderMatchScore = CalculateOrderMatchScore(arcadePlayerIds, dsstatsPlayerIds);
@@ -168,7 +168,7 @@ public partial class CrawlerService
         return playerHitScore;
     }
 
-    private static int CalculateOrderMatchScore(List<PlayerId> arcadePlayerIds, List<PlayerId> dsstatsPlayerIds)
+    private static int CalculateOrderMatchScore(List<dsstats.shared.PlayerId> arcadePlayerIds, List<dsstats.shared.PlayerId> dsstatsPlayerIds)
     {
         int matchedOrderCount = 0;
 

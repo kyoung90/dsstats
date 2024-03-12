@@ -60,6 +60,7 @@ public record CalcDto
     public int Duration { get; init; }
     public bool TournamentEdition { get; init; }
     public bool IsArcade { get; init; }
+    public int? DsstatsReplayId { get; init; }
     public List<PlayerCalcDto> Players { get; init; } = new();
 }
 

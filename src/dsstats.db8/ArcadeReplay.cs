@@ -14,6 +14,7 @@ public class MaterializedArcadeReplay
     public DateTime CreatedAt { get; set; }
     public int Duration { get; set; }
     public int WinnerTeam { get; set; }
+    public int? ReplayId { get; set; }
 }
 
 public class ArcadeReplay

@@ -3,12 +3,15 @@ using dsstats.db8;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace dsstats.ratings;
 
-public class DsstatsRatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions) 
-    : RatingCalcService(context, importOptions)
+public class DsstatsRatingCalcService(ReplayContext context,
+                                      IOptions<DbImportOptions> importOptions,
+                                      ILogger<DsstatsRatingCalcService> logger) 
+    : RatingCalcService(context, importOptions, logger)
 {
     protected override async Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest)
     {
@@ -29,6 +32,7 @@ public class DsstatsRatingCalcService(ReplayContext context, IOptions<DbImportOp
                 Maxkillsum = s.Maxkillsum,
                 GameMode = (int)s.GameMode,
                 TournamentEdition = s.TournamentEdition,
+                WinnerTeam = s.WinnerTeam,
                 Players = s.ReplayPlayers.Select(t => new RawPlayerCalcDto()
                 {
                     ReplayPlayerId = t.ReplayPlayerId,

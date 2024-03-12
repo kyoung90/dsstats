@@ -1490,11 +1490,22 @@ BEGIN
     ORDER BY Rating DESC, ArcadePlayerId;
 END
 ";
+            var CreateMaterializedArcadeReplays = @"CREATE PROCEDURE `CreateMaterializedArcadeReplays`()
+BEGIN
+	TRUNCATE TABLE MaterializedArcadeReplays;
+    INSERT INTO MaterializedArcadeReplays (ArcadeReplayId, CreatedAt, WinnerTeam, Duration, GameMode)
+    SELECT `a`.`ArcadeReplayId`, `a`.`CreatedAt`, `a`.`WinnerTeam`, `a`.`Duration`, `a`.`GameMode`
+    FROM `ArcadeReplays` AS `a`
+    WHERE (((((`a`.`CreatedAt` >= '2021-02-01') AND (`a`.`PlayerCount` = 6)) AND (`a`.`Duration` >= 300)) AND (`a`.`WinnerTeam` > 0)) AND NOT (`a`.`TournamentEdition`)) AND `a`.`GameMode` IN (3, 7, 4)
+    ORDER BY `a`.`CreatedAt`, `a`.`ArcadeReplayId`;
+END
+";
             migrationBuilder.Sql(SetArcadePlayerRatingPos);
             migrationBuilder.Sql(SetArcadeRaingChange);
             migrationBuilder.Sql(SetComboPlayerRatingPos);
             migrationBuilder.Sql(SetPlayerRatingPos);
             migrationBuilder.Sql(SetRatingChange);
+            migrationBuilder.Sql(CreateMaterializedArcadeReplays);
         }
 
         /// <inheritdoc />

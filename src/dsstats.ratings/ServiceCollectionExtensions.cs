@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRatings(this IServiceCollection services)
     {
         services.AddScoped<DsstatsRatingCalcService>();
-
+        services.AddScoped<ArcadeRatingCalcService>();
         return services;
     }
 }

@@ -171,6 +171,11 @@ public class ReplayContext : DbContext
             entity.HasIndex(i => new { i.GameMode, i.CreatedAt });
             entity.HasIndex(i => new { i.RegionId, i.GameMode, i.CreatedAt });
             entity.HasIndex(i => new { i.RegionId, i.BnetBucketId, i.BnetRecordId }).IsUnique();
+
+            entity.HasOne(o => o.Replay)
+            .WithMany(m => m.ArcadeReplays)
+            .HasForeignKey(f => f.ReplayId)
+            .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ArcadePlayer>(entity =>

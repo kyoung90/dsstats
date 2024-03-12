@@ -186,6 +186,7 @@ public record RawCalcDto
     public DateTime GameTime { get; init; }
     public int GameMode { get; set; }
     public int Duration { get; init; }
+    public int WinnerTeam {  get; init; }
     public int Maxkillsum { get; init; }
     public bool TournamentEdition { get; init; }
     public List<RawPlayerCalcDto> Players { get; init; } = new();
@@ -198,14 +199,17 @@ public record RawCalcDto
             GameTime = GameTime,
             GameMode = GameMode,
             Duration = Duration,
+            WinnerTeam = WinnerTeam,
             TournamentEdition = TournamentEdition,
             Players = Players.Select(s => new PlayerCalcDto()
             {
                 ReplayPlayerId = s.ReplayPlayerId,
                 GamePos = s.GamePos,
-                PlayerResult = s.PlayerResult,
-                IsLeaver = s.Duration < Duration - 90,
-                IsMvp = s.Kills == Maxkillsum,
+                PlayerResult = Sc2ArcadeReplayId > 0 ? 
+                    s.Team == WinnerTeam ? (int)PlayerResult.Win : (int)PlayerResult.Los
+                    : s.PlayerResult,
+                IsLeaver = Sc2ArcadeReplayId > 0 ? false : s.Duration < Duration - 90,
+                IsMvp = Sc2ArcadeReplayId > 0 ? false : s.Kills == Maxkillsum,
                 Team = s.Team,
                 Race = s.Race,
                 PlayerId = s.PlayerId,
