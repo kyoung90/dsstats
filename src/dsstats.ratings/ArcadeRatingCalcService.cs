@@ -32,6 +32,7 @@ public class ArcadeRatingCalcService(ReplayContext context,
                         Duration = r.Duration,
                         GameMode = (int)r.GameMode,
                         WinnerTeam = r.WinnerTeam,
+                        DsstatsReplayId = r.ReplayId,
                         Players = context.ArcadeReplayPlayers
                             .Where(x => x.ArcadeReplayId == r.ArcadeReplayId)
                             .Select(t => new PlayerCalcDto()

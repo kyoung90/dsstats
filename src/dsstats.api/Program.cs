@@ -156,7 +156,7 @@ context.Database.Migrate();
 var authContext = scope.ServiceProvider.GetRequiredService<DsAuthContext>();
 authContext.Database.Migrate();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
     var uploadSerivce = scope.ServiceProvider.GetRequiredService<UploadService>();
     uploadSerivce.ImportInit();
@@ -173,9 +173,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-    crawlerService.GetLobbyHistory(new DateTime(2024, 2, 10), default).Wait();
-    crawlerService.MapCalcReplays(new DateTime(2024, 2, 09)).Wait();
+    //var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
+    //crawlerService.GetLobbyHistory(new DateTime(2024, 2, 10), default).Wait();
+    //crawlerService.MapCalcReplays(new DateTime(2024, 2, 09)).Wait();
 
     //var dsstatsRatingCalcService = scope.ServiceProvider.GetRequiredService<DsstatsRatingCalcService>();
     //dsstatsRatingCalcService.ProduceRatings(new()
@@ -183,12 +183,12 @@ if (app.Environment.IsDevelopment())
     //    RatingType = RatingNgType.All
     //}).Wait();
 
-    //var arcadeRatingCalcService = scope.ServiceProvider.GetRequiredService<ArcadeRatingCalcService>();
-    //arcadeRatingCalcService.ProduceRatings(new()
-    //{
-    //    RatingType = RatingNgType.All,
-    //    Take = 100_000
-    //}).Wait();
+    var arcadeRatingCalcService = scope.ServiceProvider.GetRequiredService<ArcadeRatingCalcService>();
+    arcadeRatingCalcService.ProduceRatings(new()
+    {
+        RatingType = RatingNgType.All,
+        Take = 100_000
+    }).Wait();
 }
 
 // app.UseHttpsRedirection();

@@ -162,6 +162,7 @@ public class Replay
     {
         ReplayPlayers = new HashSet<ReplayPlayer>();
         Uploaders = new HashSet<Uploader>();
+        ArcadeReplays = new HashSet<ArcadeReplay>();
     }
 
     public int ReplayId { get; set; }

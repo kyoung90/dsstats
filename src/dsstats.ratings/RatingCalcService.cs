@@ -1,19 +1,15 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using dsstats.db8;
+﻿using dsstats.db8;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
-using System.Globalization;
 
 namespace dsstats.ratings;
 
-public abstract class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions, ILogger logger)
+public abstract partial class RatingCalcService(ReplayContext context, IOptions<DbImportOptions> importOptions, ILogger logger)
 {
-    private static readonly string mysqlDir = "/data/mysqlfiles";
     protected readonly ReplayContext context = context;
     protected readonly IOptions<DbImportOptions> importOptions = importOptions;
 
@@ -57,6 +53,13 @@ public abstract class RatingCalcService(ReplayContext context, IOptions<DbImport
 
         await SavePlayerRatings(request.MmrIdRatings, playerIds);
 
+        await Csv2Mysql(GetFileName("Players"), nameof(context.PlayerNgRatings), importOptions.Value.ImportConnectionString);
+        await Csv2Mysql(GetFileName("Replays"), nameof(context.ReplayNgRatings), importOptions.Value.ImportConnectionString);
+        await Csv2Mysql(GetFileName("ReplayPlayers"), nameof(context.ReplayPlayerNgRatings), importOptions.Value.ImportConnectionString);
+
+        // todo
+        // SetPlayerPos
+        // SetPlayerRatingChanges
     }
 
     private async Task SavePlayerRatings(Dictionary<int, Dictionary<PlayerId, CalcRating>> playerRatings,
@@ -86,33 +89,7 @@ public abstract class RatingCalcService(ReplayContext context, IOptions<DbImport
 
             }
         }
-        await SaveCsvFile(ratings, GetFileName(RatingCalcType.Dsstats, "Replays"), FileMode.Create);
-    }
-
-    private static PlayerNgRatingCsv GetPlayerRatingCsvLine(CalcRating calcRating,
-                                            int ratingType,
-                                            int line,
-                                            int playerId)
-    {
-        var main = calcRating.CmdrCounts
-            .OrderByDescending(o => o.Value)
-            .FirstOrDefault();
-        var maincount = main.Key == Commander.None ? 0 : main.Value;
-
-        return new()
-        {
-            PlayerNgRatingId = line,
-            RatingNgType = ratingType,
-            Rating = calcRating.Mmr,
-            Games = calcRating.Games,
-            Wins = calcRating.Wins,
-            Mvp = calcRating.Mvps,
-            MainCount = maincount,
-            MainCmdr = (int)main.Key,
-            Consistency = calcRating.Consistency,
-            Confidence = calcRating.Confidence,
-            PlayerId = playerId,
-        };
+        await SaveCsvFile(ratings, GetFileName("Players"), FileMode.Create);
     }
 
     protected virtual async Task SaveStepResult(List<shared.Calc.ReplayRatingDto> replayRatings,
@@ -153,29 +130,12 @@ public abstract class RatingCalcService(ReplayContext context, IOptions<DbImport
         }
 
         FileMode fileMode = append ? FileMode.Append : FileMode.Create;
-        await SaveCsvFile(replayCsvs, GetFileName(ratingRequest.RatingCalcType, "Replays"), fileMode);
-        await SaveCsvFile(replayPlayerCsvs, GetFileName(ratingRequest.RatingCalcType, "ReplayPlayers"), fileMode);
+        await SaveCsvFile(replayCsvs, GetFileName("Replays"), fileMode);
+        await SaveCsvFile(replayPlayerCsvs, GetFileName("ReplayPlayers"), fileMode);
     }
 
-    private async Task SaveCsvFile<T>(List<T> records, string fileName, FileMode fileMode)
-        where T : class, ICsvRecord, new()
-    {
-        using var stream = File.Open(fileName, fileMode);
-        using var writer = new StreamWriter(stream);
-        using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = false
-            });
-        await csv.WriteRecordsAsync(records);
-    }
 
-    private static string GetFileName(RatingCalcType calcType, string job)
-    {
-        var path = Path.Combine(mysqlDir, $"{calcType}_{job}.csv");
-        return path.Replace("\\", "/");
-    }
 }
-
 
 public record CalcRequest
 {
@@ -187,42 +147,5 @@ public record CalcRequest
     public int Take { get; set; } = 100_000;
 }
 
-internal interface ICsvRecord { };
 
-internal record ReplayNgRatingCsv : ICsvRecord
-{
-    public int ReplayNgRatingId { get; set; }
-    public int RatingNgType { get; set; }
-    public int LeaverType { get; set; }
-    public float Exp2Win { get; set; }
-    public int AvgRating { get; set; }
-    public bool IsPreRating { get; set; }
-    public int ReplayId { get; set; }
-}
 
-internal record ReplayPlayerNgRatingCsv : ICsvRecord
-{
-    public int ReplayPlayerNgRatingId { get; set; }
-    public float Rating { get; set; }
-    public float Change { get; set; }
-    public int Games { get; set; }
-    public float Consistency { get; set; }
-    public float Confidence { get; set; }
-    public int ReplayPlayerId { get; set; }
-}
-
-internal record PlayerNgRatingCsv : ICsvRecord
-{
-    public int PlayerNgRatingId { get; set; }
-    public int RatingNgType { get; set; }
-    public double Rating { get; set; }
-    public int Games { get; set; }
-    public int Wins { get; set; }
-    public double Consistency { get; set; }
-    public double Confidence { get; set; }
-    public int Pos { get; set; }
-    public int PlayerId { get; set; }
-    public int Mvp { get; set; }
-    public int MainCount { get; set; }
-    public int MainCmdr { get; set; }
-}
