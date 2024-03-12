@@ -10,6 +10,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<DsstatsRatingCalcService>();
         services.AddScoped<ArcadeRatingCalcService>();
+        services.AddScoped<ComboRatingCalcService>();
         return services;
     }
 }

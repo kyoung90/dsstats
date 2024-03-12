@@ -183,8 +183,15 @@ if (app.Environment.IsDevelopment())
     //    RatingType = RatingNgType.All
     //}).Wait();
 
-    var arcadeRatingCalcService = scope.ServiceProvider.GetRequiredService<ArcadeRatingCalcService>();
-    arcadeRatingCalcService.ProduceRatings(new()
+    //var arcadeRatingCalcService = scope.ServiceProvider.GetRequiredService<ArcadeRatingCalcService>();
+    //arcadeRatingCalcService.ProduceRatings(new()
+    //{
+    //    RatingType = RatingNgType.All,
+    //    Take = 100_000
+    //}).Wait();
+
+    var comboRatingCalcService = scope.ServiceProvider.GetRequiredService<ComboRatingCalcService>();
+    comboRatingCalcService.ProduceRatings(new()
     {
         RatingType = RatingNgType.All,
         Take = 100_000

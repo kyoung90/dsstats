@@ -27,8 +27,9 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
         {
             for (int i = 0; i < calcDtos.Count; i++)
             {
-                var rating = lib.Ratings.ProcessReplay(calcDtos[i], ratingRequest);
-                if (rating is not null)
+                var calcDto = calcDtos[i];
+                var rating = lib.Ratings.ProcessReplay(calcDto, ratingRequest);
+                if (!calcDto.IsArcade && rating is not null)
                 {
                     replayRatings.Add(rating);
                 }
