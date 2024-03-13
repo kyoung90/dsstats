@@ -179,7 +179,8 @@ if (app.Environment.IsDevelopment())
     //var dsstatsRatingCalcService = scope.ServiceProvider.GetRequiredService<DsstatsRatingCalcService>();
     //dsstatsRatingCalcService.ProduceRatings(new()
     //{
-    //    RatingType = RatingNgType.All
+    //    RatingType = RatingNgType.All,
+    //    GameModes = [GameMode.Standard, GameMode.Commanders, GameMode.CommandersHeroic, GameMode.BrawlCommanders]
     //}).Wait();
 
     //var arcadeRatingCalcService = scope.ServiceProvider.GetRequiredService<ArcadeRatingCalcService>();
@@ -193,6 +194,7 @@ if (app.Environment.IsDevelopment())
     comboRatingCalcService.ProduceRatings(new()
     {
         RatingType = RatingNgType.All,
+        GameModes = [GameMode.Standard, GameMode.Commanders, GameMode.CommandersHeroic, GameMode.BrawlCommanders],
         Take = 100_000
     }).Wait();
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Text;
 
 namespace dsstats.ratings;
 
@@ -14,7 +15,7 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
     protected readonly IOptions<DbImportOptions> importOptions = importOptions;
 
     protected abstract Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest);
-    protected abstract Task<CalcRatingRequest> GetCalcRatingRequestAsync(DateTime fromDate);
+    protected abstract Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(DateTime fromDate);
 
     public async Task ProduceRatings(CalcRequest request)
     {
@@ -22,30 +23,48 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
         var calcDtos = await GetCalcDtosAsync(request);
         var ratingRequest = await GetCalcRatingRequestAsync(request.FromDate);
 
-        List<shared.Calc.ReplayRatingDto> replayRatings = [];
+        List<ReplayNgRatingResult> replayRatings = [];
         while(calcDtos.Count > 0)
         {
             for (int i = 0; i < calcDtos.Count; i++)
             {
                 var calcDto = calcDtos[i];
-                var rating = lib.Ratings.ProcessReplay(calcDto, ratingRequest);
-                if (!calcDto.IsArcade && rating is not null)
+                var ratings = lib.RatingsNg.ProcessReplayNg(calcDto, ratingRequest);
+
+                if (calcDto.IsArcade)
                 {
-                    replayRatings.Add(rating);
+                    continue;
                 }
+
+                replayRatings.AddRange(ratings);
             }
             await SaveStepResult(replayRatings, ratingRequest);
             replayRatings.Clear();
+
+            // DebugMmrIdRatings(ratingRequest.MmrIdRatings);
 
             request.Skip += request.Take;
             calcDtos = await GetCalcDtosAsync(request);
         }
         await SaveResult(ratingRequest);
         sw.Stop();
-        logger.LogWarning("Raings produced in {time} min.", sw.Elapsed.ToString(@"mm\:ss"));
+        logger.LogWarning("Ratings produced in {time} min.", sw.Elapsed.ToString(@"mm\:ss"));
     }
 
-    protected virtual async Task SaveResult(CalcRatingRequest request)
+    private void DebugMmrIdRatings(Dictionary<int, Dictionary<PlayerId, CalcRating>> mmrIdRatings)
+    {
+        StringBuilder sb = new();
+        foreach (var ent in mmrIdRatings)
+        {
+            int count = ent.Value.Count;
+            int maxGames = ent.Value.Max(m => m.Value.Games);
+            int maxRating = Convert.ToInt32(ent.Value.Max(m => m.Value.Mmr));
+            sb.AppendLine($"{ent.Key} ({(RatingNgType)ent.Key}) => count: {count}, maxGames: {maxGames}, maxRating {maxRating}");
+        }
+        logger.LogWarning("debug: {info}", sb.ToString());
+    }
+
+    protected virtual async Task SaveResult(CalcRatingNgRequest request)
     {
         var playerIds = (await context.Players
             .Select(s => new { s.ToonId, s.RealmId, s.RegionId, s.PlayerId }).ToListAsync())
@@ -84,7 +103,7 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
 
                 i++;
 
-                var rating = GetPlayerRatingCsvLine(entCalc, ent.Key, i, playerId);
+                var rating = GetPlayerRatingCsvLine(entCalc, (RatingNgType)ent.Key, i, playerId);
 
                 ratings.Add(rating);
 
@@ -93,8 +112,8 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
         await SaveCsvFile(ratings, GetFileName("Players"), FileMode.Create);
     }
 
-    protected virtual async Task SaveStepResult(List<shared.Calc.ReplayRatingDto> replayRatings,
-                                                       CalcRatingRequest ratingRequest)
+    protected virtual async Task SaveStepResult(List<ReplayNgRatingResult> replayRatings,
+                                                       CalcRatingNgRequest ratingRequest)
     {
         bool append = ratingRequest.ReplayPlayerRatingAppendId > 0;
 
@@ -107,13 +126,13 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
             replayCsvs.Add(new()
             {
                 ReplayNgRatingId = ratingRequest.ReplayRatingAppendId,
-                RatingNgType = (int)rating.RatingType,
+                RatingNgType = (int)rating.RatingNgType,
                 LeaverType = (int)rating.LeaverType,
-                Exp2Win = MathF.Round(rating.ExpectationToWin, 2),
+                Exp2Win = MathF.Round(rating.Exp2Win, 2),
                 ReplayId = rating.ReplayId,
-                AvgRating = Convert.ToInt32(rating.RepPlayerRatings.Average(a => a.Rating))
+                AvgRating = Convert.ToInt32(rating.ReplayPlayerNgRatingResults.Average(a => a.Rating))
             });
-            foreach (var rp in rating.RepPlayerRatings)
+            foreach (var rp in rating.ReplayPlayerNgRatingResults)
             {
                 ratingRequest.ReplayPlayerRatingAppendId++;
 
@@ -121,11 +140,11 @@ public abstract partial class RatingCalcService(ReplayContext context, IOptions<
                 {
                     ReplayPlayerNgRatingId = ratingRequest.ReplayPlayerRatingAppendId,
                     Rating = MathF.Round(rp.Rating, 2),
-                    Change = MathF.Round(rp.RatingChange, 2),
+                    Change = MathF.Round(rp.Change, 2),
                     Games = rp.Games,
                     Consistency = MathF.Round(rp.Consistency, 2),
                     Confidence = MathF.Round(rp.Confidence, 2),
-                    ReplayPlayerId = rp.ReplayPlayerId,
+                    ReplayPlayerId = rp.ReplayPlayerId ?? 0,
                 });
             }
         }

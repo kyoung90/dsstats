@@ -175,7 +175,7 @@ public enum UnitColor
     Color1 = 1,
     Color2 = 2,
     Color3 = 3,
-    Color4= 4,
+    Color4 = 4,
     Color5 = 5,
     Color6 = 6,
     Color7 = 7,
@@ -197,17 +197,18 @@ public enum FaqLevel
     Advanced = 3
 }
 
+[Flags]
 public enum RatingNgType
 {
     None = 0,
-    All = 1,
-    CmdrAll = 2,
-    StdAll = 3,
-    Cmdr = 4,
-    Std = 5,
-    CmdrTE = 6,
-    StdTE = 7,
-    Brawl = 8,
-    Std1v1 = 9,
-    Cmdr1v1 = 10
+    All = 1 << 0,
+    Cmdr = 1 << 1,
+    Std = 1 << 2,
+    Brawl = 1 << 3,
+    Std1v1 = 1 << 4,
+    Cmdr1v1 = 1 << 5,
+    CmdrTE = 1 << 6,
+    StdTE = 1 << 7,
+    CmdrWithTE = 1 << 8,
+    StdWithTE = 1 << 9,
 }

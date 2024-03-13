@@ -80,6 +80,23 @@ public record PlayerCalcDto
 
 public static class ClacDtoExtensions
 {
+    public static RatingNgType GetRatingNgType(this CalcDto calcDto)
+    {
+        return (calcDto.TournamentEdition, (GameMode)calcDto.GameMode, calcDto.Players.Count) switch
+        {
+            (true, GameMode.Commanders, 6) => RatingNgType.All | RatingNgType.CmdrWithTE | RatingNgType.CmdrTE,
+            (true, GameMode.Standard, 6) => RatingNgType.All | RatingNgType.StdWithTE | RatingNgType.StdTE,
+            (false, GameMode.Commanders, 6) => RatingNgType.All | RatingNgType.CmdrWithTE | RatingNgType.Cmdr,
+            (false, GameMode.CommandersHeroic, 6) => RatingNgType.All | RatingNgType.CmdrWithTE | RatingNgType.Cmdr,
+            (false, GameMode.Standard, 6) => RatingNgType.All | RatingNgType.StdWithTE | RatingNgType.Std,
+            (false, GameMode.Commanders, 2) => RatingNgType.All | RatingNgType.Cmdr1v1,
+            (false, GameMode.CommandersHeroic, 2) => RatingNgType.All | RatingNgType.Cmdr1v1,
+            (false, GameMode.Standard, 2) => RatingNgType.All | RatingNgType.Std1v1,
+            (false, GameMode.BrawlCommanders, 6) => RatingNgType.All | RatingNgType.Brawl,
+            _ => RatingNgType.None
+        };
+    }
+
     public static int GetRatingType(this CalcDto calcDto)
     {
         if (calcDto.TournamentEdition && calcDto.GameMode == 3)

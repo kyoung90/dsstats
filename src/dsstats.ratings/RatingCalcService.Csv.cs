@@ -11,7 +11,7 @@ public abstract partial class RatingCalcService
     private static readonly string mysqlDir = "/data/mysqlfiles";
 
     private static PlayerNgRatingCsv GetPlayerRatingCsvLine(CalcRating calcRating,
-                                        int ratingType,
+                                        RatingNgType ratingType,
                                         int line,
                                         int playerId)
     {
@@ -23,7 +23,7 @@ public abstract partial class RatingCalcService
         return new()
         {
             PlayerNgRatingId = line,
-            RatingNgType = ratingType,
+            RatingNgType = (int)ratingType,
             Rating = calcRating.Mmr,
             Games = calcRating.Games,
             Wins = calcRating.Wins,

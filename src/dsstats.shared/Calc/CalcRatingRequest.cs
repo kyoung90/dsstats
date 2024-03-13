@@ -24,6 +24,15 @@ public record CalcRatingRequest
             }.ToFrozenDictionary();
 }
 
+public record CalcRatingNgRequest
+{
+    public MmrOptions MmrOptions { get; set; } = new();
+    public int ReplayRatingAppendId { get; set; }
+    public int ReplayPlayerRatingAppendId { get; set; }
+    public Dictionary<int, Dictionary<PlayerId, CalcRating>> MmrIdRatings { get; set; } = [];
+
+}
+
 public record MmrOptions
 {
     public readonly double consistencyImpact = 0.50;

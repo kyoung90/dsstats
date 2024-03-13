@@ -356,7 +356,7 @@ public static class Ratings
 
 public record CalcData
 {
-    public int RatingType { get; init; }
+    public int RatingType { get; set; }
     public int LeaverType { get; init; }
     public double LeaverImpact { get; init; }
     public List<PlayerCalcDto> WinnerTeam { get; init; } = new();

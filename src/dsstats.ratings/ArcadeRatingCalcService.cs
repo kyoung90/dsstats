@@ -73,18 +73,20 @@ public class ArcadeRatingCalcService(ReplayContext context,
         logger.LogWarning("materialized arcade replays produced in {time} ms", sw.ElapsedMilliseconds);
     }
 
-    protected override async Task<CalcRatingRequest> GetCalcRatingRequestAsync(DateTime fromDate)
+    protected override async Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(DateTime fromDate)
     {
-        return await Task.FromResult(new CalcRatingRequest()
+        return await Task.FromResult(new CalcRatingNgRequest()
         {
-            RatingCalcType = RatingCalcType.Arcade,
-            StarTime = fromDate,
             MmrIdRatings = new()
                     {
-                        { 1, new() },
-                        { 2, new() },
-                        { 3, new() },
-                        { 4, new() }
+                        { (int)RatingNgType.All, new() },
+                        { (int)RatingNgType.Cmdr, new() },
+                        { (int)RatingNgType.Std, new() },
+                        { (int)RatingNgType.Brawl, new() },
+                        { (int)RatingNgType.CmdrTE, new() },
+                        { (int)RatingNgType.StdTE, new() },
+                        { (int)RatingNgType.Std1v1, new() },
+                        { (int)RatingNgType.Cmdr1v1, new() },
                     },
         });
     }
