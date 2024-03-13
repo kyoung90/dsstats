@@ -164,7 +164,6 @@ if (app.Environment.IsProduction())
     var tourneyService = scope.ServiceProvider.GetRequiredService<ITourneysService>();
     tourneyService.SeedTourneys().Wait();
 }
-
 app.UseRateLimiter();
 
 // Configure the HTTP request pipeline.
