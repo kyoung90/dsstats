@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace dsstats.db8services.Import;
 
-public partial class ImportService
+public partial class ImportService : IImportService
 {
     private readonly IServiceProvider serviceProvider;
     private readonly ILogger<ImportService> logger;

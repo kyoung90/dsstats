@@ -44,7 +44,7 @@ public partial class UploadService
     private async ValueTask ConsumeUploadJobs()
     {
         using var scope = scopeFactory.CreateScope();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
         while (true)
         {
@@ -126,7 +126,7 @@ public partial class UploadService
         try
         {
             using var scope = scopeFactory.CreateScope();
-            var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+            var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
             List<int> playerIds = new();
             foreach (var rn in requestNames)

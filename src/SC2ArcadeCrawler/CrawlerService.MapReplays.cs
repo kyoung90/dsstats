@@ -185,7 +185,7 @@ public partial class CrawlerService
     }
 
 
-    private async Task<Dictionary<int, Player>> GetPlayerIds(ArcadeReplay arcadeReplay, ImportService importService, ReplayContext context)
+    private async Task<Dictionary<int, Player>> GetPlayerIds(ArcadeReplay arcadeReplay, IImportService importService, ReplayContext context)
     {
         Dictionary<int, int> idMap = [];
         foreach (var arcadeReplayPlayer in arcadeReplay.ArcadeReplayPlayers)

@@ -72,6 +72,7 @@ internal record ReplayNgRatingCsv : ICsvRecord
 internal record ReplayPlayerNgRatingCsv : ICsvRecord
 {
     public int ReplayPlayerNgRatingId { get; set; }
+    public int RatingNgType { get; set; }
     public float Rating { get; set; }
     public float Change { get; set; }
     public int Games { get; set; }
@@ -94,4 +95,13 @@ internal record PlayerNgRatingCsv : ICsvRecord
     public int Mvp { get; set; }
     public int MainCount { get; set; }
     public int MainCmdr { get; set; }
+}
+
+internal record PlayerNgRatingChangeCsv : ICsvRecord
+{
+    public int PlayerNgRatingChangeId { get; set; }
+    public float Change24h { get; set; }
+    public float Change10d { get; set; }
+    public float Change30d { get; set; }
+    public int PlayerNgRatingId { get; set; }
 }

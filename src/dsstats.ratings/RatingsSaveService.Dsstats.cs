@@ -83,7 +83,7 @@ public partial class RatingsSaveService
         using var scope = scopeFactory.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
 
-        // var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        // var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
         // var playerIds = await importService.GetPlayerIdDictionary();
 
         var playerIds = (await context.Players

@@ -70,6 +70,7 @@ public class Player
     {
         ReplayPlayers = new HashSet<ReplayPlayer>();
         PlayerRatings = new HashSet<PlayerRating>();
+        PlayerNgRatings = new HashSet<PlayerNgRating>();
     }
     public int PlayerId { get; set; }
     [MaxLength(50)]
@@ -85,6 +86,7 @@ public class Player
     public virtual Uploader? Uploader { get; set; }
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<PlayerRating> PlayerRatings { get; set; }
+    public virtual ICollection<PlayerNgRating> PlayerNgRatings { get; set; }
 }
 
 public class PlayerRating
@@ -163,6 +165,7 @@ public class Replay
         ReplayPlayers = new HashSet<ReplayPlayer>();
         Uploaders = new HashSet<Uploader>();
         ArcadeReplays = new HashSet<ArcadeReplay>();
+        ReplayNgRatings = new HashSet<ReplayNgRating>();
     }
 
     public int ReplayId { get; set; }
@@ -204,6 +207,7 @@ public class Replay
     public virtual ICollection<ReplayPlayer> ReplayPlayers { get; set; }
     public virtual ICollection<Uploader> Uploaders { get; set; }
     public virtual ICollection<ArcadeReplay> ArcadeReplays { get; set; }
+    public virtual ICollection<ReplayNgRating> ReplayNgRatings { get; set; }
 }
 
 public class ReplayPlayer
@@ -212,6 +216,7 @@ public class ReplayPlayer
     {
         Spawns = new HashSet<Spawn>();
         Upgrades = new HashSet<PlayerUpgrade>();
+        ReplayPlayerNgRatings = new HashSet<ReplayPlayerNgRating>();
     }
 
     public int ReplayPlayerId { get; set; }
@@ -248,6 +253,7 @@ public class ReplayPlayer
     public ComboReplayPlayerRating? ComboReplayPlayerRating { get; set; }
     public virtual ICollection<Spawn> Spawns { get; set; }
     public virtual ICollection<PlayerUpgrade> Upgrades { get; set; }
+    public virtual ICollection<ReplayPlayerNgRating> ReplayPlayerNgRatings { get; set; }
 }
 
 public class Spawn

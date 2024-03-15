@@ -368,7 +368,7 @@ public class RatingsTests
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
         using var md5 = MD5.Create();
         var replayDto = GetBasicReplayDto(md5);

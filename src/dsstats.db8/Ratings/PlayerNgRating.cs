@@ -34,6 +34,7 @@ public class ReplayNgRating
 public class ReplayPlayerNgRating
 {
     public int ReplayPlayerNgRatingId { get; set; }
+    public RatingNgType RatingNgType { get; set; }
     public float Rating { get; set; }
     public float Change { get; set; }
     public int Games { get; set; }
@@ -43,3 +44,12 @@ public class ReplayPlayerNgRating
     public virtual ReplayPlayer? ReplayPlayer { get; set; }
 }
 
+public class PlayerNgRatingChange
+{
+    public int PlayerNgRatingChangeId { get; set; }
+    public float Change24h { get; set; }
+    public float Change10d { get; set; }
+    public float Change30d { get; set; }
+    public int PlayerNgRatingId { get; set; }
+    public virtual PlayerNgRating? PlayerNgRating { get; set; }
+}

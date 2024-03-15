@@ -100,7 +100,7 @@ builder.Services.AddHttpClient("sc2arcardeClient")
 
 builder.Services.AddSingleton<IRatingService, RatingService>();
 builder.Services.AddSingleton<IRatingsSaveService, RatingsSaveService>();
-builder.Services.AddSingleton<ImportService>();
+builder.Services.AddSingleton<IImportService, ImportService>();
 builder.Services.AddSingleton<UploadService>();
 builder.Services.AddSingleton<PickBanService>();
 builder.Services.AddSingleton<AuthenticationFilterAttribute>();
@@ -173,8 +173,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
     //var crawlerService = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-    //crawlerService.GetLobbyHistory(new DateTime(2024, 2, 10), default).Wait();
-    //crawlerService.MapCalcReplays(new DateTime(2024, 2, 09)).Wait();
+    //crawlerService.GetLobbyHistory(new DateTime(2024, 3, 11), default).Wait();
+    //crawlerService.MapCalcReplays(DateTime.MinValue).Wait();
 
     //var dsstatsRatingCalcService = scope.ServiceProvider.GetRequiredService<DsstatsRatingCalcService>();
     //dsstatsRatingCalcService.ProduceRatings(new()

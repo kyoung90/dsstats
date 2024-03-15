@@ -27,7 +27,35 @@ BEGIN
     ORDER BY `a`.`CreatedAt`, `a`.`ArcadeReplayId`;
 END
 ";
+
+            var sql2 = @"DROP PROCEDURE IF EXISTS SetPlayerRatingNgPos;
+CREATE PROCEDURE `SetPlayerRatingNgPos`()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE rating_type INT;
+    DECLARE cur CURSOR FOR SELECT DISTINCT RatingNgType FROM PlayerNgRatings;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO rating_type;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET @pos = 0;
+        UPDATE PlayerNgRatings
+        SET Pos = (@pos:=@pos+1)
+        WHERE RatingNgType = rating_type
+        ORDER BY Rating DESC, PlayerId;
+    END LOOP;
+
+    CLOSE cur;
+END
+";
             migrationBuilder.Sql(sql);
+            migrationBuilder.Sql(sql2);
         }
 
         /// <inheritdoc />

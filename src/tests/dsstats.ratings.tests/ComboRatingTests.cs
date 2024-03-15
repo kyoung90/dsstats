@@ -211,7 +211,7 @@ public class ComboRatingsTests
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
         var ratingService = scope.ServiceProvider.GetRequiredService<IRatingService>();
 
         DateTime startTime = DateTime.UtcNow;

@@ -3,15 +3,17 @@ using dsstats.db8;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace dsstats.ratings;
 
 public class DsstatsRatingCalcService(ReplayContext context,
+                                      IServiceScopeFactory scopeFactory,
                                       IOptions<DbImportOptions> importOptions,
                                       ILogger<DsstatsRatingCalcService> logger) 
-    : RatingCalcService(context, importOptions, logger)
+    : RatingCalcService(context, scopeFactory, importOptions, logger)
 {
     protected override async Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest)
     {
@@ -55,7 +57,7 @@ public class DsstatsRatingCalcService(ReplayContext context,
         return rawDtos.Select(s => s.GetCalcDto()).ToList();
     }
 
-    protected override async Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(DateTime fromDate)
+    protected override async Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(List<CalcDto> calcDtos)
     {
         return await Task.FromResult(new CalcRatingNgRequest()
         {
@@ -73,5 +75,15 @@ public class DsstatsRatingCalcService(ReplayContext context,
                         { (int)RatingNgType.StdWithTE, new() }
                     },
         });
+    }
+
+    protected override Task<List<CalcDto>> GetContinueRatingCalcDtosAsync(CalcRequest calcRequest)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<List<CalcDto>> GetPreRatingCalcDtosAsync(CalcRequest calcRequest)
+    {
+        throw new NotImplementedException();
     }
 }

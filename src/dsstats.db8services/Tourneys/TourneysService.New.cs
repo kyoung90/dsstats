@@ -138,7 +138,7 @@ public partial class TourneysService
     private async Task ImportReplays(List<ReplayDto> replays)
     {
         using var scope = scopeFactory.CreateScope();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
         var result = await importService.Import(replays);
         Console.WriteLine($"{result.Imported} tourney replays imported.");

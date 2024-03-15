@@ -3,6 +3,7 @@ using dsstats.db8;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -11,9 +12,10 @@ using System.Diagnostics;
 namespace dsstats.ratings;
 
 public class ArcadeRatingCalcService(ReplayContext context,
+                                     IServiceScopeFactory scopeFactory,    
                                      IOptions<DbImportOptions> importOptions,
                                      ILogger<ArcadeRatingCalcService> logger) 
-    : RatingCalcService(context, importOptions, logger)
+    : RatingCalcService(context, scopeFactory, importOptions, logger)
 {
     protected override async Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest)
     {
@@ -73,7 +75,7 @@ public class ArcadeRatingCalcService(ReplayContext context,
         logger.LogWarning("materialized arcade replays produced in {time} ms", sw.ElapsedMilliseconds);
     }
 
-    protected override async Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(DateTime fromDate)
+    protected override async Task<CalcRatingNgRequest> GetCalcRatingRequestAsync(List<CalcDto> calcDtos)
     {
         return await Task.FromResult(new CalcRatingNgRequest()
         {
@@ -89,5 +91,15 @@ public class ArcadeRatingCalcService(ReplayContext context,
                         { (int)RatingNgType.Cmdr1v1, new() },
                     },
         });
+    }
+
+    protected override Task<List<CalcDto>> GetPreRatingCalcDtosAsync(CalcRequest calcRequest)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<List<CalcDto>> GetContinueRatingCalcDtosAsync(CalcRequest calcRequest)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -81,7 +81,7 @@ public class ImportSqliteTests
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         var replayRepository = scope.ServiceProvider.GetRequiredService<IReplayRepository>();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
         // context.Database.Migrate();
         context.Database.EnsureDeleted();
@@ -122,7 +122,7 @@ public class ImportSqliteTests
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ReplayContext>();
         var replayRepository = scope.ServiceProvider.GetRequiredService<IReplayRepository>();
-        var importService = scope.ServiceProvider.GetRequiredService<ImportService>();
+        var importService = scope.ServiceProvider.GetRequiredService<IImportService>();
 
         using var md5 = MD5.Create();
 
