@@ -21,6 +21,11 @@ public class ComboRatingCalcService(ReplayContext context,
 
     protected override async Task<List<CalcDto>> GetCalcDtosAsync(CalcRequest calcRequest)
     {
+        if (calcRequest.Skip == 0)
+        {
+            await context.Database.ExecuteSqlRawAsync("CALL CreateMaterializedArcadeReplays();");
+        }
+
         var query = from r in context.MaterializedArcadeReplays
                     orderby r.MaterializedArcadeReplayId
                     select new CalcDto()
