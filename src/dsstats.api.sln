@@ -23,9 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.ratings", "dsstats.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SC2ArcadeCrawler", "SC2ArcadeCrawler\SC2ArcadeCrawler.csproj", "{9F1DD2F4-21EF-41DC-9592-1E9846AD98D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dsstats.auth", "dsstats.auth\dsstats.auth.csproj", "{788E475D-6882-4654-AA8F-9300FD014EA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.auth", "dsstats.auth\dsstats.auth.csproj", "{788E475D-6882-4654-AA8F-9300FD014EA3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dsstats.authshared", "dsstats.web\dsstats.authshared\dsstats.authshared.csproj", "{9F061FCE-BECA-4E90-AD72-1BD8E3D5F26B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dsstats.ratingsng.tests", "tests\dsstats.ratingsng.tests\dsstats.ratingsng.tests.csproj", "{BF829383-FEBB-4F52-8265-BFD6AAD72311}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{9F061FCE-BECA-4E90-AD72-1BD8E3D5F26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F061FCE-BECA-4E90-AD72-1BD8E3D5F26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F061FCE-BECA-4E90-AD72-1BD8E3D5F26B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF829383-FEBB-4F52-8265-BFD6AAD72311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF829383-FEBB-4F52-8265-BFD6AAD72311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF829383-FEBB-4F52-8265-BFD6AAD72311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF829383-FEBB-4F52-8265-BFD6AAD72311}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

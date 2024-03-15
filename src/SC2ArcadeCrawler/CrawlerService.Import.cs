@@ -11,12 +11,12 @@ public partial class CrawlerService
     private Dictionary<PlayerId, int> arcadePlayerIds = new();
     private Dictionary<ArcadeReplayId, bool> arcadeReplayIds = new();
 
-    private async Task ImportArcadeReplays(CrawlInfo crawlInfo, CancellationToken token)
+    public async Task ImportArcadeReplays(CrawlInfo crawlInfo, CancellationToken token)
     {
         await SeedPlayerIds();
         await SeedReplayIds();
 
-        List<ArcadeReplay> replays = new();
+        List<ArcadeReplay> replays = [];
 
         foreach (var result in crawlInfo.Results)
         {
@@ -52,7 +52,7 @@ public partial class CrawlerService
             var winners = result.Match.ProfileMatches.Where(f => f.Decision == "win").ToList();
             var losers = result.Match.ProfileMatches.Except(winners).ToList();
 
-            if (!winners.Any())
+            if (winners.Count == 0)
             {
                 continue;
             }
@@ -94,19 +94,22 @@ public partial class CrawlerService
             else
             {
                 crawlInfo.Errors++;
-                logger.LogInformation($"could not determine winnerteam: BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}");
+                string message = $"could not determine winnerteam: BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}";
+                logger.LogInformation("{message}", message);
                 // continue;
             }
 
             if (result.Match.ProfileMatches.Any(a => a.Profile.ProfileId == 0))
             {
-                logger.LogInformation($"replay with MatchProfiles ProfileId == 0: RegionId {crawlInfo.RegionId}, BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}");
+                string message = $"replay with MatchProfiles ProfileId == 0: RegionId {crawlInfo.RegionId}, BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}";
+                logger.LogInformation("{message}", message);
                 continue;
             }
 
             if (result.Slots.Any(a => a.Profile?.ProfileId == 0))
             {
-                logger.LogInformation($"replay with SlotsProfiles ProfileId == 0: RegionId {crawlInfo.RegionId}, BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}");
+                string message = $"replay with SlotsProfiles ProfileId == 0: RegionId {crawlInfo.RegionId}, BnetBucketId {result.BnetBucketId}, BnetRecordId {result.BnetRecordId}";
+                logger.LogInformation("{message}", message);
                 continue;
             }
 

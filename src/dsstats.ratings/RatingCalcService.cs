@@ -27,32 +27,32 @@ public abstract partial class RatingCalcService(ReplayContext context,
     public async Task ProduceRatings(CalcRequest request)
     {
         Stopwatch sw = Stopwatch.StartNew();
-        //var calcDtos = await GetCalcDtosAsync(request);
-        //var ratingRequest = await GetCalcRatingRequestAsync([]);
+        var calcDtos = await GetCalcDtosAsync(request);
+        var ratingRequest = await GetCalcRatingRequestAsync([]);
 
-        //List<ReplayNgRatingResult> replayRatings = [];
-        //while (calcDtos.Count > 0)
-        //{
-        //    for (int i = 0; i < calcDtos.Count; i++)
-        //    {
-        //        var calcDto = calcDtos[i];
-        //        var ratings = lib.RatingsNg.ProcessReplayNg(calcDto, ratingRequest);
+        List<ReplayNgRatingResult> replayRatings = [];
+        while (calcDtos.Count > 0)
+        {
+            for (int i = 0; i < calcDtos.Count; i++)
+            {
+                var calcDto = calcDtos[i];
+                var ratings = lib.RatingsNg.ProcessReplayNg(calcDto, ratingRequest);
 
-        //        if (calcDto.IsArcade)
-        //        {
-        //            continue;
-        //        }
+                if (calcDto.IsArcade)
+                {
+                    continue;
+                }
 
-        //        replayRatings.AddRange(ratings);
-        //    }
-        //    await SaveStepResult(replayRatings, ratingRequest);
-        //    replayRatings.Clear();
+                replayRatings.AddRange(ratings);
+            }
+            await SaveStepResult(replayRatings, ratingRequest);
+            replayRatings.Clear();
 
-        //    request.Skip += request.Take;
-        //    calcDtos = await GetCalcDtosAsync(request);
-        //}
-        //await SaveResult(ratingRequest);
-        //await SetPlayerRatingPos();
+            request.Skip += request.Take;
+            calcDtos = await GetCalcDtosAsync(request);
+        }
+        await SaveResult(ratingRequest);
+        await SetPlayerRatingPos();
         await SetPlayerRatingChanges();
         sw.Stop();
         logger.LogWarning("Ratings produced in {time} min.", sw.Elapsed.ToString(@"mm\:ss"));

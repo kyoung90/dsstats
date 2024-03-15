@@ -1,4 +1,5 @@
 ﻿using dsstats.db8.Ratings;
+using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -225,6 +226,14 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<Faq>(entity =>
         {
             entity.HasIndex(i => i.Question);
+        });
+
+        modelBuilder.Entity<PlayerNgRating>(entity =>
+        {
+            entity.Property(p => p.Mvp).HasDefaultValue(0);
+            entity.Property(p => p.MainCount).HasDefaultValue(0);
+            entity.Property(p => p.MainCmdr).HasDefaultValue(Commander.None);
+            entity.Property(p => p.Pos).HasDefaultValue(0);
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)
