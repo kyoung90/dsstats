@@ -11,6 +11,7 @@ namespace dsstats.api.Controllers;
 public class StatsController : Controller
 {
     private readonly IWinrateService winrateService;
+    private readonly IWinrateNgService winrateNgService;
     private readonly ITimelineService timelineService;
     private readonly ISynergyService synergyService;
     private readonly IDurationService durationService;
@@ -19,6 +20,7 @@ public class StatsController : Controller
     private readonly ITeamcompService teamcompService;
 
     public StatsController(IWinrateService winrateService,
+                           IWinrateNgService winrateNgService,
                            ITimelineService timelineService,
                            ISynergyService synergyService,
                            IDurationService durationService,
@@ -27,6 +29,7 @@ public class StatsController : Controller
                            ITeamcompService teamcompService)
     {
         this.winrateService = winrateService;
+        this.winrateNgService = winrateNgService;
         this.timelineService = timelineService;
         this.synergyService = synergyService;
         this.durationService = durationService;
@@ -40,6 +43,13 @@ public class StatsController : Controller
     public async Task<WinrateResponse> GetWinrate(WinrateRequest request, CancellationToken token = default)
     {
         return await winrateService.GetWinrate(request, token);
+    }
+
+    [HttpPost]
+    [Route("winrateng")]
+    public async Task<WinrateResponse> GetWinrateNg(WinrateNgRequest request, CancellationToken token = default)
+    {
+        return await winrateNgService.GetWinrate(request, token);
     }
 
     [HttpPost]

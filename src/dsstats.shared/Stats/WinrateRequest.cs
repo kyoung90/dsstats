@@ -41,20 +41,9 @@ public enum WinrateType
     AvgRating = 3,
 }
 
-//public static class WinrateRequestExtension
-//{
-//    public static string GenMemKey(this WinrateRequest request)
-//    {
-//        StringBuilder sb = new();
-//        sb.Append("StatsWinrate");
-//        sb.Append(request.Filter.Exp2Win?.FromExp2Win.ToString());
-//        sb.Append(request.TimePeriod.ToString());
-//        sb.Append(request.Filter.Exp2Win?.ToExp2Win.ToString());
-//        sb.Append(request.RatingType.ToString());
-//        sb.Append(request.Filter.Rating?.FromRating.ToString());
-//        sb.Append(request.Interest.ToString());
-//        sb.Append(request.Filter.Rating?.ToRating.ToString());
-//        sb.Append(request.ComboRating);
-//        return sb.ToString();
-//    }
-//}
+public record WinrateNgRequest : StatsRequest
+{
+    public WinrateType WinrateType { get; set; }
+    public RatingNgType RatingNgType { get; set; }
+
+}

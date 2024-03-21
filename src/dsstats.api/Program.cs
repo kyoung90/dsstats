@@ -129,6 +129,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 
+builder.Services.AddStats();
 builder.Services.AddRatings();
 
 //builder.Services.AddScoped<EMailService>();
@@ -190,13 +191,13 @@ if (app.Environment.IsDevelopment())
     //    Take = 100_000
     //}).Wait();
 
-    var comboRatingCalcService = scope.ServiceProvider.GetRequiredService<ComboRatingCalcService>();
-    comboRatingCalcService.ProduceRatings(new()
-    {
-        RatingType = RatingNgType.All,
-        GameModes = [GameMode.Standard, GameMode.Commanders, GameMode.CommandersHeroic, GameMode.BrawlCommanders],
-        Take = 100_000
-    }).Wait();
+    //var comboRatingCalcService = scope.ServiceProvider.GetRequiredService<ComboRatingCalcService>();
+    //comboRatingCalcService.ProduceRatings(new()
+    //{
+    //    RatingType = RatingNgType.All,
+    //    GameModes = [GameMode.Standard, GameMode.Commanders, GameMode.CommandersHeroic, GameMode.BrawlCommanders],
+    //    Take = 100_000
+    //}).Wait();
 }
 
 // app.UseHttpsRedirection();

@@ -8,7 +8,8 @@
 <PageTitle>dsstats - winrate</PageTitle>
 
 @* <dsstats.razorlib.Stats.Winrate.WinrateComponent Request="Request" OnRequestChanged="SetParameters"/> *@
-<dsstats.razorlib.Stats.Winrate.WinrateInComponent Request="Request" OnRequestChanged="SetParameters" />
+@* <dsstats.razorlib.Stats.Winrate.WinrateInComponent Request="Request" OnRequestChanged="SetParameters" /> *@
+<dsstats.razorlib.Stats.Winrate.WinrateNgComponent Request="Request" OnRequestChanged="SetParameters" />
 
 @code {
     [SupplyParameterFromQuery(Name = "timePeriod")]
