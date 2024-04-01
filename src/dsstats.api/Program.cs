@@ -7,6 +7,7 @@ using dsstats.db8.AutoMapper;
 using dsstats.db8services;
 using dsstats.db8services.DsData;
 using dsstats.db8services.Import;
+using dsstats.db8services.Ratings;
 using dsstats.ratings;
 using dsstats.shared;
 using dsstats.shared.Interfaces;
@@ -128,6 +129,8 @@ builder.Services.AddScoped<IUnitmapService, UnitmapService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDsDataService, DsDataService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
+
+builder.Services.AddScoped<IRatingsService, RatingsService>();
 
 builder.Services.AddStats();
 builder.Services.AddRatings();

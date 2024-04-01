@@ -20,3 +20,28 @@ public record ReplayPlayerNgRatingResult
     public float Confidence { get; set; }
     public int? ReplayPlayerId { get; set; }
 }
+
+public record RatingsNgRequest
+{
+    public RatingNgType RatingNgType { get; set; }
+    public int Skip { get; set; }
+    public int Take { get; set; }
+    public List<TableOrder> Orders { get; set; } = [];
+}
+
+public record RatingsNgResult
+{
+    public List<PlayerRatingNgListDto> Ratings { get; init; } = [];
+}
+
+public record PlayerRatingNgListDto
+{
+    public double Rating { get; set; }
+    public int Games { get; set; }
+    public int Wins { get; set; }
+    public int Pos { get; set; }
+    public PlayerDto Player { get; set; } = new();
+    public int Mvp { get; set; }
+    public int MainCount { get; set; }
+    public Commander MainCmdr { get; set; }
+}

@@ -1,4 +1,5 @@
 using AutoMapper;
+using dsstats.db8.Ratings;
 using dsstats.shared;
 
 namespace dsstats.db8.AutoMapper;
@@ -98,5 +99,7 @@ public class AutoMapperProfile : Profile
         CreateMap<Faq, FaqDto>(MemberList.Destination);
         CreateMap<FaqDto, Faq>(MemberList.Source)
             .ForSourceMember(s => s.FaqId, opt => opt.DoNotValidate());
+
+        CreateMap<PlayerNgRating, PlayerRatingNgListDto>(MemberList.Destination);
     }
 }

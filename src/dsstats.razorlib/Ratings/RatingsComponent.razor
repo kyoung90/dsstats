@@ -1,0 +1,258 @@
+﻿@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using System.Globalization
+@using dsstats.razorlib.Services
+@using dsstats.shared
+@using dsstats.shared.Interfaces
+@inject IRatingsService ratingsService
+
+<div class="row">
+    <div class="col-auto">
+        <div style="width: 75vw; max-width: 1025px;">
+            <div class="d-flex justify-content-between">
+                <div>
+                    @if (isLoading)
+                    {
+                        <div class="spinner-border spinner-border-sm text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    }
+                </div>
+                <div class="me-1">
+                    <div class="d-flex">
+                        <div>
+                            <span class="bi bi-arrow-clockwise text-secondary pointer" @onclick="Reload"></span>
+                        </div>
+                        <div class="ms-2">
+                            # @ratingsCount.ToString("N0")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tableFixHead table-responsive" style="max-height: 80vh; max-width: 1075px;">
+
+            <table class="tptable table">
+                <thead class="" style="user-select: none;">
+                    <CascadingValue Value="Request.Orders">
+                        <tr>
+                            <th class="pointer" @onclick="@(e => SortList(e, "Pos"))">
+                                <SortArrow Property="Pos">
+                                    #
+                                </SortArrow>
+                            </th>
+                            <th class="pointer" @onclick="@(e => SortList(e, "Region"))">
+                                <SortArrow Property="Region">
+                                    <div class="text-center">
+                                        <span class="bi bi-globe rounded-circle bg-primary p-1"></span>
+                                    </div>
+                                </SortArrow>
+                            </th>
+                            <th class="pointer text-info" @onclick="@(e => SortList(e, "Name"))">
+                                <SortArrow Property="Name">
+                                    Name
+                                </SortArrow>
+                            </th>
+                            <th class="pointer text-info" style="width: 90px;" @onclick="@(e => SortList(e, "Main"))">
+                                <SortArrow Property="Main">
+                                    Main
+                                </SortArrow>
+                            </th>
+                            <th class="pointer text-info" @onclick="@(e => SortList(e, "MainCount"))">
+                                <SortArrow Property="MainCount">
+                                    Main %
+                                </SortArrow>
+                            </th>
+                            <th class="pointer" @onclick="@(e => SortList(e, "Games"))">
+                                <SortArrow Property="Games">
+                                    Games
+                                </SortArrow>
+                            </th>
+                            <th class="pointer text-warning" @onclick="@(e => SortList(e, "Rating"))">
+                                <SortArrow Property="Rating">
+                                    Rating
+                                </SortArrow>
+                            </th>
+                            @*                             <th class="pointer" style="z-index: 1;" @onclick="@(e => SortList(e, ratingChangeSort))">
+                            <SortArrow Property="@ratingChangeSort">
+                            <div class="d-flex justifly-content-between">
+                            <div class="allign-self-center">
+                            <i class="bi bi-arrow-down-up"></i>
+                            </div>
+                            <div class="ms-1">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                            @onclick:stopPropagation @onclick="RotateChangeTime">
+                            @GetChangeString()
+                            </button>
+                            </div>
+                            </div>
+                            </SortArrow>
+                            </th> *@
+                            <th class="pointer" @onclick="@(e => SortList(e, "Wins"))">
+                                <SortArrow Property="Wins">
+                                    Winrate
+                                </SortArrow>
+                            </th>
+                            <th class="pointer" @onclick="@(e => SortList(e, "Mvp"))">
+                                <SortArrow Property="Mvp">
+                                    Mvp
+                                </SortArrow>
+                            </th>
+                        </tr>
+                    </CascadingValue>
+                </thead>
+                <tbody>
+                    @if (ratingsCount == 0)
+                    {
+                        <tr height="41px;">
+                            <td colspan="10">No Data found.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <Virtualize @ref="virtualize" Context="rating" ItemsProvider="LoadRatings" OverscanCount="10"
+                                    ItemSize="41" SpacerElement="tr">
+                            <ItemContent>
+                                <tr height="41px;">
+                                    <td>
+                                        <span class="text-truncate text-warning"
+                                              style="display: block; width: 40px;">
+                                            @rating.Pos
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span>@Data.GetRegionString(rating.Player.RegionId)</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate text-info"
+                                              style="display: block; width: 130px;">@rating.Player.Name</span>
+                                    </td>
+                                    <td>
+                                        @(rating.Games == 0 || rating.MainCount * 100.0 /
+                                        rating.Games < 10.5 ? "Random" :
+                                        rating.MainCmdr.ToString())
+                                    </td>
+                                    <td>
+                                        @HelperService.GetPercentageString(rating.MainCount,
+                                             rating.Games)
+                                    </td>
+                                    <td class="border-start">@rating.Games</td>
+                                    <td class="text-warning">
+                                        @rating.Rating.ToString("N2", CultureInfo.InvariantCulture)
+                                    </td>
+                                    @*                                     <td>
+                                @if (rating.PlayerRating.PlayerRatingChange != null)
+                                {
+                                var ratingChange = Request.TimePeriod switch
+                                {
+                                RatingChangeTimePeriod.Past24h => rating.PlayerRating.PlayerRatingChange.Change24h,
+                                RatingChangeTimePeriod.Past10Days => rating.PlayerRating.PlayerRatingChange.Change10d,
+                                _ => rating.PlayerRating.PlayerRatingChange.Change30d
+                                };
+                                <span class="@(ratingChange >= 0 ? "bi bi-arrow-top text-success" : "bi bi-arrow-bottom text-danger")">
+                                @ratingChange.ToString("N2", CultureInfo.InvariantCulture)
+                                </span>
+                                }
+                                </td>
+                                *@
+                                    <td>
+                                        @HelperService.GetPercentageString(rating.Wins, rating.Games)
+                                    </td>
+                                    <td>
+                                        @HelperService.GetPercentageString(rating.Mvp, rating.Games)
+                                    </td>
+                                </tr>
+                            </ItemContent>
+                            <Placeholder>
+                                <tr height="41px">
+                                    <td colspan="10">Loading ...</td>
+                                </tr>
+                            </Placeholder>
+                        </Virtualize>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RatingsNgRequest Request { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<RatingsNgRequest> OnRequestChanged { get; set; }
+
+    bool isLoading = false;
+    private int ratingsCount;
+
+    private Virtualize<PlayerRatingNgListDto>? virtualize;
+
+    protected override void OnInitialized()
+    {
+        _ = SetRatingsCount();
+        base.OnInitialized();
+    }
+
+    private async Task SetRatingsCount()
+    {
+        ratingsCount = await ratingsService.GetRatingsCount(Request, default);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public async Task Reload()
+    {
+        isLoading = true;
+        await InvokeAsync(() => StateHasChanged());
+        await SetRatingsCount();
+        if (virtualize != null)
+        {
+            await virtualize.RefreshDataAsync();
+        }
+        isLoading = false;
+        await InvokeAsync(() => StateHasChanged());
+        await OnRequestChanged.InvokeAsync(Request);
+    }
+
+    private async ValueTask<ItemsProviderResult<PlayerRatingNgListDto>> LoadRatings(ItemsProviderRequest request)
+    {
+        var numRatings = Math.Min(request.Count, ratingsCount - request.StartIndex);
+        Request.Skip = request.StartIndex;
+        Request.Take = numRatings;
+
+        if (Request.Skip < 0 || Request.Take < 0)
+        {
+            return new ItemsProviderResult<PlayerRatingNgListDto>();
+        }
+        var result = await ratingsService.GetRatings(Request, request.CancellationToken);
+        return new ItemsProviderResult<PlayerRatingNgListDto>(result.Ratings, ratingsCount);
+    }
+
+    private async Task SortList(MouseEventArgs e, string property)
+    {
+        var exOrder = Request.Orders.FirstOrDefault(f => f.Property == property);
+        if (e.ShiftKey)
+        {
+            if (exOrder == null)
+            {
+                Request.Orders.Add(new TableOrder()
+                    {
+                        Property = property
+                    });
+            }
+            else
+            {
+                exOrder.Ascending = !exOrder.Ascending;
+            }
+        }
+        else
+        {
+            Request.Orders.Clear();
+            Request.Orders.Add(new TableOrder()
+                {
+                    Property = property,
+                    Ascending = exOrder == null ? false : !exOrder.Ascending
+                });
+        }
+        await Reload();
+    }
+}

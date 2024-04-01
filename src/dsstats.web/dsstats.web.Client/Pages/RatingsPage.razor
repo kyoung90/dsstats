@@ -1,0 +1,11 @@
+﻿@page "/ratingsng"
+@using dsstats.shared
+
+<dsstats.razorlib.Ratings.RatingsComponent Request="Request" />
+
+@code {
+    RatingsNgRequest Request = new()
+    {
+        RatingNgType = RatingNgType.Cmdr
+    };
+}
