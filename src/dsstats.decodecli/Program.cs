@@ -19,6 +19,10 @@ class Program
 
     static async Task Main(string[] args)
     {
+        Tourney.GetMessageEvents().Wait();
+        return;
+
+
         if (args.Length > 0)
         {
             await Tourney.CreateTourneyJsons(args[0]);
