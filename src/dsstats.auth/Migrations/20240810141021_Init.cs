@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace dsstats.auth
+namespace dsstats.auth.Migrations
 {
     /// <inheritdoc />
     public partial class Init : Migration
@@ -196,6 +196,31 @@ namespace dsstats.auth
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "DsProfile",
+                columns: table => new
+                {
+                    DsProfileId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ToonId = table.Column<int>(type: "int", nullable: false),
+                    RealmId = table.Column<int>(type: "int", nullable: false),
+                    RegionId = table.Column<int>(type: "int", nullable: false),
+                    DsUserId = table.Column<string>(type: "varchar(255)", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DsProfile", x => x.DsProfileId);
+                    table.ForeignKey(
+                        name: "FK_DsProfile_AspNetUsers_DsUserId",
+                        column: x => x.DsUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -232,6 +257,11 @@ namespace dsstats.auth
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DsProfile_DsUserId",
+                table: "DsProfile",
+                column: "DsUserId");
         }
 
         /// <inheritdoc />
@@ -251,6 +281,9 @@ namespace dsstats.auth
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "DsProfile");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

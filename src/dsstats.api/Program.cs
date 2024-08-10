@@ -50,10 +50,10 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 // Add services to the container.
-var serverVersion = new MySqlServerVersion(new System.Version(5, 7, 44));
-var connectionString = builder.Configuration["ServerConfig:DsstatsConnectionString"];
-var importConnectionString = builder.Configuration["ServerConfig:ImportConnectionString"];
-var authConnectionString = builder.Configuration["ServerConfig:DsAuthConnectionString"];
+var serverVersion = new MySqlServerVersion(new Version(8, 4, 2));
+var connectionString = builder.Configuration["ServerConfig:Dsstats8ConnectionString"];
+var importConnectionString = builder.Configuration["ServerConfig:Import8ConnectionString"];
+var authConnectionString = builder.Configuration["ServerConfig:DsAuth8ConnectionString"];
 var userRolesConfig = builder.Configuration.GetSection("ServerConfig:Auth:UserRoles");
 var userRoles = userRolesConfig.Get<Dictionary<string, List<string>>>();
 
@@ -66,7 +66,7 @@ builder.Services.AddDbContext<ReplayContext>(options =>
     {
         p.CommandTimeout(30);
         p.EnableRetryOnFailure();
-        p.MigrationsAssembly("MysqlMigrations");
+        p.MigrationsAssembly("Mysql8Migrations");
         p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
     })
     //.EnableDetailedErrors()

@@ -2,11 +2,13 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using dsstats.auth;
 
 #nullable disable
 
-namespace dsstats.auth
+namespace dsstats.auth.Migrations
 {
     [DbContext(typeof(DsAuthContext))]
     partial class DsAuthContextModelSnapshot : ModelSnapshot
@@ -15,8 +17,10 @@ namespace dsstats.auth
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -50,6 +54,8 @@ namespace dsstats.auth
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("ClaimType")
                         .HasColumnType("longtext");
 
@@ -72,6 +78,8 @@ namespace dsstats.auth
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("longtext");
@@ -146,7 +154,38 @@ namespace dsstats.auth
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("dsstats.api.AuthContext.DsUser", b =>
+            modelBuilder.Entity("dsstats.auth.DsProfile", b =>
+                {
+                    b.Property<int>("DsProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("DsProfileId"));
+
+                    b.Property<string>("DsUserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("RealmId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RegionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToonId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DsProfileId");
+
+                    b.HasIndex("DsUserId");
+
+                    b.ToTable("DsProfile");
+                });
+
+            modelBuilder.Entity("dsstats.auth.DsUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
@@ -221,7 +260,7 @@ namespace dsstats.auth
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("dsstats.api.AuthContext.DsUser", null)
+                    b.HasOne("dsstats.auth.DsUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -230,7 +269,7 @@ namespace dsstats.auth
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("dsstats.api.AuthContext.DsUser", null)
+                    b.HasOne("dsstats.auth.DsUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -245,7 +284,7 @@ namespace dsstats.auth
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("dsstats.api.AuthContext.DsUser", null)
+                    b.HasOne("dsstats.auth.DsUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -254,11 +293,23 @@ namespace dsstats.auth
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("dsstats.api.AuthContext.DsUser", null)
+                    b.HasOne("dsstats.auth.DsUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("dsstats.auth.DsProfile", b =>
+                {
+                    b.HasOne("dsstats.auth.DsUser", null)
+                        .WithMany("Profiles")
+                        .HasForeignKey("DsUserId");
+                });
+
+            modelBuilder.Entity("dsstats.auth.DsUser", b =>
+                {
+                    b.Navigation("Profiles");
                 });
 #pragma warning restore 612, 618
         }

@@ -89,7 +89,7 @@ public record DsstatsAuthOptions
 {
     public string AuthConnectionString { get; set; } = string.Empty;
     public MySqlServerVersion MySqlServerVersion { get; set; } =
-        new MySqlServerVersion(new Version(5, 7, 44));
+        new MySqlServerVersion(new Version(8, 4, 1));
     public string Email { get; set; } = string.Empty;
     public string Smtp { get; set; } = string.Empty;
     public int Port { get; set; }
