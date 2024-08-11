@@ -87,7 +87,7 @@ public partial class RatingService
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 120;
+            command.CommandTimeout = 300;
             command.CommandText = "CALL CreateMaterializedArcadeReplays();";
 
             await command.ExecuteNonQueryAsync();

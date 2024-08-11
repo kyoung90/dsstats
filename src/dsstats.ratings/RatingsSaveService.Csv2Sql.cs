@@ -7,6 +7,8 @@ namespace dsstats.ratings;
 
 public partial class RatingsSaveService
 {
+    private readonly int commandTimeout = 600;
+
     private async Task Csv2Mysql(string fileName,
                             string tableName,
                             string connectionString)
@@ -26,7 +28,7 @@ public partial class RatingsSaveService
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 420;
+            command.CommandTimeout = commandTimeout;
 
             command.CommandText = @$"
 DROP TABLE IF EXISTS {tempTable};
@@ -66,7 +68,7 @@ SET FOREIGN_KEY_CHECKS = 1;";
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 360;
+            command.CommandTimeout = commandTimeout;
 
             command.CommandText = @$"
 SET FOREIGN_KEY_CHECKS = 0;
@@ -93,7 +95,7 @@ SET FOREIGN_KEY_CHECKS = 1;";
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 420;
+            command.CommandTimeout = commandTimeout;
 
             command.CommandText = @$"ALTER TABLE {nameof(ReplayContext.PlayerRatingChanges)} DROP FOREIGN KEY FK_PlayerRatingChanges_PlayerRatings_PlayerRatingId;
 ALTER TABLE {nameof(ReplayContext.PlayerRatingChanges)} ADD CONSTRAINT FK_PlayerRatingChanges_PlayerRatings_PlayerRatingId
@@ -137,7 +139,7 @@ FOREIGN KEY (ArcadePlayerRatingId) REFERENCES {nameof(ReplayContext.ArcadePlayer
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 420;
+            command.CommandTimeout = commandTimeout;
 
             command.CommandText = @$"ALTER TABLE {nameof(ReplayContext.RepPlayerRatings)} DROP INDEX `IX_RepPlayerRatings_ReplayPlayerId`;
 ALTER TABLE {nameof(ReplayContext.RepPlayerRatings)} DROP INDEX `IX_RepPlayerRatings_ReplayRatingInfoId`;
@@ -159,7 +161,7 @@ ALTER TABLE {nameof(ReplayContext.RepPlayerRatings)} DROP INDEX `IX_RepPlayerRat
             await connection.OpenAsync();
 
             var command = connection.CreateCommand();
-            command.CommandTimeout = 420;
+            command.CommandTimeout = commandTimeout;
 
             command.CommandText = @$"CREATE UNIQUE INDEX `IX_RepPlayerRatings_ReplayPlayerId` ON {nameof(ReplayContext.RepPlayerRatings)} ({nameof(RepPlayerRating.ReplayPlayerId)});
 CREATE INDEX `IX_RepPlayerRatings_ReplayRatingInfoId` ON {nameof(ReplayContext.RepPlayerRatings)} ({nameof(RepPlayerRating.ReplayRatingInfoId)});";

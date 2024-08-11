@@ -24,6 +24,7 @@
     <ProjectReference Include="..\dsstats.ratings\dsstats.ratings.csproj" />
     <ProjectReference Include="..\dsstats.shared\dsstats.shared.csproj" />
     <ProjectReference Include="..\SC2ArcadeCrawler\SC2ArcadeCrawler.csproj" />
+    <ProjectReference Include="..\Mysql8Migrations\Mysql8Migrations.csproj" />
   </ItemGroup>
 
 </Project>
