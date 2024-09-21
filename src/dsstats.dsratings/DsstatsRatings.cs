@@ -14,7 +14,7 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
             .Where(x => x.Playercount == 6
              && x.Duration >= 300
              && x.WinnerTeam > 0
-             && request.GameModes.Contains(x.GameMode)
+             // && request.GameModes.Contains(x.GameMode)
              && x.TournamentEdition == false
              && x.GameTime >= request.Start)
             .OrderBy(o => o.GameTime)
