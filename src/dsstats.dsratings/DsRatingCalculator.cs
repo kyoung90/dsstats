@@ -9,7 +9,7 @@ public abstract class DsRatingCalculator
     public async Task CalculateRatings()
     {
         var replaysRequest = new CalcReplaysRequest() { Skip = 0, Take = 5000 };
-        var ratingRequest = new CalcRatingRequest()
+        var ratingRequest = new CalcDsRatingRequest()
         {
             RatingCalcType = RatingCalcType.Dsstats,
             MmrIdRatings = new()
@@ -47,9 +47,9 @@ public abstract class DsRatingCalculator
 
 
     public abstract Task<List<CalcDto>> GetReplays(CalcReplaysRequest request);
-    public abstract ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcRatingRequest request);
-    public abstract Task SavePlayerRatings(CalcRatingRequest request);
-    public abstract Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcRatingRequest request);
+    public abstract ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcDsRatingRequest request);
+    public abstract Task SavePlayerRatings(CalcDsRatingRequest request);
+    public abstract Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcDsRatingRequest request);
 
 }
 
@@ -71,7 +71,7 @@ public record ReplayDsRatingResult
     public List<ReplayPlayerDsRatingResult> PlayerRatings { get; init; } = [];
 }
 
-public class ReplayPlayerDsRatingResult
+public class PlayerDsRatingResult
 {
     public int Games { get; set; }
     public int Wins { get; set; }
@@ -84,4 +84,15 @@ public class ReplayPlayerDsRatingResult
     public int WinStreak { get; set; }
     public int LoseStreak { get; set; }
     public int CurrentStreak { get; set; }
+}
+
+public record ReplayPlayerDsRatingResult
+{
+    public int GamePos { get; init; }
+    public float Rating { get; init; }
+    public float RatingChange { get; init; }
+    public int Games { get; init; }
+    public float Consistency { get; init; }
+    public float Confidence { get; init; }
+    public int ReplayPlayerId { get; init; }
 }

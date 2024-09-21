@@ -2,6 +2,8 @@
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Frozen;
+using System.Text.Json;
 namespace dsstats.dsratings;
 
 public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
@@ -47,17 +49,21 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
         return rawDtos.Select(s => s.GetCalcDto()).ToList();
     }
 
-    public override ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcRatingRequest request)
+    public override ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcDsRatingRequest request)
     {
-        throw new NotImplementedException();
+        var result = DsstatsReplayProcessor.ProcessReplay(replay, request);
+        return result;
     }
 
-    public override async Task SavePlayerRatings(CalcRatingRequest request)
+    public override async Task SavePlayerRatings(CalcDsRatingRequest request)
     {
         await Task.Delay(1000);
+        var topRatings = request.MmrIdRatings[(int)RatingType.Std].Values.OrderByDescending(o => o.Mmr).ToList();
+        var json = JsonSerializer.Serialize(topRatings, new JsonSerializerOptions() { WriteIndented = true });
+        File.WriteAllText("/data/ds/dsratings.json", json);
     }
 
-    public override async Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcRatingRequest request)
+    public override async Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcDsRatingRequest request)
     {
         await Task.Delay(1000);
     }
@@ -110,4 +116,46 @@ public record RawPlayerCalcDto
     public Commander Race { get; init; }
     public PlayerId PlayerId { get; init; } = null!;
     public bool IsUploader { get; set; }
+}
+
+public record CalcDsRatingRequest
+{
+    public RatingCalcType RatingCalcType { get; init; }
+    public bool Continue { get; set; }
+    public DateTime StarTime { get; set; }
+    public MmrOptions MmrOptions { get; set; } = new();
+    public List<CalcDto> CalcDtos { get; set; } = new();
+    public int ReplayRatingAppendId { get; set; }
+    public int ReplayPlayerRatingAppendId { get; set; }
+    public Dictionary<int, Dictionary<PlayerId, CalcDsRating>> MmrIdRatings { get; set; } = [];
+    public FrozenDictionary<PlayerId, bool> BannedPlayers { get; init; } = new Dictionary<PlayerId, bool>()
+            {
+                { new(466786, 2, 2), true }, // SabreWolf
+                { new(9774911, 1, 2), true }, // Baka
+                { new(3768192, 1, 1), true } // Henz
+            }.ToFrozenDictionary();
+    public FrozenDictionary<PlayerId, bool> SoftBannedPlayers { get; init; } = new Dictionary<PlayerId, bool>()
+    {
+
+    }.ToFrozenDictionary();
+}
+
+public record CalcDsRating
+{
+    public PlayerId PlayerId { get; set; } = new();
+    public int Games { get; set; }
+    public int Wins { get; set; }
+    public int Mvps { get; set; }
+    public double Mmr { get; set; }
+    public double Consistency { get; set; }
+    public double Confidence { get; set; }
+    public bool IsUploader { get; set; }
+    public double PeakRating { get; set; }
+    public int WinStreak { get; set; }
+    public int LoseStreak { get; set; }
+    public int CurrentStreak { get; set; }
+    public int Duration { get; set; }
+    public List<double> RecentRatingGain { get; set; } = [];
+    public Dictionary<Commander, int> CmdrCounts { get; set; } = [];
+    public DateTime LatestReplay { get; set; }
 }
