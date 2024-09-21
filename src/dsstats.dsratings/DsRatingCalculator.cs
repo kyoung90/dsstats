@@ -47,7 +47,7 @@ public abstract class DsRatingCalculator
 
 
     public abstract Task<List<CalcDto>> GetReplays(CalcReplaysRequest request);
-    public abstract ReplayDsRatingResult ProcessReplay(CalcDto replay, CalcRatingRequest request);
+    public abstract ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcRatingRequest request);
     public abstract Task SavePlayerRatings(CalcRatingRequest request);
     public abstract Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcRatingRequest request);
 
@@ -55,15 +55,17 @@ public abstract class DsRatingCalculator
 
 public record CalcReplaysRequest
 {
+    public DateTime Start { get; set; } = new DateTime(2021, 2, 1);
+    public List<GameMode> GameModes { get; set; } = [GameMode.Standard];
     public int Skip { get; set; }
     public int Take { get; set; }
 }
 
 public record ReplayDsRatingResult
 {
-    public int RatingType { get; set; }
-    public int LeaverType { get; init; }
-    public double ExpectationToWin { get; init; } // WinnerTeam
+    public RatingType RatingType { get; set; }
+    public LeaverType LeaverType { get; set; }
+    public double ExpectationToWin { get; set; } // WinnerTeam
     public int ReplayId { get; set; }
     public bool IsPreRating { get; set; }
     public List<ReplayPlayerDsRatingResult> PlayerRatings { get; init; } = [];
