@@ -47,8 +47,8 @@ public class UploadTests
         var jsonStrg = File.ReadAllText("/data/localserverconfig.json");
         var json = JsonSerializer.Deserialize<JsonElement>(jsonStrg);
         var config = json.GetProperty("ServerConfig");
-        var connectionString = config.GetProperty("TestConnectionString").GetString();
-        var importConnectionString = config.GetProperty("ImportTestConnectionString").GetString() ?? "";
+        var connectionString = config.GetProperty("Test8ConnectionString").GetString();
+        var importConnectionString = config.GetProperty("ImportTest8ConnectionString").GetString() ?? "";
 
         services.AddOptions<DbImportOptions>()
             .Configure(x =>
@@ -62,7 +62,7 @@ public class UploadTests
             options.UseMySql(connectionString, serverVersion, p =>
             {
                 p.CommandTimeout(300);
-                p.MigrationsAssembly("MysqlMigrations");
+                p.MigrationsAssembly("Mysql8Migrations");
                 p.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
             });
         });
