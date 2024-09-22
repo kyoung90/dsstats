@@ -12,7 +12,7 @@ using dsstats.db8;
 namespace Mysql8Migrations.Migrations
 {
     [DbContext(typeof(ReplayContext))]
-    [Migration("20240922080334_DsRatings")]
+    [Migration("20240922175305_DsRatings")]
     partial class DsRatings
     {
         /// <inheritdoc />
@@ -1293,8 +1293,8 @@ namespace Mysql8Migrations.Migrations
                     b.Property<int>("MainCmdr")
                         .HasColumnType("int");
 
-                    b.Property<double>("MainPercentage")
-                        .HasColumnType("double");
+                    b.Property<float>("MainPercentage")
+                        .HasColumnType("FLOAT(8, 2)");
 
                     b.Property<double>("Mmr")
                         .HasColumnType("double");
@@ -1302,8 +1302,8 @@ namespace Mysql8Migrations.Migrations
                     b.Property<int>("Mvps")
                         .HasColumnType("int");
 
-                    b.Property<double>("PeakRating")
-                        .HasColumnType("double");
+                    b.Property<float>("PeakRating")
+                        .HasColumnType("FLOAT(8, 2)");
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
@@ -1311,8 +1311,8 @@ namespace Mysql8Migrations.Migrations
                     b.Property<int>("RatingType")
                         .HasColumnType("int");
 
-                    b.Property<double>("RecentRatingGain")
-                        .HasColumnType("double");
+                    b.Property<float>("RecentRatingGain")
+                        .HasColumnType("FLOAT(8, 2)");
 
                     b.Property<int>("WinStreak")
                         .HasColumnType("int");

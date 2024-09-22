@@ -125,7 +125,7 @@ public static class ReplayProcessor
         {
             rating.RecentRatingGain.RemoveAt(0);
         }
-        rating.RecentRatingGain.Add(Math.Round(mmrDelta, 2));
+        rating.RecentRatingGain.Add(mmrDelta);
     }
 
     private static void UpdateStreak(CalcDsRating rating, int playerResult)

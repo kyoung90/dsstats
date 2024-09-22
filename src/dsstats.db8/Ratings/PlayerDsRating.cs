@@ -14,9 +14,12 @@ public class PlayerDsRating
     public double Mmr { get; set; }
     public double Consistency { get; set; }
     public double Confidence { get; set; }
+    [Column(TypeName = "FLOAT(8, 2)")]
     public double PeakRating { get; set; }
+    [Column(TypeName = "FLOAT(8, 2)")]
     public double RecentRatingGain { get; set; }
     public Commander MainCmdr { get; set; }
+    [Column(TypeName = "FLOAT(8, 2)")]
     public double MainPercentage { get; set; }
     public int WinStreak { get; set; }
     public int LoseStreak { get; set; }

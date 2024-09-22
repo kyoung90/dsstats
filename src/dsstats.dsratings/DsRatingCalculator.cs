@@ -56,7 +56,7 @@ public abstract class DsRatingCalculator
 public record CalcReplaysRequest
 {
     public DateTime Start { get; set; } = new DateTime(2021, 2, 1);
-    public List<GameMode> GameModes { get; set; } = [GameMode.Standard];
+    public List<GameMode> GameModes { get; set; } = [GameMode.Standard, GameMode.CommandersHeroic, GameMode.Commanders];
     public int Skip { get; set; }
     public int Take { get; set; }
 }
