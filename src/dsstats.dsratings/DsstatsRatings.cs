@@ -1,9 +1,9 @@
 ﻿using dsstats.db8;
+using dsstats.db8.Ratings;
 using dsstats.shared;
 using dsstats.shared.Calc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Frozen;
-using System.Text.Json;
 namespace dsstats.dsratings;
 
 public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
@@ -58,10 +58,77 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
 
     public override async Task SavePlayerRatings(CalcDsRatingRequest request)
     {
-        await Task.Delay(1000);
-        var topRatings = request.MmrIdRatings[(int)RatingType.Std].Values.OrderByDescending(o => o.Mmr).Take(100).ToList();
-        var json = JsonSerializer.Serialize(topRatings, new JsonSerializerOptions() { WriteIndented = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals });
-        File.WriteAllText("/data/ds/dsratings.json", json);
+        var playerIds = (await context.Players
+            .Select(s => new { PlayerId = new PlayerId(s.ToonId, s.RealmId, s.RegionId), Id = s.PlayerId })
+            .ToListAsync())
+            .ToDictionary(k => k.PlayerId, v => v.Id);
+
+        var ratingIds = (await context.PlayerDsRatings.Select(s => new { s.PlayerId, s.RatingType, s.PlayerDsRatingId })
+            .ToListAsync()).ToDictionary(k => new RatingKey(k.PlayerId, k.RatingType), v => v.PlayerDsRatingId);
+
+        int i = 0;
+        foreach (var ent in request.MmrIdRatings)
+        {
+            RatingType ratingType = (RatingType)ent.Key;
+            foreach (var ratingEnt in request.MmrIdRatings[ent.Key])
+            {
+                if (!playerIds.TryGetValue(ratingEnt.Key, out var playerId)
+                    || playerId == 0)
+                {
+                    continue;
+                }
+                var playerRating = ratingEnt.Value;
+
+                (Commander mainCmdr, double mainPercentage) = GetMainInfo(playerRating.CmdrCounts);
+
+                if (!ratingIds.TryGetValue(new RatingKey(playerId, ratingType), out var playerRatingId))
+                {
+                    playerRatingId = 0;
+                }
+
+                PlayerDsRating rating = new()
+                {
+                    PlayerDsRatingId = playerRatingId,
+                    PlayerId = playerId,
+                    RatingType = ratingType,
+                    Games = playerRating.Games,
+                    Wins = playerRating.Wins,
+                    Mvps = playerRating.Mvps,
+                    Mmr = playerRating.Mmr,
+                    Consistency = playerRating.Consistency,
+                    Confidence = playerRating.Confidence,
+                    PeakRating = playerRating.PeakRating,
+                    RecentRatingGain = playerRating.RecentRatingGain.Count == 0 ? 0
+                        : playerRating.RecentRatingGain.Average(),
+                    MainCmdr = mainCmdr,
+                    MainPercentage = mainPercentage,
+                    WinStreak = playerRating.WinStreak,
+                    LoseStreak = playerRating.LoseStreak,
+                    CurrentStreak = playerRating.CurrentStreak,
+                    Duration = playerRating.Duration,
+                    LatestReplay = playerRating.LatestReplay,
+                };
+                context.Update(rating);
+                i++;
+                if (i % 1000 == 0)
+                {
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+        await context.SaveChangesAsync();
+    }
+
+    private (Commander mainCmdr, double mainPercentage) GetMainInfo(Dictionary<Commander, int> cmdrCounts)
+    {
+        if (cmdrCounts.Count == 0)
+        {
+            return (Commander.None, 0);
+        }
+
+        double sum = cmdrCounts.Values.Sum();
+        var max = cmdrCounts.OrderByDescending(o => o.Value).First();
+        return (max.Key, Math.Round(max.Value * 100.0 / sum, 2));
     }
 
     public override async Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcDsRatingRequest request)
@@ -162,3 +229,5 @@ public record CalcDsRating
     public Dictionary<Commander, int> CmdrCounts { get; set; } = [];
     public DateTime LatestReplay { get; set; }
 }
+
+internal record RatingKey(int PlayerId, RatingType RatingType);

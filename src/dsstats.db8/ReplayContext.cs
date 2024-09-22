@@ -1,67 +1,68 @@
-﻿using dsstats.shared;
+﻿using dsstats.db8.Ratings;
+using dsstats.shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace dsstats.db8;
 
 public class ReplayContext : DbContext
 {
-    public virtual DbSet<Uploader> Uploaders { get; set; } = null!;
-    public virtual DbSet<BattleNetInfo> BattleNetInfos { get; set; } = null!;
-    public virtual DbSet<Player> Players { get; set; } = null!;
-    public virtual DbSet<NoUploadResult> NoUploadResults { get; set; } = null!;
-    public virtual DbSet<PlayerRating> PlayerRatings { get; set; } = null!;
-    public virtual DbSet<PlayerRatingChange> PlayerRatingChanges { get; set; } = null!;
-    public virtual DbSet<Replay> Replays { get; set; } = null!;
-    public virtual DbSet<ReplayPlayer> ReplayPlayers { get; set; } = null!;
-    public virtual DbSet<ReplayRating> ReplayRatings { get; set; } = null!;
-    public virtual DbSet<RepPlayerRating> RepPlayerRatings { get; set; } = null!;
-    public virtual DbSet<PlayerUpgrade> PlayerUpgrades { get; set; } = null!;
-    public virtual DbSet<Spawn> Spawns { get; set; } = null!;
-    public virtual DbSet<SpawnUnit> SpawnUnits { get; set; } = null!;
-    public virtual DbSet<Unit> Units { get; set; } = null!;
-    public virtual DbSet<Upgrade> Upgrades { get; set; } = null!;
-    public virtual DbSet<ReplayEvent> ReplayEvents { get; set; } = null!;
-    public virtual DbSet<Event> Events { get; set; } = null!;
-    public virtual DbSet<ReplayViewCount> ReplayViewCounts { get; set; } = null!;
-    public virtual DbSet<ReplayDownloadCount> ReplayDownloadCounts { get; set; } = null!;
-    public virtual DbSet<SkipReplay> SkipReplays { get; set; } = null!;
-    public virtual DbSet<CommanderMmr> CommanderMmrs { get; set; } = null!;
-    public virtual DbSet<GroupByHelper> GroupByHelpers { get; set; } = null!;
-    public virtual DbSet<FunStatsMemory> FunStatMemories { get; set; } = null!;
-    public virtual DbSet<ArcadeReplay> ArcadeReplays { get; set; } = null!;
-    public virtual DbSet<MaterializedArcadeReplay> MaterializedArcadeReplays { get; set; } = null!;
-    public virtual DbSet<ArcadeReplayDsPlayer> ArcadeReplayDsPlayers { get; set; } = null!;
-    public virtual DbSet<ArcadeReplayRating> ArcadeReplayRatings { get; set; } = null!;
-    public virtual DbSet<ArcadePlayerRating> ArcadePlayerRatings { get; set; } = null!;
-    public virtual DbSet<ArcadeReplayDsPlayerRating> ArcadeReplayDsPlayerRatings { get; set; } = null!;
-    public virtual DbSet<ArcadePlayerRatingChange> ArcadePlayerRatingChanges { get; set; } = null!;
-    public virtual DbSet<DsUpdate> DsUpdates { get; set; } = null!;
-    public virtual DbSet<DsUnit> DsUnits { get; set; } = null!;
-    public virtual DbSet<DsWeapon> DsWeapons { get; set; } = null!;
-    public virtual DbSet<BonusDamage> BonusDamages { get; set; } = null!;
-    public virtual DbSet<DsAbility> DsAbilities { get; set; } = null!;
-    public virtual DbSet<DsUpgrade> DsUpgrades { get; set; } = null!;
-    public virtual DbSet<ReplayArcadeMatch> ReplayArcadeMatches { get; set; } = null!;
+    public DbSet<Uploader> Uploaders { get; set; }
+    public DbSet<BattleNetInfo> BattleNetInfos { get; set; }
+    public DbSet<Player> Players { get; set; }
+    public DbSet<NoUploadResult> NoUploadResults { get; set; }
+    public DbSet<PlayerRating> PlayerRatings { get; set; }
+    public DbSet<PlayerRatingChange> PlayerRatingChanges { get; set; }
+    public DbSet<Replay> Replays { get; set; }
+    public DbSet<ReplayPlayer> ReplayPlayers { get; set; }
+    public DbSet<ReplayRating> ReplayRatings { get; set; }
+    public DbSet<RepPlayerRating> RepPlayerRatings { get; set; }
+    public DbSet<PlayerUpgrade> PlayerUpgrades { get; set; }
+    public DbSet<Spawn> Spawns { get; set; }
+    public DbSet<SpawnUnit> SpawnUnits { get; set; }
+    public DbSet<Unit> Units { get; set; }
+    public DbSet<Upgrade> Upgrades { get; set; }
+    public DbSet<ReplayEvent> ReplayEvents { get; set; }
+    public DbSet<Event> Events { get; set; }
+    public DbSet<ReplayViewCount> ReplayViewCounts { get; set; }
+    public DbSet<ReplayDownloadCount> ReplayDownloadCounts { get; set; }
+    public DbSet<SkipReplay> SkipReplays { get; set; }
+    public DbSet<CommanderMmr> CommanderMmrs { get; set; }
+    public DbSet<GroupByHelper> GroupByHelpers { get; set; }
+    public DbSet<FunStatsMemory> FunStatMemories { get; set; }
+    public DbSet<ArcadeReplay> ArcadeReplays { get; set; }
+    public DbSet<MaterializedArcadeReplay> MaterializedArcadeReplays { get; set; }
+    public DbSet<ArcadeReplayDsPlayer> ArcadeReplayDsPlayers { get; set; }
+    public DbSet<ArcadeReplayRating> ArcadeReplayRatings { get; set; }
+    public DbSet<ArcadePlayerRating> ArcadePlayerRatings { get; set; }
+    public DbSet<ArcadeReplayDsPlayerRating> ArcadeReplayDsPlayerRatings { get; set; }
+    public DbSet<ArcadePlayerRatingChange> ArcadePlayerRatingChanges { get; set; }
+    public DbSet<DsUpdate> DsUpdates { get; set; }
+    public DbSet<DsUnit> DsUnits { get; set; }
+    public DbSet<DsWeapon> DsWeapons { get; set; }
+    public DbSet<BonusDamage> BonusDamages { get; set; }
+    public DbSet<DsAbility> DsAbilities { get; set; }
+    public DbSet<DsUpgrade> DsUpgrades { get; set; }
+    public DbSet<ReplayArcadeMatch> ReplayArcadeMatches { get; set; }
 
-    public virtual DbSet<ComboPlayerRating> ComboPlayerRatings { get; set; } = null!;
-    public virtual DbSet<ComboReplayRating> ComboReplayRatings { get; set; } = null!;
-    public virtual DbSet<ComboReplayPlayerRating> ComboReplayPlayerRatings { get; set; } = null!;
-    public virtual DbSet<Faq> Faqs { get; set; } = null!;
-    public virtual DbSet<FaqVote> FaqVotes { get; set; } = null!;
-    public virtual DbSet<IhSession> IhSessions { get; set; } = null!;
-    public virtual DbSet<IhSessionPlayer> IhSessionPlayers { get; set; } = null!;
-    public virtual DbSet<DsPickBan> DsPickBans { get; set; } = null!;
+    public DbSet<ComboPlayerRating> ComboPlayerRatings { get; set; }
+    public DbSet<ComboReplayRating> ComboReplayRatings { get; set; }
+    public DbSet<ComboReplayPlayerRating> ComboReplayPlayerRatings { get; set; }
+    public DbSet<Faq> Faqs { get; set; }
+    public DbSet<FaqVote> FaqVotes { get; set; }
+    public DbSet<IhSession> IhSessions { get; set; }
+    public DbSet<IhSessionPlayer> IhSessionPlayers { get; set; }
+    public DbSet<DsPickBan> DsPickBans { get; set; }
+    public DbSet<PlayerDsRating> PlayerDsRatings { get; set; }
+    public DbSet<ReplayPlayerDsRating> ReplayPlayerDsRatings { get; set; }
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
 
-    public virtual DbSet<StreakInfo> StreakInfos { get; set; } = null!;
+    public virtual DbSet<StreakInfo> StreakInfos { get; set; }
 
     public ReplayContext(DbContextOptions<ReplayContext> options)
     : base(options)
@@ -237,6 +238,11 @@ public class ReplayContext : DbContext
         modelBuilder.Entity<MaterializedArcadeReplay>(entity =>
         {
             entity.HasIndex(i => i.CreatedAt);
+        });
+
+        modelBuilder.Entity<PlayerDsRating>(entity =>
+        {
+            entity.HasIndex(i => new { i.PlayerId, i.RatingType }).IsUnique();
         });
 
         MethodInfo weekMethodInfo = typeof(ReplayContext)
