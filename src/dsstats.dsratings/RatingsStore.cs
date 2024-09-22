@@ -175,13 +175,17 @@ public static class RatingsStore
 DROP TABLE IF EXISTS {tempTable};
 DROP TABLE IF EXISTS {oldTable};
 CREATE TABLE {tempTable} LIKE {tableName};
+SET SQL_LOG_BIN=0;
 SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE {tempTable} DISABLE KEYS;
 LOAD DATA INFILE '{fileName}' INTO TABLE {tempTable}
 COLUMNS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '""' ESCAPED BY '""' LINES TERMINATED BY '\r\n';
+ALTER TABLE {tempTable} ENABLE KEYS;
 
 RENAME TABLE {tableName} TO {oldTable}, {tempTable} TO {tableName};
 DROP TABLE {oldTable};
-SET FOREIGN_KEY_CHECKS = 1;";
+SET FOREIGN_KEY_CHECKS = 1;
+SET SQL_LOG_BIN=1;";
 
             await command.ExecuteNonQueryAsync();
 
