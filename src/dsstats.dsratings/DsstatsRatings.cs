@@ -14,7 +14,7 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
             .Where(x => x.Playercount == 6
              && x.Duration >= 300
              && x.WinnerTeam > 0
-             // && request.GameModes.Contains(x.GameMode)
+             && request.GameModes.Contains(x.GameMode)
              && x.TournamentEdition == false
              && x.GameTime >= request.Start)
             .OrderBy(o => o.GameTime)
@@ -27,6 +27,7 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
                 Maxkillsum = s.Maxkillsum,
                 GameMode = (int)s.GameMode,
                 TournamentEdition = false,
+                WinnerTeam = s.WinnerTeam,
                 Players = s.ReplayPlayers.Select(t => new RawPlayerCalcDto()
                 {
                     ReplayPlayerId = t.ReplayPlayerId,
@@ -51,15 +52,15 @@ public class DsstatsRatings(ReplayContext context) : DsRatingCalculator
 
     public override ReplayDsRatingResult? ProcessReplay(CalcDto replay, CalcDsRatingRequest request)
     {
-        var result = DsstatsReplayProcessor.ProcessReplay(replay, request);
+        var result = ReplayProcessor.ProcessReplay(replay, request);
         return result;
     }
 
     public override async Task SavePlayerRatings(CalcDsRatingRequest request)
     {
         await Task.Delay(1000);
-        var topRatings = request.MmrIdRatings[(int)RatingType.Std].Values.OrderByDescending(o => o.Mmr).ToList();
-        var json = JsonSerializer.Serialize(topRatings, new JsonSerializerOptions() { WriteIndented = true });
+        var topRatings = request.MmrIdRatings[(int)RatingType.Std].Values.OrderByDescending(o => o.Mmr).Take(100).ToList();
+        var json = JsonSerializer.Serialize(topRatings, new JsonSerializerOptions() { WriteIndented = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals });
         File.WriteAllText("/data/ds/dsratings.json", json);
     }
 
@@ -77,6 +78,7 @@ public record RawCalcDto
     public int GameMode { get; set; }
     public int Duration { get; init; }
     public int Maxkillsum { get; init; }
+    public int WinnerTeam { get; init; }
     public bool TournamentEdition { get; init; }
     public List<RawPlayerCalcDto> Players { get; init; } = new();
 
@@ -88,6 +90,7 @@ public record RawCalcDto
             GameTime = GameTime,
             GameMode = GameMode,
             Duration = Duration,
+            WinnerTeam = WinnerTeam,
             TournamentEdition = TournamentEdition,
             Players = Players.Select(s => new PlayerCalcDto()
             {
