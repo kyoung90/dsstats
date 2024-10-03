@@ -15,7 +15,6 @@ public class DsstatsRatings(ReplayContext context, IOptions<DbImportOptions> imp
              && x.Duration >= 300
              && x.WinnerTeam > 0
              && request.GameModes.Contains(x.GameMode)
-             && x.TournamentEdition == false
              && x.GameTime >= request.Start)
             .OrderBy(o => o.GameTime)
                 .ThenBy(o => o.ReplayId)
@@ -66,7 +65,7 @@ public class DsstatsRatings(ReplayContext context, IOptions<DbImportOptions> imp
 
     public override async Task SaveStepResult(List<ReplayDsRatingResult> replayRatings, CalcDsRatingRequest request)
     {
-        await Task.Delay(1000);
+        await RatingsStore.StoreStepResult(replayRatings, request);
     }
 }
 

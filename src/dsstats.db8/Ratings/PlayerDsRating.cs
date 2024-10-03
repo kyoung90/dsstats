@@ -47,3 +47,16 @@ public class ReplayPlayerDsRating
     public int ReplayPlayerId { get; set; }
     public ReplayPlayer? ReplayPlayer { get; set; }
 }
+
+public class ReplayDsRating
+{
+    public int ReplayDsRatingId { get; set; }
+    public RatingType RatingType { get; set; }
+    public LeaverType LeaverType { get; set; }
+    [Column(TypeName = "FLOAT(6, 2)")]
+    public float ExpectationToWin { get; set; }
+    public bool IsPreRating { get; set; }
+    public int AvgRating { get; set; }
+    public int ReplayId { get; set; }
+    public Replay? Replay { get; set; }
+}

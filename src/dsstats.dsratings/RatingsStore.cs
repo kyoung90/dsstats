@@ -12,6 +12,58 @@ namespace dsstats.dsratings;
 public static class RatingsStore
 {
     private static readonly int commandTimeout = 600;
+
+    public static async Task StoreStepResult(List<ReplayDsRatingResult> replayRatingResults, CalcDsRatingRequest request)
+    {
+        List<ReplayDsRating> replayRatings = [];
+        List<ReplayPlayerDsRating> replayPlayerDsRatings = [];
+        bool append = request.ReplayRatingAppendId != 0;
+
+        foreach (var replayRatingResult in replayRatingResults)
+        {
+            request.ReplayRatingAppendId++;
+            ReplayDsRating replayRating = new()
+            {
+                ReplayDsRatingId = request.ReplayRatingAppendId,
+                RatingType = replayRatingResult.RatingType,
+                LeaverType = replayRatingResult.LeaverType,
+                ExpectationToWin = MathF.Round((float)replayRatingResult.ExpectationToWin, 2),
+                IsPreRating = false,
+                AvgRating = replayRatingResult.PlayerRatings.Count == 0 ? 0 
+                    : Convert.ToInt32(replayRatingResult.PlayerRatings.Average(a => a.Rating)),
+                ReplayId = replayRatingResult.ReplayId,
+            };
+            replayRatings.Add(replayRating);
+            foreach (var replayPlayerRatingResult in replayRatingResult.PlayerRatings)
+            {
+                request.ReplayPlayerRatingAppendId++;
+                ReplayPlayerDsRating replayPlayerDsRating = new()
+                {
+                    ReplayPlayerDsRatingId = request.ReplayPlayerRatingAppendId,
+                    Rating = replayPlayerRatingResult.Rating,
+                    RatingChange = replayPlayerRatingResult.RatingChange,
+                    Games = replayPlayerRatingResult.Games,
+                    Consistency = replayPlayerRatingResult.Consistency,
+                    Confidence = replayPlayerRatingResult.Confidence,
+                    ReplayPlayerId = replayPlayerRatingResult.ReplayPlayerId,
+                };
+                replayPlayerDsRatings.Add(replayPlayerDsRating);
+            }
+        }
+        var replayRatingsFileName = "/data/mysqlfiles/ReplayDsRatings.csv";
+        var replayPlayerRatingsFileName = "/data/mysqlfiles/ReplayPlayerDsRatings.csv";
+        await CreateOrAppendCsv(replayRatings.Select(s => new ReplayDsRatingCsv(s)).ToList(), replayRatingsFileName, append);
+        await CreateOrAppendCsv(replayPlayerDsRatings.Select(s => new ReplayPlayerDsRatingCsv(s)).ToList(), replayPlayerRatingsFileName, append);
+    }
+
+    private static async Task CreateOrAppendCsv<T>(List<T> records, string fileName, bool append) where T : CsvType, new()
+    {
+        using var stream = File.Open(fileName, append ? FileMode.Append : FileMode.Create);
+        using var writer = new StreamWriter(stream);
+        using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false });
+        await csv.WriteRecordsAsync(records);
+    }
+
     public static async Task StorePlayerDsRatingsCsv(CalcDsRatingRequest request, ReplayContext context, string connectionString)
     {
         var playerIds = (await context.Players
@@ -63,17 +115,16 @@ public static class RatingsStore
 
         var tableName = "PlayerDsRatings";
         var fileName = "/data/mysqlfiles/PlayerDsRatings.csv";
-        using var stream = File.Open(fileName, FileMode.Create);
-        using (var writer = new StreamWriter(stream))
-        {
-            using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false });
-            foreach (var rating in playerDsRatings)
-            {
-                csv.WriteRecord(new PlayerDsRatingCsv(rating));
-                csv.NextRecord();
-            }
-        }
+        await CreateOrAppendCsv(playerDsRatings.Select(s => new PlayerDsRatingCsv(s)).ToList(), fileName, false);
+
+        var replayRatingsFileName = "/data/mysqlfiles/ReplayDsRatings.csv";
+        var replayRatingsTableName = nameof(ReplayContext.ReplayDsRatings);
+        var replayPlayerRatingsFileName = "/data/mysqlfiles/ReplayPlayerDsRatings.csv";
+        var replayPlayerRatingsTableName = nameof(ReplayContext.ReplayPlayerDsRatings);
+
         await Csv2Mysql(fileName, tableName, connectionString);
+        await Csv2Mysql(replayRatingsFileName, replayRatingsTableName, connectionString);
+        await Csv2Mysql(replayPlayerRatingsFileName, replayPlayerRatingsTableName, connectionString);
     }
 
     public static async Task StorePlayerDsRatings(CalcDsRatingRequest request, ReplayContext context)
@@ -198,8 +249,11 @@ SET SQL_LOG_BIN=1;";
     }
 }
 
-internal record PlayerDsRatingCsv
+internal interface CsvType { }
+
+internal record PlayerDsRatingCsv : CsvType
 {
+    public PlayerDsRatingCsv() { }
     public PlayerDsRatingCsv(PlayerDsRating rating)
     {
         PlayerDsRatingId = rating.PlayerDsRatingId;
@@ -237,6 +291,52 @@ internal record PlayerDsRatingCsv
     public int LoseStreak { get; init; }
     public int CurrentStreak { get; init; }
     public int Duration { get; init; }
-    public string LatestReplay { get; init; }
+    public string LatestReplay { get; init; } = string.Empty;
     public int PlayerId { get; init; }
+}
+
+public record ReplayPlayerDsRatingCsv : CsvType
+{
+    public ReplayPlayerDsRatingCsv() { }
+    public ReplayPlayerDsRatingCsv(ReplayPlayerDsRating rating)
+    {
+        ReplayPlayerDsRatingId = rating.ReplayPlayerDsRatingId;
+        Rating = rating.Rating;
+        RatingChange = rating.RatingChange;
+        Games = rating.Games;
+        CmdrGames = rating.CmdrGames;
+        Consistency = rating.Consistency;
+        Confidence = rating.Confidence;
+        ReplayPlayerId = rating.ReplayPlayerId;
+    }
+    public int ReplayPlayerDsRatingId { get; set; }
+    public float Rating { get; set; }
+    public float RatingChange { get; set; }
+    public int Games { get; set; }
+    public int CmdrGames { get; set; }
+    public float Consistency { get; set; }
+    public float Confidence { get; set; }
+    public int ReplayPlayerId { get; set; }
+}
+
+public record ReplayDsRatingCsv : CsvType
+{
+    public ReplayDsRatingCsv() { }
+    public ReplayDsRatingCsv(ReplayDsRating rating)
+    {
+        ReplayDsRatingId = rating.ReplayDsRatingId;
+        RatingType = (int)rating.RatingType;
+        LeaverType = (int)rating.LeaverType;
+        ExpectationToWin = rating.ExpectationToWin;
+        IsPreRating = rating.IsPreRating ? 1 : 0;
+        AvgRating = rating.AvgRating;
+        ReplayId = rating.ReplayId;
+    }
+    public int ReplayDsRatingId { get; set; }
+    public int RatingType { get; set; }
+    public int LeaverType { get; set; }
+    public float ExpectationToWin { get; set; }
+    public int IsPreRating { get; set; }
+    public int AvgRating { get; set; }
+    public int ReplayId { get; set; }
 }

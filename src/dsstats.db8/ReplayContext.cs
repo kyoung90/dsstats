@@ -59,6 +59,7 @@ public class ReplayContext : DbContext
     public DbSet<DsPickBan> DsPickBans { get; set; }
     public DbSet<PlayerDsRating> PlayerDsRatings { get; set; }
     public DbSet<ReplayPlayerDsRating> ReplayPlayerDsRatings { get; set; }
+    public DbSet<ReplayDsRating> ReplayDsRatings { get; set; }
     public int Week(DateTime date) => throw new InvalidOperationException($"{nameof(Week)} cannot be called client side.");
     public int Strftime(string arg, DateTime date) => throw new InvalidOperationException($"{nameof(Strftime)} cannot be called client side.");
 

@@ -33,6 +33,7 @@ public static class ReplayProcessor
             RatingType = (RatingType)calcData.RatingType,
             LeaverType = (LeaverType)calcData.LeaverType,
             ExpectationToWin = MathF.Round((float)calcData.WinnerTeamExpecationToWin, 2),
+            PlayerRatings = playerRatings,
             ReplayId = calcDto.ReplayId,
         };
 
