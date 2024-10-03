@@ -29,7 +29,7 @@ public static class RatingsStore
                 LeaverType = replayRatingResult.LeaverType,
                 ExpectationToWin = MathF.Round((float)replayRatingResult.ExpectationToWin, 2),
                 IsPreRating = false,
-                AvgRating = replayRatingResult.PlayerRatings.Count == 0 ? 0 
+                AvgRating = replayRatingResult.PlayerRatings.Count == 0 ? 0
                     : Convert.ToInt32(replayRatingResult.PlayerRatings.Average(a => a.Rating)),
                 ReplayId = replayRatingResult.ReplayId,
             };
@@ -122,7 +122,7 @@ public static class RatingsStore
         var replayPlayerRatingsFileName = "/data/mysqlfiles/ReplayPlayerDsRatings.csv";
         var replayPlayerRatingsTableName = nameof(ReplayContext.ReplayPlayerDsRatings);
 
-        await Csv2Mysql(fileName, tableName, connectionString);
+        await Csv2MysqlUpdate(fileName, tableName, connectionString);
         await Csv2Mysql(replayRatingsFileName, replayRatingsTableName, connectionString);
         await Csv2Mysql(replayPlayerRatingsFileName, replayPlayerRatingsTableName, connectionString);
     }
@@ -247,7 +247,69 @@ SET SQL_LOG_BIN=1;";
             throw ex;
         }
     }
+
+    private static async Task Csv2MysqlUpdate(string fileName, string tableName, string connectionString)
+    {
+        if (!File.Exists(fileName))
+        {
+            return;
+        }
+
+        var tempTable = tableName + "_temp";
+
+        try
+        {
+            using var connection = new MySqlConnection(connectionString);
+            await connection.OpenAsync();
+
+            var command = connection.CreateCommand();
+            command.CommandTimeout = commandTimeout;
+
+            command.CommandText = @$"
+DROP TABLE IF EXISTS {tempTable};
+CREATE TABLE {tempTable} LIKE {tableName};
+SET SQL_LOG_BIN=0;
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE {tempTable} DISABLE KEYS;
+LOAD DATA INFILE '{fileName}' INTO TABLE {tempTable}
+COLUMNS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '""' ESCAPED BY '""' LINES TERMINATED BY '\r\n';
+ALTER TABLE {tempTable} ENABLE KEYS;
+
+INSERT INTO {tableName} SELECT * FROM {tempTable}
+ON DUPLICATE KEY UPDATE
+    Games = VALUES(Games),
+    Wins = VALUES(Wins),
+    Mvps = VALUES(Mvps),
+    Mmr = VALUES(Mmr),
+    Consistency = VALUES(Consistency),
+    Confidence = VALUES(Confidence),
+    PeakRating = VALUES(PeakRating),
+    RecentRatingGain = VALUES(RecentRatingGain),
+    MainCmdr = VALUES(MainCmdr),
+    MainPercentage = VALUES(MainPercentage),
+    WinStreak = VALUES(WinStreak),
+    LoseStreak = VALUES(LoseStreak),
+    CurrentStreak = VALUES(CurrentStreak),
+    Duration = VALUES(Duration),
+    LatestReplay = VALUES(LatestReplay);
+
+DROP TABLE {tempTable};
+SET FOREIGN_KEY_CHECKS = 1;
+SET SQL_LOG_BIN=1;";
+
+            await command.ExecuteNonQueryAsync();
+
+            File.Delete(fileName);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
 }
+
+
+
 
 internal interface CsvType { }
 

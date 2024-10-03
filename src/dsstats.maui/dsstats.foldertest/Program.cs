@@ -5,7 +5,10 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-        var sc2Dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Starcraft II");
+
+        // var sc2Dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Starcraft II");
+        var sc2Dir = @"C:\Users\pax77\OneDrive\Dokumente\StarCraft II";
+
         Console.WriteLine($"sc2 dir: {sc2Dir}");
         if (!Directory.Exists(sc2Dir))
         {
@@ -17,6 +20,11 @@ class Program
         {
             var target = GetShortcutTarget(file);
             Console.WriteLine($"found target for {file}: {target}");
+            if (target is not null)
+            {
+                var files = Directory.GetFiles(Path.Combine(target, "Replays", "Multiplayer"));
+                Console.WriteLine($"files: {files.Length}");
+            }
         }
     }
 
