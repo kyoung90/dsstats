@@ -1,5 +1,12 @@
+@font-face {
+    font-family: 'LeagueSpartan'; /* Give the font a name */
+    src: url('../fonts/LeagueSpartan-VariableFont_wght.ttf') format('truetype'); /* Path to your font */
+    font-weight: 100 900; /* Specify the range of font weights supported */
+    font-style: normal; /* Normal style */
+  }
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'LeagueSpartan','Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 h1:focus {
