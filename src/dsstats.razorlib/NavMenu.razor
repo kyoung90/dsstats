@@ -1,81 +1,105 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using dsstats.shared
 
-<div class="top-row ps-3 navbar navbar-dark">
+@* <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">dsstats @Data.WasmVersion</a>
+        <a class="navbar-brand" href="">dsstats </a>
     </div>
+</div> *@
+
+<div class="sidebar-logo">
+    <NavLink href="" Match="NavLinkMatch.All" class="navbar-brand">
+        <img src="_content/dsstats.razorlib/images/full-logo-ds-stats-2024.png" alt="DS Stats Logo ">
+        @Data.WasmVersion
+    </NavLink>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+ <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill me-1" aria-hidden="true"></span> Home
-            </NavLink>
+        <div class="h-100 ">
+
+            <!-- Sidebar Navigation -->
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <NavLink href="" Match="NavLinkMatch.All" class="sidebar-link nav-link">
+                        <span class="bi bi-house" aria-hidden="true"></span>
+                        Home
+                    </NavLink>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink class="sidebar-link nav-link" href="builds">
+                        <span class="bi bi-ui-radios-grid" aria-hidden="true"></span>
+                        Builds
+                    </NavLink>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink href="#" class="sidebar-link nav-link collapsed" data-bs-toggle="collapse"
+                        data-bs-target="#stats" aria-expanded="false" aria-controls="stats">
+                        <span class="bi bi-bar-chart" aria-hidden="true"></span>
+                        Stats
+                    </NavLink>
+                    <ul id="stats" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        <li class="sidebar-item">
+                            <NavLink href="stats" class="sidebar-link nav-link">Performance Overview</NavLink>
+                        </li>
+                        <li class="sidebar-item">
+                            <NavLink href="cmdrinfos" class="sidebar-link nav-link">Player Leaderboards</NavLink>
+                        </li>
+                        <li class="sidebar-item">
+                            <NavLink href="dsdata" class="sidebar-link nav-link">Units</NavLink>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="sidebar-item">
+                    <NavLink href="#" class="sidebar-link nav-link collapsed" data-bs-toggle="collapse"
+                        data-bs-target="#data" aria-expanded="false" aria-controls="data">
+                        <span class="bi bi-database" aria-hidden="true"></span>
+                        Data
+                    </NavLink>
+                    <ul id="data" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        <li class="sidebar-item">
+                            <NavLink href="replays" class="sidebar-link nav-link">Replays</NavLink>
+                        </li>
+                        <li class="sidebar-item">
+                            <NavLink href="upload" class="sidebar-link nav-link">Upload</NavLink>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink href="tourneys" class="sidebar-link nav-link">
+                        <span class="bi bi-trophy" aria-hidden="true"></span>
+                        Tournaments
+                    </NavLink>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink href="#" class="sidebar-link nav-link collapsed" data-bs-toggle="collapse"
+                        data-bs-target="#tools" aria-expanded="false" aria-controls="tools">
+                        <span class="bi bi-tools" aria-hidden="true"></span>
+                        Tools
+                    </NavLink>
+                    <ul id="tools" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        <li class="sidebar-item">
+                            <NavLink href="tourneys/pickban" class="sidebar-link nav-link">Pickban</NavLink>
+                        </li>
+                        <li class="sidebar-item">
+                            <NavLink href="tourneys/ih" class="sidebar-link nav-link">IH</NavLink>
+                        </li>
+                        <li class="sidebar-item">
+                            <NavLink href="tourneys/bestmm" class="sidebar-link nav-link">Commander Synergy Picks
+                            </NavLink>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink href="faq" class="sidebar-link nav-link">
+                        <span class="bi bi-lightbulb" aria-hidden="true"></span>
+                        Tips
+                    </NavLink>
+                </li>
+            </ul>
         </div>
-@*         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="review/2023">
-                <span class="bi bi-trophy me-1" aria-hidden="true"></span> Review of 2023
-            </NavLink>
-        </div> *@
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="stats/winrate">
-                <span class="bi bi-bar-chart-line me-1" aria-hidden="true"></span> Stats
-            </NavLink>
-        </div>   
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="builds">
-                <span class="bi bi-person-gear me-1" aria-hidden="true"></span> Builds
-            </NavLink>
-        </div>       
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="cmdrinfos">
-                <span class="bi bi-person-workspace me-1" aria-hidden="true"></span> Player Cmdr Metrics
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ratings">
-                <span class="bi bi-people me-1" aria-hidden="true"></span> Ratings
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="replays">
-                <span class="bi bi-list-columns me-1" aria-hidden="true"></span> Replays
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dsdata">
-                <span class="bi bi-database-fill me-1" aria-hidden="true"></span> Unit Stats
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tourneys">
-                <span class="bi bi-camera-reels me-1" aria-hidden="true"></span> Tourneys
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="faq">
-                <span class="bi bi-book me-1" aria-hidden="true"></span> DS FAQ
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="upload">
-                <span class="bi bi-upload me-1" aria-hidden="true"></span> Upload
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="info">
-                <span class="bi bi-info-circle me-1" aria-hidden="true"></span> Info
-            </NavLink>
-        </div>
-        
-@*         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth/login">
-                <span class="bi bi-info-circle me-1" aria-hidden="true"></span> Login
-            </NavLink>
-        </div> *@
     </nav>
 </div>
