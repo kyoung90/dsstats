@@ -24,6 +24,16 @@ To install the [GitHub release](https://github.com/ipax77/dsstats/releases/lates
 ![details](/images/pldetails.png)
 ![replay](/images/replay.png)
 
+## Font Attribution
+
+This project uses the **[League Spartan](https://fonts.google.com/specimen/League+Spartan)** font.
+
+- **Author**: The League of Moveable Type
+- **License**: [Open Font License (OFL)](https://openfontlicense.org/)
+- **Source**: [Google Fonts](https://fonts.google.com/specimen/League+Spartan)
+
+The font is free to use for both personal and commercial projects under the terms of the Open Font License.
+
 # Contributing
 
 We really like people helping us with the project. Nevertheless, take your time to read our contributing guidelines [here](./CONTRIBUTING.md).
