@@ -14,7 +14,7 @@
     </NavLink>
 </div>
 
- <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable">
     <nav class="flex-column">
@@ -52,21 +52,17 @@
                         </li>
                     </ul>
                 </li>
-
                 <li class="sidebar-item">
-                    <NavLink href="#" class="sidebar-link nav-link collapsed" data-bs-toggle="collapse"
-                        data-bs-target="#data" aria-expanded="false" aria-controls="data">
-                        <span class="bi bi-database" aria-hidden="true"></span>
-                        Data
+                    <NavLink href="replays" class="sidebar-link nav-link">
+                        <span class="bi bi-play-circle" aria-hidden="true"></span>
+                        Replays
                     </NavLink>
-                    <ul id="data" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <NavLink href="replays" class="sidebar-link nav-link">Replays</NavLink>
-                        </li>
-                        <li class="sidebar-item">
-                            <NavLink href="upload" class="sidebar-link nav-link">Upload</NavLink>
-                        </li>
-                    </ul>
+                </li>
+                <li class="sidebar-item">
+                    <NavLink href="upload" class="sidebar-link nav-link">
+                        <span class="bi bi-upload" aria-hidden="true"></span>
+                        Upload
+                    </NavLink>
                 </li>
                 <li class="sidebar-item">
                     <NavLink href="tourneys" class="sidebar-link nav-link">
@@ -97,6 +93,19 @@
                     <NavLink href="faq" class="sidebar-link nav-link">
                         <span class="bi bi-lightbulb" aria-hidden="true"></span>
                         Tips
+                    </NavLink>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <nav class="flex-column">
+        <div class="h-100 ">
+            <!-- Sidebar Navigation Bottom-->
+            <ul class="sidebar-nav">
+                <li class="sidebar-item sidebar-item-blue">
+                    <NavLink href="info" Match="NavLinkMatch.All" class="sidebar-link nav-link">
+                        <span class="bi bi-info-circle" aria-hidden="true"></span>
+                        About
                     </NavLink>
                 </li>
             </ul>
